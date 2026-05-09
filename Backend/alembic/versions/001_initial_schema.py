@@ -18,35 +18,42 @@ depends_on = None
 
 def upgrade() -> None:
     # Enums
-    op.execute(
-        """
-        CREATE TYPE gender_enum AS ENUM ('male', 'female', 'other', 'undisclosed');
+        # Enums – each in its own op.execute to work with asyncpg
+    op.execute("CREATE TYPE gender_enum AS ENUM ('male', 'female', 'other', 'undisclosed')")
+    op.execute("""
         CREATE TYPE location_type_enum AS ENUM (
             'country', 'region', 'city', 'district', 'street',
             'building', 'crime_scene', 'court', 'storage', 'other'
-        );
-        CREATE TYPE severity_enum AS ENUM ('infraction', 'misdemeanor', 'felony', 'capital');
-        CREATE TYPE risk_level_enum AS ENUM ('low', 'medium', 'high', 'critical');
-        CREATE TYPE access_level_enum AS ENUM ('read', 'write', 'admin');
+        )
+    """)
+    op.execute("CREATE TYPE severity_enum AS ENUM ('infraction', 'misdemeanor', 'felony', 'capital')")
+    op.execute("CREATE TYPE risk_level_enum AS ENUM ('low', 'medium', 'high', 'critical')")
+    op.execute("CREATE TYPE access_level_enum AS ENUM ('read', 'write', 'admin')")
+    op.execute("""
         CREATE TYPE role_in_case_enum AS ENUM (
             'lead_investigator', 'co_investigator', 'support_officer',
             'forensic_officer', 'supervisor'
-        );
+        )
+    """)
+    op.execute("""
         CREATE TYPE charge_status_enum AS ENUM (
             'filed', 'pending', 'dismissed', 'convicted', 'acquitted', 'appealed'
-        );
+        )
+    """)
+    op.execute("""
         CREATE TYPE verdict_enum AS ENUM (
             'pending', 'guilty', 'not_guilty', 'mistrial', 'dismissed'
-        );
+        )
+    """)
+    op.execute("""
         CREATE TYPE auth_event_enum AS ENUM (
             'login_success', 'login_failure', 'logout', 'password_change',
             'password_reset_request', 'password_reset_complete',
             'mfa_success', 'mfa_failure', 'token_refresh',
             'account_locked', 'account_unlocked'
-        );
-        """
-    )
-
+        )
+    """)
+    
     # Location
     op.create_table(
         "location",
