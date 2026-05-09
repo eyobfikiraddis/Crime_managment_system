@@ -17,43 +17,43 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Enums
-        # Enums – each in its own op.execute to work with asyncpg
-    op.execute("CREATE TYPE gender_enum AS ENUM ('male', 'female', 'other', 'undisclosed')")
+
+    # Enums – each in its own op.execute, names matching application defaults
+    op.execute("CREATE TYPE genderenum AS ENUM ('male', 'female', 'other', 'undisclosed')")
     op.execute("""
-        CREATE TYPE location_type_enum AS ENUM (
+        CREATE TYPE locationtypeenum AS ENUM (
             'country', 'region', 'city', 'district', 'street',
             'building', 'crime_scene', 'court', 'storage', 'other'
         )
     """)
-    op.execute("CREATE TYPE severity_enum AS ENUM ('infraction', 'misdemeanor', 'felony', 'capital')")
-    op.execute("CREATE TYPE risk_level_enum AS ENUM ('low', 'medium', 'high', 'critical')")
-    op.execute("CREATE TYPE access_level_enum AS ENUM ('read', 'write', 'admin')")
+    op.execute("CREATE TYPE severityenum AS ENUM ('infraction', 'misdemeanor', 'felony', 'capital')")
+    op.execute("CREATE TYPE risklevelenum AS ENUM ('low', 'medium', 'high', 'critical')")
+    op.execute("CREATE TYPE accesslevelenum AS ENUM ('read', 'write', 'admin')")
     op.execute("""
-        CREATE TYPE role_in_case_enum AS ENUM (
+        CREATE TYPE roleincaseenum AS ENUM (
             'lead_investigator', 'co_investigator', 'support_officer',
             'forensic_officer', 'supervisor'
         )
     """)
     op.execute("""
-        CREATE TYPE charge_status_enum AS ENUM (
+        CREATE TYPE chargestatusenum AS ENUM (
             'filed', 'pending', 'dismissed', 'convicted', 'acquitted', 'appealed'
         )
     """)
     op.execute("""
-        CREATE TYPE verdict_enum AS ENUM (
+        CREATE TYPE verdictenum AS ENUM (
             'pending', 'guilty', 'not_guilty', 'mistrial', 'dismissed'
         )
     """)
     op.execute("""
-        CREATE TYPE auth_event_enum AS ENUM (
+        CREATE TYPE autheventenum AS ENUM (
             'login_success', 'login_failure', 'logout', 'password_change',
             'password_reset_request', 'password_reset_complete',
             'mfa_success', 'mfa_failure', 'token_refresh',
             'account_locked', 'account_unlocked'
         )
     """)
-    
+
     # Location
     op.create_table(
         "location",
@@ -77,7 +77,7 @@ def upgrade() -> None:
                 "court",
                 "storage",
                 "other",
-                name="location_type_enum",
+                name="locationtypeenum",
                 create_type=False,
             ),
             nullable=True,
@@ -108,7 +108,7 @@ def upgrade() -> None:
                 "female",
                 "other",
                 "undisclosed",
-                name="gender_enum",
+                name="genderenum",
                 create_type=False,
             ),
             nullable=True,
@@ -235,7 +235,7 @@ def upgrade() -> None:
                 "token_refresh",
                 "account_locked",
                 "account_unlocked",
-                name="auth_event_enum",
+                name="autheventenum",          # ← FIXED: was "auth_event_enum"
                 create_type=False,
             ),
             nullable=False,
@@ -291,7 +291,7 @@ def upgrade() -> None:
                 "misdemeanor",
                 "felony",
                 "capital",
-                name="severity_enum",
+                name="severityenum",
                 create_type=False,
             ),
             nullable=True,
@@ -387,12 +387,12 @@ def downgrade() -> None:
     op.drop_table("case_status")
     op.drop_table("person")
     op.drop_table("location")
-    op.execute("DROP TYPE IF EXISTS auth_event_enum;")
-    op.execute("DROP TYPE IF EXISTS verdict_enum;")
-    op.execute("DROP TYPE IF EXISTS charge_status_enum;")
-    op.execute("DROP TYPE IF EXISTS role_in_case_enum;")
-    op.execute("DROP TYPE IF EXISTS access_level_enum;")
-    op.execute("DROP TYPE IF EXISTS risk_level_enum;")
-    op.execute("DROP TYPE IF EXISTS severity_enum;")
-    op.execute("DROP TYPE IF EXISTS location_type_enum;")
-    op.execute("DROP TYPE IF EXISTS gender_enum;")
+    op.execute("DROP TYPE IF EXISTS autheventenum;")
+    op.execute("DROP TYPE IF EXISTS verdictenum;")
+    op.execute("DROP TYPE IF EXISTS chargestatusenum;")
+    op.execute("DROP TYPE IF EXISTS roleincaseenum;")
+    op.execute("DROP TYPE IF EXISTS accesslevelenum;")
+    op.execute("DROP TYPE IF EXISTS risklevelenum;")
+    op.execute("DROP TYPE IF EXISTS severityenum;")
+    op.execute("DROP TYPE IF EXISTS locationtypeenum;")
+    op.execute("DROP TYPE IF EXISTS genderenum;")

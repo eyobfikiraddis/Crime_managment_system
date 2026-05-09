@@ -15,7 +15,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.shared.base_model import Base, AuditMixin, TimestampMixin
-from app.shared.enums import AuthEventEnum, GenderEnum
+from app.shared.enums import AuthEventEnum, GenderEnum, LocationTypeEnum
 
 
 class Role(Base, TimestampMixin):
@@ -94,7 +94,11 @@ class Officer(Base, AuditMixin):
         back_populates="officers",
         foreign_keys="Officer.department_id",
     )
-    history: Mapped[list["OfficerHistory"]] = relationship("OfficerHistory", back_populates="officer")
+    history: Mapped[list["OfficerHistory"]] = relationship(
+    "OfficerHistory",
+    back_populates="officer",
+    foreign_keys="OfficerHistory.officer_id",   # explicitly link via officer_id
+    )
     auth_audit_logs: Mapped[list["AuthAuditLog"]] = relationship(
         "AuthAuditLog", back_populates="officer"
     )
@@ -182,3 +186,12 @@ class PasswordResetAudit(Base):
     used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     officer: Mapped["Officer"] = relationship("Officer", back_populates="password_reset_audits")
+
+
+# TEMPORARY: Add a simple Location model for demonstration purposes
+class Location(Base):
+    __tablename__ = "location"
+
+    location_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # Add only the columns that are referenced – the FK from department just needs the table to exist
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
