@@ -306,7 +306,7 @@ class AuthService:
         await self.repo.update_officer_password_hash(officer, new_hash)
 
         await redis_ops.delete_password_reset_token(token)
-        await redis_ops.block_officer(officer_id=officer_id, ttl=604800)
+        # await redis_ops.block_officer(officer_id=officer_id, ttl=604800)
         await redis_ops.remove_officer_sessions(officer_id=officer_id)
         await redis_ops.invalidate_officer_profile_cache(officer_id=officer_id)
 
@@ -358,7 +358,7 @@ class AuthService:
             current_access_payload.get("jti"),
             normalize_exp(current_access_payload),
         )
-        await redis_ops.block_officer(officer_id=officer_id, ttl=604800)
+        # await redis_ops.block_officer(officer_id=officer_id, ttl=604800) Why do we want to block the officer here? This would prevent them from logging in again until the block expires, which might not be desirable after a password change. Instead, we should just invalidate existing sessions and tokens.
         await redis_ops.remove_officer_sessions(officer_id=officer_id)
         await redis_ops.invalidate_officer_profile_cache(officer_id=officer_id)
 

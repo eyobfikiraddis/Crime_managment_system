@@ -131,7 +131,7 @@ async def change_password(
     auth_header = request.headers.get("authorization", "")
     token = auth_header.replace("Bearer ", "").replace("bearer ", "").strip()
     try:
-        payload = decode_token(token)
+        payload = decode_and_validate_access_token(token)
     except Exception:
         raise InvalidTokenError("Not authenticated")
 
