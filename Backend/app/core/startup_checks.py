@@ -22,6 +22,14 @@ REQUIRED_CASE_STATUSES = {
 }
 
 REQUIRED_ROLES = {role.value for role in RoleNameEnum}
+REQUIRED_TABLES = {
+    "case",
+    "case_person",
+    "charge",
+    "case_officer",
+    "evidence",
+    "case_note",
+}
 
 
 async def run_startup_checks() -> None:
@@ -53,6 +61,11 @@ async def run_startup_checks() -> None:
         logger.error("startup_permission_registry_invalid", errors=permission_errors)
         raise RuntimeError(f"Permission registry invalid: {permission_errors}")
 
+    tables_ok, missing_tables = await check_required_tables()
+    if not tables_ok:
+        logger.error("startup_tables_missing", missing=missing_tables)
+        raise RuntimeError(f"Missing required tables: {sorted(missing_tables)}")
+
     migrations_ok = await check_migrations()
     if not migrations_ok:
         logger.error("startup_migrations_failed")
@@ -70,6 +83,7 @@ async def build_readiness_checks() -> dict[str, bool]:
     redis_health = await check_redis_health()
     seed_status = await check_seed_data()
     permissions_ok, _permission_errors = validate_permissions_registry()
+    tables_ok, _missing_tables = await check_required_tables()
     migrations_ok = await check_migrations()
 
     return {
@@ -77,6 +91,7 @@ async def build_readiness_checks() -> dict[str, bool]:
         "redis": redis_health.get("status") == "healthy",
         "seed_case_status": seed_status["seed_case_status"],
         "seed_roles": seed_status["seed_roles"],
+        "tables": tables_ok,
         "migrations": migrations_ok,
         "permissions": permissions_ok,
     }
@@ -119,6 +134,24 @@ async def check_migrations() -> bool:
         return True
     except Exception:
         return False
+
+
+async def check_required_tables() -> tuple[bool, list[str]]:
+    try:
+        async with async_session_factory() as session:
+            result = await session.execute(
+                text(
+                    "SELECT table_name FROM information_schema.tables "
+                    "WHERE table_schema = 'public'"
+                )
+            )
+            existing = {row[0] for row in result.fetchall()}
+    except Exception as exc:
+        logger.error("startup_table_check_failed", error=str(exc))
+        return False, sorted(REQUIRED_TABLES)
+
+    missing = sorted(REQUIRED_TABLES - existing)
+    return len(missing) == 0, missing
 
 
 async def check_live_dependencies() -> dict[str, object]:
