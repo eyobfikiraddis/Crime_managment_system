@@ -7,7 +7,9 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.modules.auth.models import Department, Officer
+from app.core.exceptions import NotFoundError, ValidationError
+from app.modules.auth.models import Department, Officer, OfficerHistory, Role
+from app.modules.departments.exceptions import NoDepartmentHeadError
 from app.modules.personnel.models import DepartmentAuditLog
 
 
@@ -150,3 +152,112 @@ class DepartmentRepository:
         )
         self.session.add(audit)
         await self.session.flush()
+
+    async def get_role_by_id(self, role_id: int) -> Role | None:
+        result = await self.session.execute(select(Role).where(Role.role_id == role_id))
+        return result.scalar_one_or_none()
+
+    async def get_role_by_name(self, role_name: str) -> Role | None:
+        result = await self.session.execute(select(Role).where(Role.role_name == role_name))
+        return result.scalar_one_or_none()
+
+    async def remove_department_head(
+        self,
+        department_id: int,
+        demote_role_id: int,
+        requesting_officer_id: int,
+    ) -> tuple[Department, str, int]:
+        """Returns (department, new_role_name, demoted_officer_id)."""
+        now = datetime.now(tz=timezone.utc)
+        dept_result = await self.session.execute(
+            select(Department)
+            .where(
+                Department.department_id == department_id,
+                Department.deleted_at.is_(None),
+            )
+            .with_for_update()
+        )
+        dept = dept_result.scalar_one_or_none()
+        if dept is None:
+            raise NotFoundError("Department not found")
+        if dept.department_head_officer_id is None:
+            raise NoDepartmentHeadError()
+
+        head_result = await self.session.execute(
+            select(Officer)
+            .where(Officer.officer_id == dept.department_head_officer_id)
+            .with_for_update()
+        )
+        head = head_result.scalar_one_or_none()
+        if head is None:
+            raise NotFoundError("Department head officer not found")
+
+        old_role = await self.get_role_by_id(head.role_id)
+        new_role = await self.get_role_by_id(demote_role_id)
+        if new_role is None:
+            raise ValidationError("Invalid demotion role")
+
+        head.role_id = demote_role_id
+        head.updated_at = now
+        dept.department_head_officer_id = None
+        dept.updated_at = now
+        self.session.add(head)
+        self.session.add(dept)
+
+        self.session.add(
+            OfficerHistory(
+                officer_id=head.officer_id,
+                changed_by=requesting_officer_id,
+                field_name="role_id",
+                old_value=old_role.role_name if old_role else None,
+                new_value=new_role.role_name,
+                changed_at=now,
+            )
+        )
+        self.session.add(
+            OfficerHistory(
+                officer_id=head.officer_id,
+                changed_by=requesting_officer_id,
+                field_name="department_head_assignment",
+                old_value=str(department_id),
+                new_value=None,
+                changed_at=now,
+            )
+        )
+        demoted_id = head.officer_id
+        await self.session.flush()
+        await self.session.refresh(dept)
+        return dept, new_role.role_name, demoted_id
+
+    async def list_department_officers(
+        self,
+        department_id: int,
+        role_id: int | None,
+        active_only: bool,
+        offset: int,
+        limit: int,
+    ) -> tuple[list[Officer], int]:
+        conditions = [
+            Officer.department_id == department_id,
+            Officer.deleted_at.is_(None),
+        ]
+        if active_only:
+            conditions.append(Officer.is_active.is_(True))
+        if role_id is not None:
+            conditions.append(Officer.role_id == role_id)
+
+        count_result = await self.session.execute(
+            select(func.count()).select_from(Officer).where(and_(*conditions))
+        )
+        total: int = count_result.scalar_one()
+
+        stmt = (
+            select(Officer)
+            .options(selectinload(Officer.person), selectinload(Officer.role))
+            .where(and_(*conditions))
+            .order_by(Officer.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all()), total

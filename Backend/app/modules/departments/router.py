@@ -1,13 +1,23 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Body, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.modules.auth.dependencies import get_current_officer
 from app.modules.auth.schemas.responses import CurrentOfficerContext
-from app.modules.departments.schemas.requests import AssignDepartmentHeadRequest, CreateDepartmentRequest, UpdateDepartmentRequest
-from app.modules.departments.schemas.responses import DepartmentListItemResponse, DepartmentResponse
+from app.modules.departments.schemas.requests import (
+    AssignDepartmentHeadRequest,
+    CreateDepartmentRequest,
+    RemoveDepartmentHeadRequest,
+    UpdateDepartmentRequest,
+)
+from app.modules.departments.schemas.responses import (
+    DepartmentListItemResponse,
+    DepartmentOfficerResponse,
+    DepartmentResponse,
+    RemoveDepartmentHeadResponse,
+)
 from app.modules.departments.service import DepartmentService
 from app.shared.pagination import PaginatedResponse
 from app.shared.response_schemas import MessageResponse
@@ -89,4 +99,46 @@ async def assign_department_head(
     service = DepartmentService(session)
     return await service.assign_department_head(
         requester=current_officer, department_id=department_id, body=body
+    )
+
+
+@router.delete(
+    "/{department_id}/head",
+    response_model=RemoveDepartmentHeadResponse,
+    status_code=200,
+)
+async def remove_department_head(
+    department_id: int,
+    body: RemoveDepartmentHeadRequest | None = Body(default=None),
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> RemoveDepartmentHeadResponse:
+    service = DepartmentService(session)
+    return await service.remove_department_head(
+        requester=current_officer, department_id=department_id, body=body
+    )
+
+
+@router.get(
+    "/{department_id}/officers",
+    response_model=PaginatedResponse[DepartmentOfficerResponse],
+    status_code=200,
+)
+async def list_department_officers(
+    department_id: int,
+    role_id: int | None = Query(default=None),
+    active_only: bool = Query(default=True),
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100),
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> PaginatedResponse[DepartmentOfficerResponse]:
+    service = DepartmentService(session)
+    return await service.list_department_officers(
+        requester=current_officer,
+        department_id=department_id,
+        role_id=role_id,
+        active_only=active_only,
+        page=page,
+        size=size,
     )

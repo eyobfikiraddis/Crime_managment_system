@@ -20,6 +20,7 @@ from app.core.rate_limiter import limiter
 from app.core.redis_client import check_redis_health, close_redis
 from app.core.startup_checks import build_readiness_checks, run_startup_checks
 from app.modules.auth.router import router as auth_router
+from app.modules.case_management.router import router as cases_router
 from app.modules.departments.router import router as departments_router
 from app.modules.personnel.router import router as personnel_router
 from app.shared.response_schemas import HealthResponse, ReadinessResponse
@@ -110,14 +111,19 @@ async def health_check() -> HealthResponse:
 
 
 @app.get("/api/v1/readiness", response_model=ReadinessResponse, include_in_schema=False)
-async def readiness_check() -> ReadinessResponse:
+async def readiness_check() -> ReadinessResponse | Response:
     checks = await build_readiness_checks()
     all_ready = all(checks.values())
-
-    return ReadinessResponse(
+    payload = ReadinessResponse(
         ready=all_ready,
         checks=checks,
     )
+    if not all_ready:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content=payload.model_dump(),
+        )
+    return payload
 
 
 # API Router Registration
@@ -125,3 +131,4 @@ async def readiness_check() -> ReadinessResponse:
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(personnel_router, prefix="/api/v1")
 app.include_router(departments_router, prefix="/api/v1")
+app.include_router(cases_router, prefix="/api/v1")

@@ -29,6 +29,23 @@ REQUIRED_TABLES = {
     "case_officer",
     "evidence",
     "case_note",
+    "suspect",
+    "victim",
+    "witness",
+    "arrest",
+    "case_update",
+    "case_permission",
+    "case_permission_audit",
+    "report",
+    "evidence_type",
+    "vehicle",
+    "weapon",
+    "chain_of_custody",
+    "forensic_report",
+    "crime_scene_photo",
+    "interrogation",
+    "court_case",
+    "sentence",
 }
 
 

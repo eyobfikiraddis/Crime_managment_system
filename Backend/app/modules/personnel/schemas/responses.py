@@ -4,7 +4,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict
 
-from app.shared.enums import GenderEnum, RiskLevelEnum
+from app.shared.enums import ChargeStatusEnum, GenderEnum, RiskLevelEnum, RoleInCaseEnum, VerdictEnum
 
 
 class PersonResponse(BaseModel):
@@ -120,6 +120,74 @@ class PersonDetailResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PersonSummaryResponse(BaseModel):
+    person_id: int
+    first_name: str
+    last_name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OfficerBriefResponse(BaseModel):
+    officer_id: int
+    badge_number: str | None
+    first_name: str
+    last_name: str
+    rank: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CaseOfficerAssignmentResponse(BaseModel):
+    officer_id: int
+    badge_number: str | None
+    first_name: str
+    last_name: str
+    rank: str | None
+    role_in_case: RoleInCaseEnum
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CaseSummaryResponse(BaseModel):
+    case_id: int
+    case_number: str
+    title: str
+    status_name: str
+    crime_type_name: str
+    opened_at: datetime | None
+    assigned_officers: list[CaseOfficerAssignmentResponse]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ArrestSummaryResponse(BaseModel):
+    arrest_id: int
+    booking_number: str | None
+    date: datetime
+    released_at: datetime | None
+    bail_amount: str | None
+    case_id: int | None
+    case_title: str | None
+    arresting_officer: OfficerBriefResponse
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ChargeSummaryResponse(BaseModel):
+    charge_id: int
+    crime_type_name: str
+    charge_status: ChargeStatusEnum
+    description: str | None
+    verdict: VerdictEnum | None
+    filed_at: datetime | None
+    case_id: int
+    case_number: str
+    court_case_id: int | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class SuspectResponse(BaseModel):
     suspect_id: int
     person_id: int
@@ -129,6 +197,23 @@ class SuspectResponse(BaseModel):
     updated_at: datetime | None
     deleted_at: datetime | None
     person: PersonResponse
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SuspectDetailResponse(SuspectResponse):
+    arrest_count: int
+    charge_count: int
+    case_count: int
+
+
+class SuspectListItemResponse(BaseModel):
+    suspect_id: int
+    person: PersonSummaryResponse
+    risk_level: RiskLevelEnum | None
+    active_case_count: int
+    active_charge_count: int
+    deleted_at: datetime | None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -15,3 +15,10 @@ class UpdateDepartmentRequest(BaseModel):
 
 class AssignDepartmentHeadRequest(BaseModel):
     officer_id: int
+
+
+class RemoveDepartmentHeadRequest(BaseModel):
+    demote_to_role_id: int | None = Field(
+        default=None,
+        description="Role to assign to the former head; defaults to investigator",
+    )

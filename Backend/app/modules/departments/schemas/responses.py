@@ -4,6 +4,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.modules.personnel.schemas.responses import PersonSummaryResponse
+
 
 class DepartmentHeadSummary(BaseModel):
     officer_id: int
@@ -25,6 +27,22 @@ class DepartmentResponse(BaseModel):
     updated_at: datetime | None
     deleted_at: datetime | None
     department_head: DepartmentHeadSummary | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RemoveDepartmentHeadResponse(BaseModel):
+    message: str
+    demoted_to_role: str
+
+
+class DepartmentOfficerResponse(BaseModel):
+    officer_id: int
+    badge_number: str | None
+    rank: str | None
+    role_name: str
+    is_active: bool
+    person: PersonSummaryResponse
 
     model_config = ConfigDict(from_attributes=True)
 

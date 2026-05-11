@@ -4,11 +4,24 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import redis_client as redis_ops
 from app.core.exceptions import ConflictError, ForbiddenError, NotFoundError, ValidationError
 from app.modules.auth.schemas.responses import CurrentOfficerContext
 from app.modules.departments.repository import DepartmentRepository
-from app.modules.departments.schemas.requests import AssignDepartmentHeadRequest, CreateDepartmentRequest, UpdateDepartmentRequest
-from app.modules.departments.schemas.responses import DepartmentHeadSummary, DepartmentListItemResponse, DepartmentResponse
+from app.modules.departments.schemas.requests import (
+    AssignDepartmentHeadRequest,
+    CreateDepartmentRequest,
+    RemoveDepartmentHeadRequest,
+    UpdateDepartmentRequest,
+)
+from app.modules.departments.schemas.responses import (
+    DepartmentHeadSummary,
+    DepartmentListItemResponse,
+    DepartmentOfficerResponse,
+    DepartmentResponse,
+    RemoveDepartmentHeadResponse,
+)
+from app.modules.personnel.schemas.responses import PersonSummaryResponse
 from app.shared.enums import RoleNameEnum
 from app.shared.pagination import PaginatedResponse
 from app.shared.response_schemas import MessageResponse
@@ -16,6 +29,16 @@ from app.shared.response_schemas import MessageResponse
 
 def _is_admin_or_superadmin(officer: CurrentOfficerContext) -> bool:
     return officer.role_name in {RoleNameEnum.admin.value, RoleNameEnum.superadmin.value}
+
+
+def _can_list_department_officers(
+    officer: CurrentOfficerContext, department_id: int
+) -> bool:
+    if _is_admin_or_superadmin(officer):
+        return True
+    if officer.role_name == RoleNameEnum.department_head.value:
+        return officer.department_id == department_id
+    return False
 
 
 class DepartmentService:
@@ -129,6 +152,71 @@ class DepartmentService:
             raise NotFoundError("Department not found")
         officer_count = await self.repo.count_active_officers(refreshed.department_id)
         return self._to_response(refreshed, officer_count)
+
+    async def remove_department_head(
+        self,
+        requester: CurrentOfficerContext,
+        department_id: int,
+        body: RemoveDepartmentHeadRequest | None,
+    ) -> RemoveDepartmentHeadResponse:
+        if requester.role_name != RoleNameEnum.superadmin.value:
+            raise ForbiddenError("Insufficient privileges")
+
+        req = body or RemoveDepartmentHeadRequest()
+        demote_role_id = req.demote_to_role_id
+        if demote_role_id is None:
+            inv = await self.repo.get_role_by_name(RoleNameEnum.investigator.value)
+            if not inv:
+                raise ValidationError("Default investigator role not found")
+            demote_role_id = inv.role_id
+
+        _dept, demoted_role_name, demoted_officer_id = await self.repo.remove_department_head(
+            department_id=department_id,
+            demote_role_id=demote_role_id,
+            requesting_officer_id=requester.officer_id,
+        )
+        await redis_ops.invalidate_officer_profile_cache(demoted_officer_id)
+        return RemoveDepartmentHeadResponse(
+            message="Department head removed",
+            demoted_to_role=demoted_role_name,
+        )
+
+    async def list_department_officers(
+        self,
+        requester: CurrentOfficerContext,
+        department_id: int,
+        role_id: int | None,
+        active_only: bool,
+        page: int,
+        size: int,
+    ) -> PaginatedResponse[DepartmentOfficerResponse]:
+        if not _can_list_department_officers(requester, department_id):
+            raise ForbiddenError("Insufficient privileges")
+
+        department = await self.repo.get_by_id(department_id)
+        if not department:
+            raise NotFoundError("Department not found")
+
+        offset = (page - 1) * size
+        officers, total = await self.repo.list_department_officers(
+            department_id=department_id,
+            role_id=role_id,
+            active_only=active_only,
+            offset=offset,
+            limit=size,
+        )
+        items = [
+            DepartmentOfficerResponse(
+                officer_id=o.officer_id,
+                badge_number=o.badge_number,
+                rank=o.rank,
+                role_name=o.role.role_name,
+                is_active=o.is_active,
+                person=PersonSummaryResponse.model_validate(o.person),
+            )
+            for o in officers
+        ]
+        return PaginatedResponse(items=items, total=total, page=page, size=size)
 
     def _build_head_summary(self, department) -> DepartmentHeadSummary | None:
         head = department.department_head
