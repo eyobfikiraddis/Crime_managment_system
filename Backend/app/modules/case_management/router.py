@@ -7,8 +7,8 @@ from datetime import datetime
 from app.core.database import get_db_session
 from app.modules.auth.dependencies import get_current_officer
 from app.modules.auth.schemas.responses import CurrentOfficerContext
-from app.modules.case_management.schemas.requests import CreateCaseRequest, CaseUpdateRequest, CaseStatusUpdateRequest, CaseAssignmentCreate, CasePersonLinkRequest, ChargeCreateRequest, ChargeUpdateRequest, ChargeStatusUpdateRequest, ArrestCreateRequest, ArrestUpdateRequest, EvidenceCreateRequest, EvidenceUpdateRequest, ChainOfCustodyCreateRequest, CaseNoteCreateRequest, CaseNoteUpdateRequest
-from app.modules.case_management.schemas.responses import CaseDetailResponse, CaseListItemResponse, CaseOfficerTinyResponse, CaseSuspectResponse, CaseVictimResponse, CaseWitnessResponse, ChargeResponse, ArrestResponse, EvidenceResponse, ChainOfCustodyResponse, CaseNoteResponse, CaseTimelineResponse, FullCaseDetailResponse
+from app.modules.case_management.schemas.requests import CreateCaseRequest, CaseUpdateRequest, CaseStatusUpdateRequest, CaseAssignmentCreate, CasePersonLinkRequest, ChargeCreateRequest, ChargeUpdateRequest, ChargeStatusUpdateRequest, ArrestCreateRequest, ArrestUpdateRequest, CaseNoteCreateRequest, CaseNoteUpdateRequest
+from app.modules.case_management.schemas.responses import CaseDetailResponse, CaseListItemResponse, CaseOfficerTinyResponse, CaseSuspectResponse, CaseVictimResponse, CaseWitnessResponse, ChargeResponse, ArrestResponse, CaseNoteResponse, CaseTimelineResponse, FullCaseDetailResponse
 from app.modules.case_management.service import CaseService
 from app.shared.pagination import PaginatedResponse
 
@@ -320,60 +320,6 @@ async def update_arrest(
 ) -> ArrestResponse:
     service = CaseService(session)
     return await service.update_arrest(requester=current_officer, case_id=case_id, arrest_id=arrest_id, body=body)
-
-
-# --- Evidence ---
-@router.post("/{case_id}/evidence", response_model=EvidenceResponse, status_code=201)
-async def create_evidence(
-    case_id: int,
-    body: EvidenceCreateRequest,
-    current_officer: CurrentOfficerContext = Depends(get_current_officer),
-    session: AsyncSession = Depends(get_db_session),
-) -> EvidenceResponse:
-    service = CaseService(session)
-    return await service.create_evidence(requester=current_officer, case_id=case_id, body=body)
-
-@router.get("/{case_id}/evidence", response_model=list[EvidenceResponse], status_code=200)
-async def list_case_evidence(
-    case_id: int,
-    current_officer: CurrentOfficerContext = Depends(get_current_officer),
-    session: AsyncSession = Depends(get_db_session),
-) -> list[EvidenceResponse]:
-    service = CaseService(session)
-    return await service.list_case_evidence(requester=current_officer, case_id=case_id)
-
-@router.put("/{case_id}/evidence/{evidence_id}", response_model=EvidenceResponse, status_code=200)
-async def update_evidence(
-    case_id: int,
-    evidence_id: int,
-    body: EvidenceUpdateRequest,
-    current_officer: CurrentOfficerContext = Depends(get_current_officer),
-    session: AsyncSession = Depends(get_db_session),
-) -> EvidenceResponse:
-    service = CaseService(session)
-    return await service.update_evidence(requester=current_officer, case_id=case_id, evidence_id=evidence_id, body=body)
-
-# --- Chain of Custody ---
-@router.post("/{case_id}/evidence/{evidence_id}/chain", response_model=ChainOfCustodyResponse, status_code=201)
-async def append_custody_event(
-    case_id: int,
-    evidence_id: int,
-    body: ChainOfCustodyCreateRequest,
-    current_officer: CurrentOfficerContext = Depends(get_current_officer),
-    session: AsyncSession = Depends(get_db_session),
-) -> ChainOfCustodyResponse:
-    service = CaseService(session)
-    return await service.append_custody_event(requester=current_officer, case_id=case_id, evidence_id=evidence_id, body=body)
-
-@router.get("/{case_id}/evidence/{evidence_id}/chain", response_model=list[ChainOfCustodyResponse], status_code=200)
-async def get_full_chain(
-    case_id: int,
-    evidence_id: int,
-    current_officer: CurrentOfficerContext = Depends(get_current_officer),
-    session: AsyncSession = Depends(get_db_session),
-) -> list[ChainOfCustodyResponse]:
-    service = CaseService(session)
-    return await service.get_full_chain(requester=current_officer, case_id=case_id, evidence_id=evidence_id)
 
 
 # --- Case Notes ---

@@ -390,30 +390,6 @@ class Weapon(Base):
     evidence: Mapped[Evidence] = relationship("Evidence", backref="weapon_detail")
 
 
-class ChainOfCustody(Base):
-    __tablename__ = "chain_of_custody"
-
-    chain_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    evidence_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("evidence.evidence_id"), nullable=False
-    )
-    officer_id: Mapped[int] = mapped_column(Integer, ForeignKey("officer.officer_id"), nullable=False)
-    action: Mapped[str] = mapped_column(String(100), nullable=False)
-    transferred_to: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("officer.officer_id"), nullable=True
-    )
-    location_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("location.location_id"), nullable=True
-    )
-    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-
-    evidence: Mapped[Evidence] = relationship("Evidence", backref="custody_events")
-    officer: Mapped[Officer] = relationship("Officer", foreign_keys=[officer_id])
-
-
 class ForensicReport(Base):
     __tablename__ = "forensic_report"
 

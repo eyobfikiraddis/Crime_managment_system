@@ -22,7 +22,9 @@ from app.core.startup_checks import build_readiness_checks, run_startup_checks
 from app.modules.auth.router import router as auth_router
 from app.modules.case_management.router import router as cases_router
 from app.modules.departments.router import router as departments_router
+from app.modules.evidence.router import router as evidence_router
 from app.modules.personnel.router import router as personnel_router
+from app.modules.reporting.router import router as reporting_router
 from app.shared.response_schemas import HealthResponse, ReadinessResponse
 
 configure_logging()
@@ -132,3 +134,5 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(personnel_router, prefix="/api/v1")
 app.include_router(departments_router, prefix="/api/v1")
 app.include_router(cases_router, prefix="/api/v1")
+app.include_router(evidence_router, prefix="/api/v1")
+app.include_router(reporting_router, prefix="/api/v1")
