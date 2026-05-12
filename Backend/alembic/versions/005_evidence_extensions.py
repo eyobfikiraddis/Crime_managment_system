@@ -217,9 +217,20 @@ def upgrade() -> None:
     )
     op.create_index("idx_interrogation_case_id", "interrogation", ["case_id"])
 
+<<<<<<< HEAD
     op.execute("CREATE INDEX IF NOT EXISTS idx_evidence_case ON evidence (case_id)")
     op.execute("CREATE INDEX IF NOT EXISTS idx_arrest_case ON arrest (case_id)")
     op.execute("CREATE INDEX IF NOT EXISTS idx_arrest_released ON arrest (case_id) WHERE released_at IS NULL")
+=======
+    op.create_index("idx_evidence_case", "evidence", ["case_id"])
+    op.create_index("idx_arrest_case", "arrest", ["case_id"])
+    op.create_index(
+        "idx_arrest_released",
+        "arrest",
+        ["case_id"],
+        postgresql_where=sa.text("released_at IS NULL"),
+    )
+>>>>>>> 2f21d947a70881795f7a32b874a5acfae2ff3a4d
 
 
 def downgrade() -> None:
