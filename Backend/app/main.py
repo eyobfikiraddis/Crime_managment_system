@@ -20,9 +20,11 @@ from app.core.rate_limiter import limiter
 from app.core.redis_client import check_redis_health, close_redis
 from app.core.startup_checks import build_readiness_checks, run_startup_checks
 from app.modules.auth.router import router as auth_router
+from app.modules.arrest.router import arrests_router, case_arrests_router
 from app.modules.case_management.router import router as cases_router
 from app.modules.departments.router import router as departments_router
 from app.modules.evidence.router import router as evidence_router
+from app.modules.interrogation.router import router as interrogation_router
 from app.modules.personnel.router import router as personnel_router
 from app.modules.reporting.router import router as reporting_router
 from app.shared.response_schemas import HealthResponse, ReadinessResponse
@@ -131,8 +133,11 @@ async def readiness_check() -> ReadinessResponse | Response:
 # API Router Registration
 
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(arrests_router, prefix="/api/v1")
+app.include_router(case_arrests_router, prefix="/api/v1")
 app.include_router(personnel_router, prefix="/api/v1")
 app.include_router(departments_router, prefix="/api/v1")
 app.include_router(cases_router, prefix="/api/v1")
 app.include_router(evidence_router, prefix="/api/v1")
+app.include_router(interrogation_router, prefix="/api/v1")
 app.include_router(reporting_router, prefix="/api/v1")

@@ -7,8 +7,8 @@ from datetime import datetime
 from app.core.database import get_db_session
 from app.modules.auth.dependencies import get_current_officer
 from app.modules.auth.schemas.responses import CurrentOfficerContext
-from app.modules.case_management.schemas.requests import CreateCaseRequest, CaseUpdateRequest, CaseStatusUpdateRequest, CaseAssignmentCreate, CasePersonLinkRequest, ChargeCreateRequest, ChargeUpdateRequest, ChargeStatusUpdateRequest, ArrestCreateRequest, ArrestUpdateRequest, CaseNoteCreateRequest, CaseNoteUpdateRequest
-from app.modules.case_management.schemas.responses import CaseDetailResponse, CaseListItemResponse, CaseOfficerTinyResponse, CaseSuspectResponse, CaseVictimResponse, CaseWitnessResponse, ChargeResponse, ArrestResponse, CaseNoteResponse, CaseTimelineResponse, FullCaseDetailResponse
+from app.modules.case_management.schemas.requests import CreateCaseRequest, CaseUpdateRequest, CaseStatusUpdateRequest, CaseUpdateCreateRequest, CaseAssignmentCreate, CasePersonLinkRequest, ChargeCreateRequest, ChargeUpdateRequest, ChargeStatusUpdateRequest, ArrestCreateRequest, ArrestUpdateRequest, CaseNoteCreateRequest, CaseNoteUpdateRequest, ReportCreateRequest, CasePermissionGrantRequest
+from app.modules.case_management.schemas.responses import CaseDetailResponse, CaseListItemResponse, CaseOfficerTinyResponse, CaseSuspectResponse, CaseVictimResponse, CaseWitnessResponse, ChargeResponse, ArrestResponse, CaseNoteResponse, CaseTimelineResponse, CaseUpdateResponse, ReportResponse, CasePermissionResponse, FullCaseDetailResponse
 from app.modules.case_management.service import CaseService
 from app.shared.pagination import PaginatedResponse
 
@@ -109,6 +109,113 @@ async def update_case_status(
 ) -> CaseDetailResponse:
     service = CaseService(session)
     return await service.update_case_status(requester=current_officer, case_id=case_id, body=body)
+
+
+@router.post(
+    "/{case_id}/updates",
+    response_model=CaseUpdateResponse,
+    status_code=201,
+    summary="Add a manual note to a case",
+)
+async def add_case_update(
+    case_id: int,
+    body: CaseUpdateCreateRequest,
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> CaseUpdateResponse:
+    service = CaseService(session)
+    return await service.add_manual_case_update(
+        requester=current_officer, case_id=case_id, body=body
+    )
+
+
+@router.get(
+    "/{case_id}/reports",
+    response_model=PaginatedResponse[ReportResponse],
+    status_code=200,
+    summary="List formal reports for a case",
+)
+async def list_case_reports(
+    case_id: int,
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=20, ge=1, le=100),
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> PaginatedResponse[ReportResponse]:
+    service = CaseService(session)
+    return await service.list_case_reports(
+        requester=current_officer, case_id=case_id, page=page, size=size
+    )
+
+
+@router.post(
+    "/{case_id}/reports",
+    response_model=ReportResponse,
+    status_code=201,
+    summary="File a formal report for a case",
+)
+async def create_case_report(
+    case_id: int,
+    body: ReportCreateRequest,
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> ReportResponse:
+    service = CaseService(session)
+    return await service.create_case_report(
+        requester=current_officer, case_id=case_id, body=body
+    )
+
+
+@router.get(
+    "/{case_id}/permissions",
+    response_model=list[CasePermissionResponse],
+    status_code=200,
+    summary="List active case permissions",
+)
+async def list_case_permissions(
+    case_id: int,
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> list[CasePermissionResponse]:
+    service = CaseService(session)
+    return await service.list_case_permissions(
+        requester=current_officer, case_id=case_id
+    )
+
+
+@router.post(
+    "/{case_id}/permissions",
+    response_model=CasePermissionResponse,
+    status_code=201,
+    summary="Grant case access to an officer",
+)
+async def grant_case_permission(
+    case_id: int,
+    body: CasePermissionGrantRequest,
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> CasePermissionResponse:
+    service = CaseService(session)
+    return await service.grant_case_permission(
+        requester=current_officer, case_id=case_id, body=body
+    )
+
+
+@router.delete(
+    "/{case_id}/permissions/{permission_id}",
+    status_code=204,
+    summary="Revoke a case permission",
+)
+async def revoke_case_permission(
+    case_id: int,
+    permission_id: int,
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> None:
+    service = CaseService(session)
+    await service.revoke_case_permission(
+        requester=current_officer, case_id=case_id, permission_id=permission_id
+    )
 
 
 @router.delete("/{case_id}", status_code=204)

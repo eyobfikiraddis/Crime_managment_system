@@ -226,6 +226,43 @@ class CaseTimelineResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class CaseUpdateResponse(BaseModel):
+    update_id: int
+    case_id: int
+    officer_id: int
+    update_type: str
+    description: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ReportResponse(BaseModel):
+    report_id: int
+    case_id: int
+    officer_id: int
+    report_type: str
+    content: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CasePermissionResponse(BaseModel):
+    permission_id: int
+    case_id: int
+    officer_id: int
+    access_level: str
+    can_read: bool
+    can_write: bool
+    can_admin: bool
+    granted_by: int
+    granted_at: datetime
+    revoked_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
 class FullCaseDetailResponse(BaseModel):
     case: CaseDetailResponse
     status: CaseStatusBriefResponse

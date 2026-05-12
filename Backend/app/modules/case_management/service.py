@@ -3,14 +3,14 @@ from __future__ import annotations
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ConflictError, NotFoundError
+from app.core.exceptions import ConflictError, NotFoundError, ValidationError
 from app.modules.auth.models import Officer
 from app.modules.auth.schemas.responses import CurrentOfficerContext
 from app.modules.case_management.exceptions import CaseAccessDeniedError, CaseNotFoundError
 from app.modules.case_management.models import CaseStatus, CrimeType, Case, Charge, CourtCase, Arrest, CaseUpdate, CaseSuspect, CaseVictim, CaseWitness
 from app.modules.case_management.permissions import check_case_access, load_case_for_access
 from app.modules.case_management.repository import CaseRepository
-from app.modules.case_management.schemas.requests import CreateCaseRequest, CaseUpdateRequest, CaseStatusUpdateRequest, CaseAssignmentCreate, CasePersonLinkRequest, ChargeCreateRequest, ChargeUpdateRequest, ChargeStatusUpdateRequest, ArrestCreateRequest, ArrestUpdateRequest, EvidenceCreateRequest, EvidenceUpdateRequest, ChainOfCustodyCreateRequest, CaseNoteCreateRequest, CaseNoteUpdateRequest
+from app.modules.case_management.schemas.requests import CreateCaseRequest, CaseUpdateRequest, CaseStatusUpdateRequest, CaseUpdateCreateRequest, CaseAssignmentCreate, CasePersonLinkRequest, ChargeCreateRequest, ChargeUpdateRequest, ChargeStatusUpdateRequest, ArrestCreateRequest, ArrestUpdateRequest, EvidenceCreateRequest, EvidenceUpdateRequest, ChainOfCustodyCreateRequest, CaseNoteCreateRequest, CaseNoteUpdateRequest, ReportCreateRequest, CasePermissionGrantRequest
 from app.shared.enums import RoleNameEnum, ChargeStatusEnum
 from app.modules.case_management.schemas.responses import (
     CaseDetailResponse,
@@ -32,6 +32,9 @@ from app.modules.case_management.schemas.responses import (
     ChainOfCustodyResponse,
     CaseNoteResponse,
     CaseTimelineResponse,
+    CaseUpdateResponse,
+    ReportResponse,
+    CasePermissionResponse,
     FullCaseDetailResponse
 )
 from app.modules.personnel.permissions import is_investigator_or_above as personnel_investigator_plus
@@ -243,6 +246,199 @@ class CaseService:
 
         full_case = await self.repo.get_by_id(case_id)
         return _to_detail(full_case)
+
+    async def add_manual_case_update(
+        self,
+        requester: CurrentOfficerContext,
+        case_id: int,
+        body: CaseUpdateCreateRequest,
+    ) -> CaseUpdateResponse:
+        case = await self.repo.get_by_id(case_id)
+        if not case:
+            raise CaseNotFoundError()
+        if not await check_case_access(self.session, requester, case, "write"):
+            raise CaseAccessDeniedError()
+
+        if body.update_type != "note":
+            raise ValidationError("update_type must be 'note'")
+
+        if case.status and case.status.status_name == "closed":
+            raise ConflictError("Cannot add updates to a closed case")
+
+        row = await self.repo.create_case_update(
+            case_id=case_id,
+            officer_id=requester.officer_id,
+            update_type="note",
+            description=body.description,
+        )
+        await self.session.commit()
+        return CaseUpdateResponse.model_validate(row)
+
+    async def create_case_report(
+        self,
+        requester: CurrentOfficerContext,
+        case_id: int,
+        body: ReportCreateRequest,
+    ) -> ReportResponse:
+        case = await self.repo.get_by_id(case_id)
+        if not case:
+            raise CaseNotFoundError()
+        if not await check_case_access(self.session, requester, case, "write"):
+            raise CaseAccessDeniedError()
+
+        allowed_types = {"incident", "investigation", "forensic", "summary", "final"}
+        if body.report_type not in allowed_types:
+            raise ValidationError("Invalid report_type")
+
+        if body.report_type == "final":
+            existing = await self.repo.get_final_report_by_case(case_id)
+            if existing:
+                raise ConflictError("A final report already exists for this case")
+
+        if case.status and case.status.status_name == "closed":
+            raise ConflictError("Cannot add reports to a closed case")
+
+        report = await self.repo.create_report(
+            case_id=case_id,
+            officer_id=requester.officer_id,
+            report_type=body.report_type,
+            content=body.content,
+        )
+        await self.repo.create_case_update(
+            case_id=case_id,
+            officer_id=requester.officer_id,
+            update_type="report_filed",
+            description=(
+                f"Formal {body.report_type} report filed by Officer {requester.officer_id}"
+            ),
+        )
+        await self.session.commit()
+        return ReportResponse.model_validate(report)
+
+    async def list_case_reports(
+        self,
+        requester: CurrentOfficerContext,
+        case_id: int,
+        page: int,
+        size: int,
+    ) -> PaginatedResponse[ReportResponse]:
+        case = await self.repo.get_by_id(case_id)
+        if not case:
+            raise CaseNotFoundError()
+        if not await check_case_access(self.session, requester, case, "read"):
+            raise CaseAccessDeniedError()
+
+        rows, total = await self.repo.list_reports_by_case(case_id, page, size)
+        items = [ReportResponse.model_validate(r) for r in rows]
+        return PaginatedResponse(items=items, total=total, page=page, size=size)
+
+    async def list_case_permissions(
+        self, requester: CurrentOfficerContext, case_id: int
+    ) -> list[CasePermissionResponse]:
+        case = await self.repo.get_by_id(case_id)
+        if not case:
+            raise CaseNotFoundError()
+        if not await check_case_access(self.session, requester, case, "admin"):
+            raise CaseAccessDeniedError()
+
+        rows = await self.repo.list_case_permissions(case_id)
+        return [CasePermissionResponse.model_validate(r) for r in rows]
+
+    async def grant_case_permission(
+        self,
+        requester: CurrentOfficerContext,
+        case_id: int,
+        body: CasePermissionGrantRequest,
+    ) -> CasePermissionResponse:
+        allowed_levels = {"read", "write", "admin"}
+        if body.access_level not in allowed_levels:
+            raise ValidationError("access_level must be 'read', 'write', or 'admin'")
+
+        case = await self.repo.get_by_id(case_id)
+        if not case:
+            raise CaseNotFoundError()
+        if not await check_case_access(self.session, requester, case, "admin"):
+            raise CaseAccessDeniedError()
+
+        from app.modules.auth.repository import AuthRepository
+
+        officer = await AuthRepository(self.session).get_officer_by_id(body.officer_id)
+        if not officer:
+            raise NotFoundError("Officer not found")
+
+        existing = await self.repo.get_active_permission(case_id, body.officer_id)
+        if existing:
+            raise ConflictError(
+                "An active permission already exists for this officer on this case"
+            )
+
+        permission = await self.repo.grant_case_permission(
+            case_id=case_id,
+            officer_id=body.officer_id,
+            access_level=body.access_level,
+            granted_by=requester.officer_id,
+        )
+        await self.repo.write_permission_audit(
+            permission_id=permission.permission_id,
+            case_id=case_id,
+            officer_id=body.officer_id,
+            action="granted",
+            old_access_level=None,
+            new_access_level=body.access_level,
+            performed_by=requester.officer_id,
+        )
+        await self.repo.create_case_update(
+            case_id=case_id,
+            officer_id=requester.officer_id,
+            update_type="permission_granted",
+            description=(
+                f"Access granted to Officer {body.officer_id} at level {body.access_level}"
+            ),
+        )
+        await self.session.commit()
+        return CasePermissionResponse.model_validate(permission)
+
+    async def revoke_case_permission(
+        self,
+        requester: CurrentOfficerContext,
+        case_id: int,
+        permission_id: int,
+    ) -> None:
+        case = await self.repo.get_by_id(case_id)
+        if not case:
+            raise CaseNotFoundError()
+        if not await check_case_access(self.session, requester, case, "admin"):
+            raise CaseAccessDeniedError()
+
+        permission = await self.repo.get_permission_by_id(permission_id)
+        if not permission:
+            raise NotFoundError("Permission not found")
+        if permission.case_id != case_id:
+            raise CaseAccessDeniedError("Permission does not belong to this case")
+
+        old_access_level = permission.access_level
+        revoked = await self.repo.revoke_case_permission(
+            permission_id, requester.officer_id
+        )
+        if not revoked:
+            raise NotFoundError("Permission not found")
+
+        await self.repo.write_permission_audit(
+            permission_id=permission_id,
+            case_id=case_id,
+            officer_id=permission.officer_id,
+            action="revoked",
+            old_access_level=old_access_level,
+            new_access_level=None,
+            performed_by=requester.officer_id,
+        )
+        await self.repo.create_case_update(
+            case_id=case_id,
+            officer_id=requester.officer_id,
+            update_type="permission_revoked",
+            description=f"Access revoked for Officer {permission.officer_id}",
+        )
+        await self.session.commit()
 
     async def soft_delete_case(self, requester: CurrentOfficerContext, case_id: int) -> None:
         if requester.role_name != RoleNameEnum.superadmin.value:

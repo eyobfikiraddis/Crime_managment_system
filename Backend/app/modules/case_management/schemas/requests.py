@@ -23,6 +23,11 @@ class CaseStatusUpdateRequest(BaseModel):
     status_id: int = Field(...)
 
 
+class CaseUpdateCreateRequest(BaseModel):
+    update_type: str = Field(...)
+    description: str = Field(..., min_length=1, max_length=2000)
+
+
 from app.shared.enums import RoleInCaseEnum, ChargeStatusEnum
 
 class CaseAssignmentCreate(BaseModel):
@@ -102,3 +107,13 @@ class CaseNoteCreateRequest(BaseModel):
 class CaseNoteUpdateRequest(BaseModel):
     note_text: str | None = Field(default=None, min_length=1)
     is_internal: bool | None = Field(default=None)
+
+
+class ReportCreateRequest(BaseModel):
+    report_type: str = Field(...)
+    content: str = Field(..., min_length=1)
+
+
+class CasePermissionGrantRequest(BaseModel):
+    officer_id: int = Field(...)
+    access_level: str = Field(...)

@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from app.modules.auth.models import Officer
 from app.modules.auth.schemas.responses import CurrentOfficerContext
-from app.modules.case_management.models import Case, CaseOfficer, CasePermission, CaseUpdate, CaseSuspect, CaseVictim, CaseWitness, Charge, Arrest, Evidence, CaseNote, ChainOfCustody
+from app.modules.case_management.models import Case, CaseOfficer, CasePermission, CasePermissionAudit, CaseUpdate, CaseSuspect, CaseVictim, CaseWitness, Charge, Arrest, Evidence, CaseNote, ChainOfCustody, Report
 from app.shared.enums import RoleNameEnum
 
 
@@ -160,6 +160,158 @@ class CaseRepository:
         await self.session.flush()
         await self.session.refresh(case)
         return case
+
+    async def create_case_update(
+        self,
+        case_id: int,
+        officer_id: int,
+        update_type: str,
+        description: str,
+    ) -> CaseUpdate:
+        row = CaseUpdate(
+            case_id=case_id,
+            officer_id=officer_id,
+            update_type=update_type,
+            description=description,
+            created_at=datetime.now(tz=timezone.utc),
+        )
+        self.session.add(row)
+        await self.session.flush()
+        await self.session.refresh(row)
+        return row
+
+    async def create_report(
+        self,
+        case_id: int,
+        officer_id: int,
+        report_type: str,
+        content: str,
+    ) -> Report:
+        row = Report(
+            case_id=case_id,
+            officer_id=officer_id,
+            report_type=report_type,
+            content=content,
+            created_at=datetime.now(tz=timezone.utc),
+        )
+        self.session.add(row)
+        await self.session.flush()
+        await self.session.refresh(row)
+        return row
+
+    async def list_reports_by_case(
+        self, case_id: int, page: int, size: int
+    ) -> tuple[list[Report], int]:
+        stmt = select(Report).where(
+            Report.case_id == case_id,
+            Report.deleted_at.is_(None),
+        )
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = int((await self.session.execute(count_stmt)).scalar_one() or 0)
+        rows = await self.session.execute(
+            stmt.offset((page - 1) * size).limit(size)
+        )
+        return list(rows.scalars().all()), total
+
+    async def get_final_report_by_case(self, case_id: int) -> Report | None:
+        result = await self.session.execute(
+            select(Report).where(
+                Report.case_id == case_id,
+                Report.report_type == "final",
+                Report.deleted_at.is_(None),
+            )
+        )
+        return result.scalars().first()
+
+    async def list_case_permissions(self, case_id: int) -> list[CasePermission]:
+        result = await self.session.execute(
+            select(CasePermission).where(
+                CasePermission.case_id == case_id,
+                CasePermission.revoked_at.is_(None),
+            )
+        )
+        return list(result.scalars().all())
+
+    async def get_active_permission(
+        self, case_id: int, officer_id: int
+    ) -> CasePermission | None:
+        result = await self.session.execute(
+            select(CasePermission).where(
+                CasePermission.case_id == case_id,
+                CasePermission.officer_id == officer_id,
+                CasePermission.revoked_at.is_(None),
+            )
+        )
+        return result.scalars().first()
+
+    async def get_permission_by_id(
+        self, permission_id: int
+    ) -> CasePermission | None:
+        result = await self.session.execute(
+            select(CasePermission).where(
+                CasePermission.permission_id == permission_id
+            )
+        )
+        return result.scalars().first()
+
+    async def grant_case_permission(
+        self,
+        case_id: int,
+        officer_id: int,
+        access_level: str,
+        granted_by: int,
+    ) -> CasePermission:
+        can_read = access_level in ("read", "write", "admin")
+        can_write = access_level in ("write", "admin")
+        can_admin = access_level == "admin"
+        row = CasePermission(
+            case_id=case_id,
+            officer_id=officer_id,
+            access_level=access_level,
+            can_read=can_read,
+            can_write=can_write,
+            can_admin=can_admin,
+            granted_by=granted_by,
+            granted_at=datetime.now(tz=timezone.utc),
+        )
+        self.session.add(row)
+        await self.session.flush()
+        await self.session.refresh(row)
+        return row
+
+    async def revoke_case_permission(
+        self, permission_id: int, revoked_by_officer_id: int
+    ) -> CasePermission | None:
+        permission = await self.get_permission_by_id(permission_id)
+        if not permission:
+            return None
+        permission.revoked_at = datetime.now(tz=timezone.utc)
+        permission.revoked_by = revoked_by_officer_id
+        await self.session.flush()
+        return permission
+
+    async def write_permission_audit(
+        self,
+        permission_id: int,
+        case_id: int,
+        officer_id: int,
+        action: str,
+        old_access_level: str | None,
+        new_access_level: str | None,
+        performed_by: int,
+    ) -> None:
+        row = CasePermissionAudit(
+            permission_id=permission_id,
+            case_id=case_id,
+            officer_id=officer_id,
+            action=action,
+            old_access_level=old_access_level,
+            new_access_level=new_access_level,
+            performed_by=performed_by,
+            performed_at=datetime.now(tz=timezone.utc),
+        )
+        self.session.add(row)
+        await self.session.flush()
 
     async def soft_delete_case(self, case_id: int, deleted_by: int) -> bool:
         case = await self.session.get(Case, case_id)
