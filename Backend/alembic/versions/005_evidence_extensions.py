@@ -217,13 +217,9 @@ def upgrade() -> None:
     )
     op.create_index("idx_interrogation_case_id", "interrogation", ["case_id"])
 
-    op.execute(
-        """
-        CREATE INDEX IF NOT EXISTS idx_evidence_case ON evidence (case_id);
-        CREATE INDEX IF NOT EXISTS idx_arrest_case ON arrest (case_id);
-        CREATE INDEX IF NOT EXISTS idx_arrest_released ON arrest (case_id) WHERE released_at IS NULL;
-        """
-    )
+    op.execute("CREATE INDEX IF NOT EXISTS idx_evidence_case ON evidence (case_id)")
+    op.execute("CREATE INDEX IF NOT EXISTS idx_arrest_case ON arrest (case_id)")
+    op.execute("CREATE INDEX IF NOT EXISTS idx_arrest_released ON arrest (case_id) WHERE released_at IS NULL")
 
 
 def downgrade() -> None:

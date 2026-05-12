@@ -404,7 +404,7 @@ class CaseService:
             first_name=suspect.person.first_name,
             last_name=suspect.person.last_name,
             risk_level=suspect.risk_level,
-            criminal_record=suspect.criminal_record_summary
+            criminal_record=suspect.criminal_record
         )
 
     async def add_case_suspect(
@@ -837,7 +837,7 @@ class CaseService:
 
         from app.core.exceptions import NotFoundError
         from datetime import datetime, timezone
-        charge = await self.repo.update_charge_status(charge_id, body.charge_status)
+        charge = await self.repo.update_charge_status(charge_id, body.status)
         if not charge or charge.case_id != case_id:
             raise NotFoundError("Charge not found")
 
@@ -845,7 +845,7 @@ class CaseService:
             case_id=case_id,
             officer_id=requester.officer_id,
             update_type="status_change",
-            description=f"Updated charge ID {charge_id} status to {body.charge_status.value}",
+            description=f"Updated charge ID {charge_id} status to {body.status.value}",
             created_at=datetime.now(tz=timezone.utc)
         )
         self.session.add(update_row)

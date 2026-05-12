@@ -18,6 +18,7 @@ from app.modules.case_management.models import (
     Charge,
     CrimeType,
     Evidence,
+    EvidenceType,
 )
 from app.modules.personnel.models import DepartmentAuditLog
 from app.shared.enums import (
@@ -91,6 +92,46 @@ CIVILIAN_SEEDS = [
         "national_id": "CIV-0003",
         "gender": GenderEnum.undisclosed,
     },
+    {
+        "first_name": "Hiwot",
+        "last_name": "Getnet",
+        "national_id": "CIV-0004",
+        "gender": GenderEnum.female,
+    },
+    {
+        "first_name": "Tariku",
+        "last_name": "Demissew",
+        "national_id": "CIV-0005",
+        "gender": GenderEnum.male,
+    },
+]
+
+CRIME_TYPES_SEEDS = [
+    {"name": "Homicide", "severity": SeverityEnum.felony},
+    {"name": "Robbery", "severity": SeverityEnum.felony},
+    {"name": "Assault", "severity": SeverityEnum.felony},
+    {"name": "Burglary", "severity": SeverityEnum.felony},
+    {"name": "Theft", "severity": SeverityEnum.misdemeanor},
+    {"name": "Fraud", "severity": SeverityEnum.misdemeanor},
+    {"name": "DUI", "severity": SeverityEnum.misdemeanor},
+]
+
+EVIDENCE_TYPES_SEEDS = [
+    {"name": "Weapon", "description": "Firearms, blades, and other weapons"},
+    {"name": "Biological", "description": "Blood, saliva, tissue samples"},
+    {"name": "Digital", "description": "Computers, phones, storage devices"},
+    {"name": "Trace", "description": "Fibers, hair, DNA samples"},
+    {"name": "Document", "description": "Written records and documents"},
+    {"name": "Vehicle", "description": "Cars and other vehicles"},
+    {"name": "Controlled Substance", "description": "Drugs and narcotics"},
+]
+
+CASE_STATUS_SEEDS = [
+    {"status_name": "open", "is_terminal": False},
+    {"status_name": "closed", "is_terminal": True},
+    {"status_name": "archived", "is_terminal": True},
+    {"status_name": "pending", "is_terminal": False},
+    {"status_name": "under_investigation", "is_terminal": False},
 ]
 
 
@@ -213,7 +254,7 @@ async def _get_case_status(session: AsyncSession, status_name: str) -> CaseStatu
     return status
 
 
-async def _upsert_crime_type(session: AsyncSession, name: str) -> CrimeType:
+async def _upsert_crime_type(session: AsyncSession, name: str, severity: SeverityEnum | None = None) -> CrimeType:
     result = await session.execute(select(CrimeType).where(CrimeType.name == name))
     crime_type = result.scalar_one_or_none()
     if crime_type:
@@ -224,13 +265,48 @@ async def _upsert_crime_type(session: AsyncSession, name: str) -> CrimeType:
         return crime_type
     crime_type = CrimeType(
         name=name,
-        description="Seeded crime type",
-        severity=SeverityEnum.felony,
+        description=f"Seeded crime type: {name}",
+        severity=severity or SeverityEnum.felony,
         created_at=datetime.now(tz=timezone.utc),
     )
     session.add(crime_type)
     await session.flush()
     return crime_type
+
+
+async def _ensure_case_status(session: AsyncSession, status_name: str, is_terminal: bool = False) -> None:
+    result = await session.execute(
+        select(CaseStatus).where(CaseStatus.status_name == status_name)
+    )
+    existing = result.scalar_one_or_none()
+    if existing:
+        return
+    session.add(
+        CaseStatus(
+            status_name=status_name,
+            description=f"Case status: {status_name}",
+            is_terminal=is_terminal,
+            created_at=datetime.now(tz=timezone.utc),
+        )
+    )
+    await session.flush()
+
+
+async def _ensure_evidence_type(session: AsyncSession, name: str, description: str | None = None) -> EvidenceType:
+    result = await session.execute(
+        select(EvidenceType).where(EvidenceType.name == name)
+    )
+    existing = result.scalar_one_or_none()
+    if existing:
+        return existing
+    evidence_type = EvidenceType(
+        name=name,
+        description=description or f"Evidence type: {name}",
+        created_at=datetime.now(tz=timezone.utc),
+    )
+    session.add(evidence_type)
+    await session.flush()
+    return evidence_type
 
 
 async def _upsert_case(
@@ -424,13 +500,22 @@ async def _ensure_department_audit_log(
 async def seed() -> None:
     async with async_session_factory() as session:
         try:
+            # Seed Locations
             hq_location = await _upsert_location(session, "Central HQ")
             downtown_location = await _upsert_location(session, "Downtown District")
+            airport_location = await _upsert_location(session, "Airport Terminal")
+            harbor_location = await _upsert_location(session, "Port Harbor")
 
+            # Seed Departments
             homicide_department = await _upsert_department(
                 session, "Homicide", hq_location.location_id
             )
-            await _upsert_department(session, "Cyber", hq_location.location_id)
+            cybercrime_department = await _upsert_department(session, "Cyber", hq_location.location_id)
+            robbery_department = await _upsert_department(session, "Robbery", downtown_location.location_id)
+            
+            # Seed Case Statuses
+            for case_status_seed in CASE_STATUS_SEEDS:
+                await _ensure_case_status(session, case_status_seed["status_name"], case_status_seed["is_terminal"])
 
             officers: dict[str, Officer] = {}
             for seed in OFFICER_SEEDS:
@@ -479,7 +564,20 @@ async def seed() -> None:
                 civilians[seed["national_id"]] = civilian
 
             status_open = await _get_case_status(session, "open")
-            crime_type = await _upsert_crime_type(session, "Homicide")
+            
+            # Seed Crime Types
+            crime_types: dict[str, CrimeType] = {}
+            for crime_type_seed in CRIME_TYPES_SEEDS:
+                ct = await _upsert_crime_type(session, crime_type_seed["name"], crime_type_seed["severity"])
+                crime_types[crime_type_seed["name"]] = ct
+            
+            # Seed Evidence Types
+            evidence_types: dict[str, EvidenceType] = {}
+            for evidence_type_seed in EVIDENCE_TYPES_SEEDS:
+                et = await _ensure_evidence_type(session, evidence_type_seed["name"], evidence_type_seed["description"])
+                evidence_types[evidence_type_seed["name"]] = et
+            
+            crime_type = crime_types["Homicide"]
 
             case = await _upsert_case(
                 session,
@@ -533,19 +631,69 @@ async def seed() -> None:
                 officers["investigator"].officer_id,
             )
 
+            # Seed additional cases with different statuses
+            status_pending = await _get_case_status(session, "pending")
+            case_2 = await _upsert_case(
+                session,
+                case_number="CASE-2026-0002",
+                crime_type=crime_types["Robbery"],
+                status=status_pending,
+                lead_officer=officers["admin"],
+                location=downtown_location,
+            )
+            
+            await _ensure_case_person(
+                session, case_2.case_id, civilians["CIV-0004"].person_id, "suspect"
+            )
+            await _ensure_case_person(
+                session, case_2.case_id, civilians["CIV-0005"].person_id, "victim"
+            )
+            
+            await _ensure_case_officer(
+                session,
+                case_2.case_id,
+                officers["admin"].officer_id,
+                RoleInCaseEnum.lead_investigator,
+            )
+            
+            # Add additional evidence
+            session.add(
+                Evidence(
+                    case_id=case_2.case_id,
+                    evidence_tag="EVD-0002",
+                    name="Stolen Cash",
+                    description="$5000 stolen from the robbery",
+                    storage_location_id=hq_location.location_id,
+                    collected_by_officer_id=officers["admin"].officer_id,
+                    chain_of_custody_notes="Collected at scene",
+                    collected_at=datetime.now(tz=timezone.utc),
+                    created_at=datetime.now(tz=timezone.utc),
+                )
+            )
+            await session.flush()
+
             await session.commit()
 
         except Exception:
             await session.rollback()
             raise
 
-    print("Seed completed successfully.")
-    print("Login credentials:")
+    print("\n=== Seed completed successfully ===\")
+    print("\nLogin credentials:")
     for seed in OFFICER_SEEDS:
         print(
             f"  Role: {seed['role_name']}, National ID: {seed['national_id']}, "
             f"Password: {seed['password']}"
         )
+    print("\nSeeded data overview:")
+    print(f"  Locations: 4")
+    print(f"  Departments: 3")
+    print(f"  Crime Types: {len(CRIME_TYPES_SEEDS)}")
+    print(f"  Evidence Types: {len(EVIDENCE_TYPES_SEEDS)}")
+    print(f"  Case Statuses: {len(CASE_STATUS_SEEDS)}")
+    print(f"  Cases: 2")
+    print(f"  Officers: {len(OFFICER_SEEDS)}")
+    print(f"  Civilians: {len(CIVILIAN_SEEDS)}")
 
 
 if __name__ == "__main__":

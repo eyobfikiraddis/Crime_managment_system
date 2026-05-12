@@ -53,7 +53,7 @@ class Case(Base, AuditMixin):
     __tablename__ = "case"
 
     case_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    case_number: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    case_number: Mapped[str] = mapped_column(String(100), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     crime_type_id: Mapped[int] = mapped_column(
@@ -98,6 +98,8 @@ class Case(Base, AuditMixin):
     assigned_officers: Mapped[list[Officer]] = relationship(
         "Officer",
         secondary="case_officer",
+        primaryjoin="Case.case_id == case_officer.c.case_id",
+        secondaryjoin="case_officer.c.officer_id == Officer.officer_id",
         viewonly=True,
         backref="assigned_cases",
     )
@@ -174,7 +176,11 @@ class CaseOfficer(Base):
 
     case: Mapped[Case] = relationship("Case", back_populates="case_officers")
     assigned_by_officer: Mapped[Officer | None] = relationship("Officer", foreign_keys=[assigned_by])
-    officer: Mapped[Officer] = relationship("Officer", backref="case_assignments")
+    officer: Mapped[Officer] = relationship(
+        "Officer",
+        foreign_keys=[officer_id],          # ← this resolves the ambiguity
+        backref="case_assignments"
+)
 
 
 class EvidenceType(Base):

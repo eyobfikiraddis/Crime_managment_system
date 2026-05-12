@@ -617,16 +617,16 @@ class CaseRepository:
         ).where(Case.deleted_at.is_(None))
         
         # Visibility Rules
-        if requester.role == RoleNameEnum.OFFICER:
+        if requester.role_name == RoleNameEnum.investigator:
             query = query.join(Case.assignments).where(CaseOfficer.officer_id == requester.officer_id)
-        elif requester.role == RoleNameEnum.DEPARTMENT_HEAD:
+        elif requester.role_name == RoleNameEnum.department_head:
             query = query.where(Case.department_id == requester.department_id)
             
         # Filters
         if filters.get("q"):
             query = query.where(Case.title.ilike(f"%{filters['q']}%"))
         if filters.get("case_number"):
-            query = query.where(Case.case_id == filters["case_number"])
+            query = query.where(Case.case_number == filters["case_number"])
         if filters.get("suspect_name"):
             query = query.join(Case.suspect_links).join(CaseSuspect.suspect).join(Suspect.person).where(
                 or_(
@@ -647,9 +647,9 @@ class CaseRepository:
         if filters.get("date_to"):
             query = query.where(Case.date_reported <= filters["date_to"])
         if filters.get("department_id"):
-            if requester.role in (RoleNameEnum.ADMIN, RoleNameEnum.SUPERADMIN):
+            if requester.role_name in (RoleNameEnum.admin, RoleNameEnum.superadmin):
                 query = query.where(Case.department_id == filters["department_id"])
-            elif requester.role == RoleNameEnum.DEPARTMENT_HEAD:
+            elif requester.role_name == RoleNameEnum.department_head:
                 if filters["department_id"] == requester.department_id:
                      query = query.where(Case.department_id == filters["department_id"])
                 else:

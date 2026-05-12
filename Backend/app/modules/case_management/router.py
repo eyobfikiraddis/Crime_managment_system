@@ -29,7 +29,7 @@ async def list_cases(
 @router.get("/search", response_model=PaginatedResponse[CaseListItemResponse], status_code=200)
 async def search_cases(
     q: str | None = Query(default=None),
-    case_number: int | None = Query(default=None),
+    case_number: str | None = Query(default=None),
     suspect_name: str | None = Query(default=None),
     officer_id: int | None = Query(default=None),
     department_id: int | None = Query(default=None),
