@@ -64,6 +64,30 @@ class CaseDetailResponse(CaseListItemResponse):
 from decimal import Decimal
 from app.shared.enums import ChargeStatusEnum, VerdictEnum, RiskLevelEnum
 
+
+class CaseResponse(BaseModel):
+    case_id: int
+    case_number: str
+    title: str
+    description: str | None
+    crime_type_id: int
+    status_id: int
+    severity: SeverityEnum | None
+    primary_location_id: int | None
+    lead_officer_id: int | None
+    opened_at: datetime | None
+    closed_at: datetime | None
+    archived_at: datetime | None
+    updated_by: int | None
+    archived_by: int | None
+    closed_by: int | None
+    risk_level: RiskLevelEnum | None
+    created_at: datetime
+    updated_at: datetime | None
+    deleted_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
 class SuspectDetailResponse(BaseModel):
     suspect_id: int
     first_name: str | None = None

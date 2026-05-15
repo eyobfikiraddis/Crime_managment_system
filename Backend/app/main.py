@@ -27,6 +27,12 @@ from app.modules.evidence.router import router as evidence_router
 from app.modules.interrogation.router import router as interrogation_router
 from app.modules.personnel.router import router as personnel_router
 from app.modules.reporting.router import router as reporting_router
+from app.modules.legal.router import (
+    court_cases_router,
+    charges_router,
+    court_case_patch_router,
+    standalone_charges_router,
+)
 from app.shared.response_schemas import HealthResponse, ReadinessResponse
 
 configure_logging()
@@ -141,3 +147,7 @@ app.include_router(cases_router, prefix="/api/v1")
 app.include_router(evidence_router, prefix="/api/v1")
 app.include_router(interrogation_router, prefix="/api/v1")
 app.include_router(reporting_router, prefix="/api/v1")
+app.include_router(court_cases_router, prefix="/api/v1")
+app.include_router(charges_router, prefix="/api/v1")
+app.include_router(court_case_patch_router, prefix="/api/v1")
+app.include_router(standalone_charges_router, prefix="/api/v1")

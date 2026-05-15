@@ -7,8 +7,8 @@ from datetime import datetime
 from app.core.database import get_db_session
 from app.modules.auth.dependencies import get_current_officer
 from app.modules.auth.schemas.responses import CurrentOfficerContext
-from app.modules.case_management.schemas.requests import CreateCaseRequest, CaseUpdateRequest, CaseStatusUpdateRequest, CaseUpdateCreateRequest, CaseAssignmentCreate, CasePersonLinkRequest, ChargeCreateRequest, ChargeUpdateRequest, ChargeStatusUpdateRequest, ArrestCreateRequest, ArrestUpdateRequest, CaseNoteCreateRequest, CaseNoteUpdateRequest, ReportCreateRequest, CasePermissionGrantRequest
-from app.modules.case_management.schemas.responses import CaseDetailResponse, CaseListItemResponse, CaseOfficerTinyResponse, CaseSuspectResponse, CaseVictimResponse, CaseWitnessResponse, ChargeResponse, ArrestResponse, CaseNoteResponse, CaseTimelineResponse, CaseUpdateResponse, ReportResponse, CasePermissionResponse, FullCaseDetailResponse
+from app.modules.case_management.schemas.requests import CreateCaseRequest, CaseUpdateRequest, CasePatchRequest, CaseStatusUpdateRequest, CaseUpdateCreateRequest, CaseAssignmentCreate, CasePersonLinkRequest, ChargeCreateRequest, ChargeUpdateRequest, ChargeStatusUpdateRequest, ArrestCreateRequest, ArrestUpdateRequest, CaseNoteCreateRequest, CaseNoteUpdateRequest, ReportCreateRequest, CasePermissionGrantRequest
+from app.modules.case_management.schemas.responses import CaseDetailResponse, CaseListItemResponse, CaseOfficerTinyResponse, CaseResponse, CaseSuspectResponse, CaseVictimResponse, CaseWitnessResponse, ChargeResponse, ArrestResponse, CaseNoteResponse, CaseTimelineResponse, CaseUpdateResponse, ReportResponse, CasePermissionResponse, FullCaseDetailResponse
 from app.modules.case_management.service import CaseService
 from app.shared.pagination import PaginatedResponse
 
@@ -98,6 +98,22 @@ async def update_case(
 ) -> CaseDetailResponse:
     service = CaseService(session)
     return await service.update_case(requester=current_officer, case_id=case_id, body=body)
+
+
+@router.patch(
+    "/{case_id}",
+    response_model=CaseResponse,
+    status_code=200,
+    summary="Update mutable case fields including status transitions",
+)
+async def patch_case(
+    case_id: int,
+    body: CasePatchRequest,
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> CaseResponse:
+    service = CaseService(session)
+    return await service.patch_case(requester=current_officer, case_id=case_id, body=body)
 
 
 @router.patch("/{case_id}/status", response_model=CaseDetailResponse, status_code=200)

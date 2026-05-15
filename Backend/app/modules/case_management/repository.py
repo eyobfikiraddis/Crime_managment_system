@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from app.modules.auth.models import Officer
 from app.modules.auth.schemas.responses import CurrentOfficerContext
-from app.modules.case_management.models import Case, CaseOfficer, CasePermission, CasePermissionAudit, CaseUpdate, CaseSuspect, CaseVictim, CaseWitness, Charge, Arrest, Evidence, CaseNote, ChainOfCustody, Report
+from app.modules.case_management.models import Case, CaseOfficer, CasePermission, CasePermissionAudit, CaseUpdate, CaseSuspect, CaseVictim, CaseWitness, Charge, Arrest, Evidence, CaseNote, ChainOfCustody, Report, CaseStatus
 from app.shared.enums import RoleNameEnum
 
 
@@ -160,6 +160,12 @@ class CaseRepository:
         await self.session.flush()
         await self.session.refresh(case)
         return case
+
+    async def get_case_status_by_id(self, status_id: int) -> CaseStatus | None:
+        result = await self.session.execute(
+            select(CaseStatus).where(CaseStatus.status_id == status_id)
+        )
+        return result.scalar_one_or_none()
 
     async def create_case_update(
         self,

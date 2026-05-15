@@ -19,6 +19,14 @@ class CaseUpdateRequest(BaseModel):
     primary_location_id: int | None = Field(default=None)
 
 
+class CasePatchRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=255)
+    description: str | None = Field(default=None)
+    status_id: int | None = Field(default=None)
+    crime_type_id: int | None = Field(default=None)
+    primary_location_id: int | None = Field(default=None)
+
+
 class CaseStatusUpdateRequest(BaseModel):
     status_id: int = Field(...)
 

@@ -10,7 +10,7 @@ from app.modules.case_management.exceptions import CaseAccessDeniedError, CaseNo
 from app.modules.case_management.models import CaseStatus, CrimeType, Case, Charge, CourtCase, Arrest, CaseUpdate, CaseSuspect, CaseVictim, CaseWitness
 from app.modules.case_management.permissions import check_case_access, load_case_for_access
 from app.modules.case_management.repository import CaseRepository
-from app.modules.case_management.schemas.requests import CreateCaseRequest, CaseUpdateRequest, CaseStatusUpdateRequest, CaseUpdateCreateRequest, CaseAssignmentCreate, CasePersonLinkRequest, ChargeCreateRequest, ChargeUpdateRequest, ChargeStatusUpdateRequest, ArrestCreateRequest, ArrestUpdateRequest, EvidenceCreateRequest, EvidenceUpdateRequest, ChainOfCustodyCreateRequest, CaseNoteCreateRequest, CaseNoteUpdateRequest, ReportCreateRequest, CasePermissionGrantRequest
+from app.modules.case_management.schemas.requests import CreateCaseRequest, CaseUpdateRequest, CasePatchRequest, CaseStatusUpdateRequest, CaseUpdateCreateRequest, CaseAssignmentCreate, CasePersonLinkRequest, ChargeCreateRequest, ChargeUpdateRequest, ChargeStatusUpdateRequest, ArrestCreateRequest, ArrestUpdateRequest, EvidenceCreateRequest, EvidenceUpdateRequest, ChainOfCustodyCreateRequest, CaseNoteCreateRequest, CaseNoteUpdateRequest, ReportCreateRequest, CasePermissionGrantRequest
 from app.shared.enums import RoleNameEnum, ChargeStatusEnum
 from app.modules.case_management.schemas.responses import (
     CaseDetailResponse,
@@ -19,6 +19,7 @@ from app.modules.case_management.schemas.responses import (
     CaseStatusBriefResponse,
     CrimeTypeBriefResponse,
     OfficerTinyResponse,
+    CaseResponse,
     CaseSuspectResponse,
     CaseVictimResponse,
     CaseWitnessResponse,
@@ -181,6 +182,86 @@ class CaseService:
 
         full_case = await self.repo.get_by_id(case_id)
         return _to_detail(full_case)
+
+    async def patch_case(
+        self, requester: CurrentOfficerContext, case_id: int, body: CasePatchRequest
+    ) -> CaseResponse:
+        case = await self.repo.get_by_id(case_id)
+        if not case:
+            raise CaseNotFoundError()
+        if not await check_case_access(self.session, requester, case, "write"):
+            raise CaseAccessDeniedError()
+
+        update_data = body.model_dump(exclude_unset=True)
+        status_id = update_data.pop("status_id", None)
+        status_changed = False
+        new_status_name = None
+
+        if status_id is not None and status_id != case.status_id:
+            new_status = await self.repo.get_case_status_by_id(status_id)
+            if not new_status:
+                raise NotFoundError("Case status not found")
+
+            current_status_name = case.status.status_name if case.status else ""
+            new_status_name = new_status.status_name
+
+            if current_status_name == "closed":
+                raise ValidationError("Cannot change status of a closed case")
+
+            if new_status_name == "archived":
+                if requester.role_name not in (
+                    RoleNameEnum.admin.value,
+                    RoleNameEnum.superadmin.value,
+                ):
+                    raise CaseAccessDeniedError("Only admin/superadmin can archive cases")
+            else:
+                valid_transitions = {
+                    "open": {"under_investigation"},
+                    "under_investigation": {"referred_to_court"},
+                    "referred_to_court": {"closed"},
+                }
+                if (
+                    current_status_name in valid_transitions
+                    and new_status_name not in valid_transitions[current_status_name]
+                ):
+                    raise ValidationError(
+                        f"Invalid transition from {current_status_name} to {new_status_name}"
+                    )
+
+            if new_status_name == "closed":
+                charges = await self.repo.list_case_charges(case_id)
+                unresolved = [
+                    c
+                    for c in charges
+                    if c.charge_status
+                    not in (
+                        ChargeStatusEnum.dismissed,
+                        ChargeStatusEnum.acquitted,
+                        ChargeStatusEnum.convicted,
+                    )
+                ]
+                if unresolved:
+                    raise ConflictError("Cannot close case with unresolved charges")
+
+            update_data["status_id"] = status_id
+            status_changed = True
+
+        updated = await self.repo.update_case(case_id, update_data, requester.officer_id)
+        if not updated:
+            raise CaseNotFoundError()
+
+        if status_changed and new_status_name:
+            await self.repo.create_case_update(
+                case_id=case_id,
+                officer_id=requester.officer_id,
+                update_type="status_change",
+                description=f"Status changed to {new_status_name}",
+            )
+
+        refreshed = await self.repo.get_by_id(case_id)
+        if not refreshed:
+            raise CaseNotFoundError()
+        return CaseResponse.model_validate(refreshed)
 
     async def update_case_status(
         self, requester: CurrentOfficerContext, case_id: int, body: CaseStatusUpdateRequest
