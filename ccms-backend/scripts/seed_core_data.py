@@ -678,7 +678,7 @@ async def seed() -> None:
             await session.rollback()
             raise
 
-    print("\n=== Seed completed successfully ===\")
+    print("\n=== Seed completed successfully ===")
     print("\nLogin credentials:")
     for seed in OFFICER_SEEDS:
         print(

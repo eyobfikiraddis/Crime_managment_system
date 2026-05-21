@@ -12,7 +12,7 @@ from app.modules.case_management.permissions import check_case_access
 from app.modules.case_management.repository import CaseRepository
 from app.modules.case_management.models import CaseStatus, CrimeType
 from app.modules.personnel.repository import CiviliansRepository
-from Crime_managment_system.Backend.app.modules.legal.repository import LegalRepository
+from app.modules.legal.repository import LegalRepository
 from app.shared.enums import ChargeStatusEnum, RoleNameEnum, VerdictEnum
 from app.shared.pagination import PaginatedResponse
 

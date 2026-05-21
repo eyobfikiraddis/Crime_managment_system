@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db_session
 from app.modules.auth.dependencies import get_current_officer
 from app.modules.auth.schemas.responses import CurrentOfficerContext
-from app.schemas.legal_schemas import (
+from app.modules.legal.schemas.schemas import (
     CourtCaseCreateRequest,
     CourtCasePatchRequest,
     CourtCaseResponse,
@@ -15,7 +15,7 @@ from app.schemas.legal_schemas import (
     SentenceCreateRequest,
     SentenceResponse,
 )
-from Crime_managment_system.Backend.app.modules.legal.service import LegalService
+from app.modules.legal.service import LegalService
 
 court_cases_router = APIRouter(prefix="/cases/{case_id}", tags=["Legal"])
 charges_router = APIRouter(prefix="/cases/{case_id}", tags=["Legal"])

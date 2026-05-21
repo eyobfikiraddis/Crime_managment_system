@@ -21,17 +21,19 @@ def upgrade() -> None:
         "arrest",
         ["deleted_at"],
         postgresql_where=sa.text("deleted_at IS NULL"),
+        if_not_exists=True,
     )
     op.create_index(
         "idx_arrest_released",
         "arrest",
         ["case_id"],
         postgresql_where=sa.text("released_at IS NULL"),
+        if_not_exists=True,
     )
     op.create_unique_constraint("uq_arrest_booking", "arrest", ["booking_number"])
 
 
 def downgrade() -> None:
     op.drop_constraint("uq_arrest_booking", "arrest", type_="unique")
-    op.drop_index("idx_arrest_released", table_name="arrest")
-    op.drop_index("idx_arrest_deleted", table_name="arrest")
+    op.drop_index("idx_arrest_released", table_name="arrest", if_exists=True)
+    op.drop_index("idx_arrest_deleted", table_name="arrest", if_exists=True)
