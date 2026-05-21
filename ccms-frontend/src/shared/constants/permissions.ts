@@ -1,0 +1,27 @@
+export const Permission = {
+  CASES_READ: 'cases:read',
+  CASES_WRITE: 'cases:write',
+  CASES_DELETE: 'cases:delete',
+  EVIDENCE_READ: 'evidence:read',
+  EVIDENCE_MANAGE: 'evidence:manage',
+  ARRESTS_READ: 'arrests:read',
+  ARRESTS_MANAGE: 'arrests:manage',
+  INTERROGATIONS_READ: 'interrogations:read',
+  INTERROGATIONS_MANAGE: 'interrogations:manage',
+  LEGAL_READ: 'legal:read',
+  LEGAL_MANAGE: 'legal:manage',
+  PERSONNEL_VIEW: 'personnel:view',
+  PERSONNEL_MANAGE: 'personnel:manage',
+  DEPARTMENTS_VIEW: 'departments:view',
+  DEPARTMENTS_MANAGE: 'departments:manage',
+  REPORTS_VIEW: 'reports:view',
+  REPORTS_EXPORT: 'reports:export',
+  AUDIT_VIEW: 'audit:view',
+  ADMIN_ACCESS: 'admin:access',
+  ADMIN_MANAGE: 'admin:manage',
+  DASHBOARD_VIEW: 'dashboard:view',
+  SETTINGS_VIEW: 'settings:view',
+  SETTINGS_MANAGE: 'settings:manage',
+} as const
+
+export type Permission = (typeof Permission)[keyof typeof Permission]

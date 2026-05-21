@@ -1,0 +1,22 @@
+export const ROUTES = {
+  login: '/login',
+  forgotPassword: '/forgot-password',
+  resetPassword: '/reset-password',
+  dashboard: '/dashboard',
+  cases: '/cases',
+  caseDetail: (caseId: string) => `/cases/${caseId}`,
+  personnelPersons: '/personnel/persons',
+  personnelOfficers: '/personnel/officers',
+  departments: '/departments',
+  legalCourtCases: '/legal/court-cases',
+  reports: '/reports',
+  adminLocations: '/admin/locations',
+  adminCrimeTypes: '/admin/crime-types',
+  adminHealth: '/admin/health',
+  settingsProfile: '/settings/profile',
+  settingsPassword: '/settings/password',
+  errors: {
+    forbidden: '/403',
+    notFound: '/404',
+  },
+} as const
