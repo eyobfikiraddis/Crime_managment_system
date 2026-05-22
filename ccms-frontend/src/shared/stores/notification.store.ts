@@ -24,7 +24,7 @@ const createToastId = () => {
 }
 
 const showToast = (toastData: Omit<Toast, 'id'> & { id: string }) => {
-  const options = { id: toastData.id, duration: toastData.duration }
+  const options = { id: toastData.id, duration: toastData.duration ?? 4000 }
 
   switch (toastData.variant) {
     case 'success':
@@ -48,7 +48,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
     const toastEntry = { id, ...toastData }
 
     set((state) => ({ toasts: [...state.toasts, toastEntry] }))
-    showToast(toastEntry)
+    showToast({ ...toastEntry, duration: toastEntry.duration ?? 4000 })
 
     return id
   },

@@ -1,0 +1,85 @@
+'use client'
+
+import { useMemo } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
+
+import {
+  Breadcrumb as BreadcrumbRoot,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
+import { caseKeys } from '@/services/query/keys/caseKeys'
+
+import { navigationSections } from './navigation.config'
+
+const titleCase = (value: string) =>
+  value
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+
+export function Breadcrumb() {
+  const pathname = usePathname()
+  const queryClient = useQueryClient()
+
+  const items = useMemo(() => {
+    const map = new Map<string, string>()
+    navigationSections.forEach((section) => {
+      section.items.forEach((item) => {
+        map.set(item.href, item.label)
+      })
+    })
+
+    const segments = pathname.split('/').filter(Boolean)
+    const crumbs: { href: string; label: string; current?: boolean }[] = []
+    let currentPath = ''
+
+    segments.forEach((segment, index) => {
+      currentPath += `/${segment}`
+      const isLast = index === segments.length - 1
+      let label = map.get(currentPath)
+
+      if (!label && segment) {
+        const cachedCase = queryClient.getQueryData<{ title?: string; name?: string }>(
+          caseKeys.detail(segment),
+        )
+        label = cachedCase?.title ?? cachedCase?.name
+      }
+
+      crumbs.push({
+        href: currentPath,
+        label: label ?? titleCase(segment),
+        current: isLast,
+      })
+    })
+
+    return crumbs
+  }, [pathname, queryClient])
+
+  if (items.length === 0) {
+    return null
+  }
+
+  return (
+    <BreadcrumbRoot>
+      <BreadcrumbList>
+        {items.map((item, index) => (
+          <BreadcrumbItem key={item.href}>
+            {item.current ? (
+              <BreadcrumbPage>{item.label}</BreadcrumbPage>
+            ) : (
+              <BreadcrumbLink asChild>
+                <Link href={item.href}>{item.label}</Link>
+              </BreadcrumbLink>
+            )}
+            {index < items.length - 1 ? <BreadcrumbSeparator /> : null}
+          </BreadcrumbItem>
+        ))}
+      </BreadcrumbList>
+    </BreadcrumbRoot>
+  )
+}

@@ -8,7 +8,7 @@ export function useFilterSync<T extends Record<string, string>>(initialFilters: 
   const router = useRouter()
 
   const initialState = useMemo(() => {
-    const nextFilters = { ...initialFilters }
+    const nextFilters: Record<string, string> = { ...initialFilters }
     if (!searchParams) {
       return nextFilters
     }
@@ -23,7 +23,7 @@ export function useFilterSync<T extends Record<string, string>>(initialFilters: 
     return nextFilters
   }, [initialFilters, searchParams])
 
-  const [filters, setFilters] = useState<T>(initialState)
+  const [filters, setFilters] = useState<T>(initialState as unknown as T)
 
   const syncFilters = (nextFilters: T) => {
     const params = new URLSearchParams(searchParams?.toString())

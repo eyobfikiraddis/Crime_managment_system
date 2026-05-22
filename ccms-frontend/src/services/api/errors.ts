@@ -17,9 +17,9 @@ export class ApiError extends Error {
   ) {
     super(message)
     this.statusCode = statusCode
-    this.code = code
-    this.fieldErrors = fieldErrors
-    this.requestId = requestId
+    if (code !== undefined) this.code = code
+    if (fieldErrors !== undefined) this.fieldErrors = fieldErrors
+    if (requestId !== undefined) this.requestId = requestId
   }
 
   static fromAxiosError(error: AxiosError) {
@@ -31,9 +31,9 @@ export class ApiError extends Error {
     return new ApiError(
       message,
       statusCode,
-      payload.code,
-      payload.fieldErrors,
-      payload.requestId,
+      payload.code as string | undefined,
+      (payload.fieldErrors as Record<string, string[]>) ?? undefined,
+      payload.requestId as string | undefined,
     )
   }
 
