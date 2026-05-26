@@ -36,6 +36,7 @@ interface DataTableProps<TData> {
   onSortingChange?: (state: SortingState) => void
   enableRowSelection?: boolean
   onRowSelectionChange?: (rows: RowSelectionState) => void
+  emptyTitle?: string
   emptyMessage?: string
   tableId?: string
 }
@@ -50,6 +51,7 @@ export function DataTable<TData>({
   onSortingChange,
   enableRowSelection,
   onRowSelectionChange,
+  emptyTitle,
   emptyMessage,
 }: DataTableProps<TData>) {
   const [internalSorting, setInternalSorting] = useState<SortingState>([])
@@ -109,7 +111,7 @@ export function DataTable<TData>({
   }
 
   if (rows.length === 0) {
-    return <TableEmptyState message={emptyMessage ?? 'No data'} />
+    return <TableEmptyState title={emptyTitle ?? ''} description={emptyMessage} />
   }
 
   return (

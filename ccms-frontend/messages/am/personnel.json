@@ -1,0 +1,15 @@
+{
+  "pageTitle": "ሰራተኞች",
+  "officers": {
+    "listHeading": "መኮንኖች",
+    "listSkeleton": "መኮንኖች በመጫን ላይ...",
+    "detailHeading": "የመኮንን ዝርዝር",
+    "detailSkeleton": "የመኮንን ዝርዝር በመጫን ላይ..."
+  },
+  "persons": {
+    "listHeading": "ሰዎች",
+    "listSkeleton": "ሰዎች በመጫን ላይ...",
+    "detailHeading": "የሰው ዝርዝር",
+    "detailSkeleton": "የሰው ዝርዝር በመጫን ላይ..."
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address.",
+    "minLength": "Must be at least {count} characters.",
+    "uppercase": "Include at least one uppercase letter.",
+    "number": "Include at least one number.",
+    "special": "Include at least one special character.",
+    "passwordMismatch": "Passwords do not match.",
+    "badgeNumberFormat": "Badge number must be in the format BD-XXXXX."
+  },
+  "api": {
+    "generic": "An unexpected error occurred. Please try again.",
+    "network": "Cannot reach the server. Please try again.",
+    "unauthorized": "You are not authorised to perform this action.",
+    "forbidden": "Access denied.",
+    "rateLimited": "Too many requests. Please wait and try again.",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "validationFailed": "Please correct the highlighted errors and try again."
+  },
+  "pages": {
+    "403": {
+      "title": "Access denied",
+      "description": "You do not have permission to view this content.",
+      "action": "Back to dashboard"
+    },
+    "404": {
+      "title": "Not found",
+      "description": "The requested resource was not found.",
+      "action": "Back to dashboard"
+    },
+    "global": {
+      "title": "Something went wrong",
+      "action": "Reload"
+    },
+    "dashboard": {
+      "title": "Dashboard Error",
+      "action": "Try Again"
+    }
+  }
+}

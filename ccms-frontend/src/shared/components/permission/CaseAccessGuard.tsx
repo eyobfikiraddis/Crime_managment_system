@@ -3,10 +3,13 @@
 import type { ReactNode } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 
 import { caseKeys } from '@/services/query/keys/caseKeys'
 import { ForbiddenState } from '@/shared/components/feedback/ForbiddenState'
 import { Skeleton } from '@/shared/components/feedback/Skeleton'
+import { Button } from '@/components/ui/button'
 
 interface CaseAccessGuardProps {
   caseId: string
@@ -27,6 +30,8 @@ export function CaseAccessGuard({
   children,
   fallback,
 }: CaseAccessGuardProps) {
+  const tErrors = useTranslations('errors')
+
   const { data, isLoading } = useQuery({
     queryKey: caseKeys.permissions(caseId),
     queryFn: async () => ({ level: 'read' as const }),
@@ -40,7 +45,21 @@ export function CaseAccessGuard({
   const allowed = ACCESS_RANK[accessLevel] >= ACCESS_RANK[requiredLevel]
 
   if (!allowed) {
-    return fallback ?? <ForbiddenState />
+    const action = (
+      <Button asChild variant="outline">
+        <Link href="/dashboard">{tErrors('pages.403.action')}</Link>
+      </Button>
+    )
+
+    return (
+      fallback ?? (
+        <ForbiddenState
+          title={tErrors('pages.403.title')}
+          description={tErrors('pages.403.description')}
+          action={action}
+        />
+      )
+    )
   }
 
   return children

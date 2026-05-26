@@ -1,0 +1,11 @@
+{
+  "pageTitle": "ዳሽቦርድ",
+  "heading": "አጠቃላይ እይታ",
+  "skeleton": "ዳሽቦርድ በመጫን ላይ...",
+  "sections": {
+    "activity": {
+      "title": "ቅርብ እንቅስቃሴ",
+      "skeleton": "እንቅስቃሴ በመጫን ላይ..."
+    }
+  }
+}

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 
-export const metadata: Metadata = {
-  title: 'Court Cases',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('legal')
+  return { title: t('pageTitle') }
 }
 
 type PageProps = {
@@ -9,13 +11,15 @@ type PageProps = {
   searchParams: Record<string, string | string[] | undefined>
 }
 
-export default function CourtCasesPage({ params, searchParams }: PageProps) {
+export default async function CourtCasesPage({ params, searchParams }: PageProps) {
   void params
   void searchParams
 
+  const t = await getTranslations('legal')
+
   return (
     <div>
-      <h1>Legal — Court Cases [Skeleton]</h1>
+      <h1>{t('courtCases.heading')}</h1>
     </div>
   )
 }

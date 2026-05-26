@@ -1,0 +1,68 @@
+{
+  "actions": {
+    "save": "አስቀምጥ",
+    "cancel": "ሰርዝ",
+    "confirm": "አረጋግጥ",
+    "delete": "ሰርዝ",
+    "edit": "አርትዕ",
+    "view": "ተመልከት",
+    "create": "ፍጠር",
+    "search": "ፈልግ",
+    "filter": "አጣራ",
+    "export": "ላክ",
+    "print": "አትም",
+    "retry": "እንደገና ሞክር",
+    "back": "ተመለስ",
+    "next": "ቀጣይ",
+    "previous": "ቀዳሚ",
+    "close": "ዝጋ",
+    "submit": "አስረከብ",
+    "clear": "አጽዳ",
+    "refresh": "አድስ",
+    "loading": "እየጫነ ነው...",
+    "submitting": "እያስረከበ ነው...",
+    "saving": "እያስቀመጠ ነው..."
+  },
+  "status": {
+    "open": "ክፍት",
+    "closed": "ዝግ",
+    "archived": "ማህደር",
+    "active": "ንቁ",
+    "inactive": "ንቁ ያልሆነ",
+    "online": "በመስመር ላይ",
+    "pending": "በመጠባበቅ ላይ",
+    "underInvestigation": "በምርመራ ላይ",
+    "referredToCourt": "ለፍርድ ቤት ቀርቧል",
+    "protected": "የተጠበቀ"
+  },
+  "pagination": {
+    "showing": "{total} ከ {from}–{to} አሳይቷል",
+    "rowsPerPage": "በገጽ ረድፎች",
+    "goToPage": "ወደ ገጽ ሂድ",
+    "firstPage": "የመጀመሪያ ገጽ",
+    "lastPage": "የመጨረሻ ገጽ",
+    "nextPage": "ቀጣዩ ገጽ",
+    "previousPage": "ቀዳሚ ገጽ"
+  },
+  "table": {
+    "noResults": "ምንም ውጤት አልተገኘም።",
+    "noResultsDescription": "ፍለጋ ወይም ማጣሪያ ሁኔታዎን ያስተካክሉ።",
+    "selectAll": "ሁሉንም ረድፎች ምረጥ",
+    "selectRow": "ረድፍ ምረጥ",
+    "clearSelection": "ምርጫ አጽዳ",
+    "selectedCount": "{count} ረድፍ ተመርጧል"
+  },
+  "time": {
+    "justNow": "ሀዲስ",
+    "minutesAgo": "ከ{count} ደቂቃ በፊት",
+    "hoursAgo": "ከ{count} ሰዓት በፊት",
+    "daysAgo": "ከ{count} ቀን በፊት",
+    "today": "ዛሬ",
+    "yesterday": "ትናንት"
+  },
+  "classification": "ፈቃደኛ ሰራተኞች ብቻ። ሁሉም መዳረሻ ተመዝግቧል።",
+  "systemName": "CCMS",
+  "systemFullName": "የወንጀል ጉዳይ አስተዳደር ስርዓት",
+  "notFound": "አልተገኘም",
+  "forbidden": "ፈቃድ የለም"
+}

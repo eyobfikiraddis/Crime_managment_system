@@ -3,17 +3,15 @@
 import type { ReactNode } from 'react'
 
 import { useSession } from '@/features/auth/hooks/useSession'
+import { useIdleTimeout } from '@/features/auth/hooks/useIdleTimeout'
 
 interface AuthProviderProps {
   children: ReactNode
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { isLoading } = useSession()
-
-  if (isLoading) {
-    return <div aria-busy="true">{children}</div>
-  }
+  useSession()
+  useIdleTimeout()
 
   return <>{children}</>
 }

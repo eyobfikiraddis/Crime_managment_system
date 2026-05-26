@@ -1,7 +1,10 @@
 import type { NextConfig } from 'next'
+import createNextIntlPlugin from 'next-intl/plugin'
 
 // Trigger build-time env validation
 import './src/config/env'
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 const cspHeader = `
   default-src 'self';
@@ -65,4 +68,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withNextIntl(nextConfig)

@@ -1,0 +1,11 @@
+{
+  "pageTitle": "Evidence",
+  "list": {
+    "heading": "Evidence",
+    "skeleton": "Loading evidence..."
+  },
+  "detail": {
+    "heading": "Evidence Details",
+    "skeleton": "Loading evidence details..."
+  }
+}

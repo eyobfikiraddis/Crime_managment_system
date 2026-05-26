@@ -16,49 +16,49 @@ import type { NavigationSection } from '@/shared/types/navigation.types'
 
 export const navigationSections: NavigationSection[] = [
   {
-    label: 'Operations',
+    label: 'sections.operations',
     items: [
-      { href: ROUTES.dashboard, label: 'Dashboard', icon: LayoutDashboard },
-      { href: ROUTES.cases, label: 'Cases', icon: Briefcase },
+      { href: ROUTES.dashboard, label: 'items.dashboard', icon: LayoutDashboard },
+      { href: ROUTES.cases, label: 'items.cases', icon: Briefcase },
     ],
   },
   {
-    label: 'Evidence',
-    items: [{ href: ROUTES.cases, label: 'Evidence', icon: Shield }],
+    label: 'sections.evidence',
+    items: [{ href: ROUTES.cases, label: 'items.evidence', icon: Shield }],
   },
   {
-    label: 'Legal',
-    items: [{ href: ROUTES.legalCourtCases, label: 'Court Cases', icon: Scale }],
+    label: 'sections.legal',
+    items: [{ href: ROUTES.legalCourtCases, label: 'items.courtCases', icon: Scale }],
   },
   {
-    label: 'Personnel',
+    label: 'sections.personnel',
     items: [
-      { href: ROUTES.personnelPersons, label: 'Persons', icon: Users },
-      { href: ROUTES.personnelOfficers, label: 'Officers', icon: Users },
+      { href: ROUTES.personnelPersons, label: 'items.persons', icon: Users },
+      { href: ROUTES.personnelOfficers, label: 'items.officers', icon: Users },
     ],
   },
   {
-    label: 'Organisation',
-    items: [{ href: ROUTES.departments, label: 'Departments', icon: Building2 }],
+    label: 'sections.organisation',
+    items: [{ href: ROUTES.departments, label: 'items.departments', icon: Building2 }],
   },
   {
-    label: 'Intelligence',
-    items: [{ href: ROUTES.reports, label: 'Reports', icon: FileText }],
+    label: 'sections.intelligence',
+    items: [{ href: ROUTES.reports, label: 'items.reports', icon: FileText }],
   },
   {
-    label: 'System',
+    label: 'sections.system',
     minRole: OfficerRole.ADMIN,
     items: [
-      { href: ROUTES.adminLocations, label: 'Locations', icon: Settings },
-      { href: ROUTES.adminCrimeTypes, label: 'Crime Types', icon: Settings },
-      { href: ROUTES.adminHealth, label: 'System Health', icon: Settings },
+      { href: ROUTES.adminLocations, label: 'items.locations', icon: Settings },
+      { href: ROUTES.adminCrimeTypes, label: 'items.crimeTypes', icon: Settings },
+      { href: ROUTES.adminHealth, label: 'items.systemHealth', icon: Settings },
     ],
   },
   {
-    label: 'Account',
+    label: 'sections.account',
     items: [
-      { href: ROUTES.settingsProfile, label: 'Profile', icon: Bell },
-      { href: ROUTES.settingsPassword, label: 'Password', icon: Bell },
+      { href: ROUTES.settingsProfile, label: 'items.profile', icon: Bell },
+      { href: ROUTES.settingsPassword, label: 'items.password', icon: Bell },
     ],
   },
 ]

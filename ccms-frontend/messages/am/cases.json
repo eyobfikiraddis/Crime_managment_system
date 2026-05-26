@@ -1,0 +1,54 @@
+{
+  "pageTitle": "ጉዳዮች",
+  "list": {
+    "heading": "ሁሉም ጉዳዮች",
+    "skeleton": "ጉዳዮች በመጫን ላይ...",
+    "searchPlaceholder": "ጉዳዮችን ፈልግ..."
+  },
+  "newCase": {
+    "heading": "አዲስ ጉዳይ",
+    "skeleton": "የጉዳይ ቅጽ በመዘጋጀት ላይ..."
+  },
+  "detail": {
+    "heading": "የጉዳይ ዝርዝር",
+    "skeleton": "የጉዳይ ዝርዝር በመጫን ላይ..."
+  },
+  "sections": {
+    "arrests": {
+      "heading": "እስሮች",
+      "skeleton": "እስሮች በመጫን ላይ..."
+    },
+    "evidence": {
+      "heading": "ማስረጃ",
+      "skeleton": "ማስረጃ በመጫን ላይ..."
+    },
+    "evidenceDetail": {
+      "heading": "የማስረጃ ዝርዝር",
+      "skeleton": "የማስረጃ ዝርዝር በመጫን ላይ..."
+    },
+    "legal": {
+      "heading": "ህጋዊ",
+      "skeleton": "ህጋዊ መረጃ በመጫን ላይ..."
+    },
+    "officers": {
+      "heading": "ተመድበው ያሉ መኮንኖች",
+      "skeleton": "መኮንኖች በመጫን ላይ..."
+    },
+    "interrogations": {
+      "heading": "ምርመራዎች",
+      "skeleton": "ምርመራዎች በመጫን ላይ..."
+    },
+    "reports": {
+      "heading": "ሪፖርቶች",
+      "skeleton": "ሪፖርቶች በመጫን ላይ..."
+    },
+    "permissions": {
+      "heading": "ፈቃዶች",
+      "skeleton": "ፈቃዶች በመጫን ላይ..."
+    },
+    "timeline": {
+      "heading": "ጊዜ ሰሌዳ",
+      "skeleton": "ጊዜ ሰሌዳ በመጫን ላይ..."
+    }
+  }
+}

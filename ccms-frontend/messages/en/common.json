@@ -1,0 +1,68 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "print": "Print",
+    "retry": "Try Again",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "submit": "Submit",
+    "clear": "Clear",
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "submitting": "Submitting...",
+    "saving": "Saving..."
+  },
+  "status": {
+    "open": "Open",
+    "closed": "Closed",
+    "archived": "Archived",
+    "active": "Active",
+    "inactive": "Inactive",
+    "online": "Online",
+    "pending": "Pending",
+    "underInvestigation": "Under Investigation",
+    "referredToCourt": "Referred to Court",
+    "protected": "Protected"
+  },
+  "pagination": {
+    "showing": "Showing {from}–{to} of {total}",
+    "rowsPerPage": "Rows per page",
+    "goToPage": "Go to page",
+    "firstPage": "First page",
+    "lastPage": "Last page",
+    "nextPage": "Next page",
+    "previousPage": "Previous page"
+  },
+  "table": {
+    "noResults": "No results found.",
+    "noResultsDescription": "Try adjusting your search or filter criteria.",
+    "selectAll": "Select all rows",
+    "selectRow": "Select row",
+    "clearSelection": "Clear selection",
+    "selectedCount": "{count} row(s) selected"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{count} minute(s) ago",
+    "hoursAgo": "{count} hour(s) ago",
+    "daysAgo": "{count} day(s) ago",
+    "today": "Today",
+    "yesterday": "Yesterday"
+  },
+  "classification": "Authorised personnel only. All access is logged.",
+  "systemName": "CCMS",
+  "systemFullName": "Criminal Case Management System",
+  "notFound": "Not found",
+  "forbidden": "Access denied"
+}

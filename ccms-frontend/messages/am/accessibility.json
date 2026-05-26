@@ -1,0 +1,33 @@
+{
+  "localeToggle": {
+    "label": "ቋንቋ ይቀይሩ"
+  },
+  "auth": {
+    "badgeNumber": "የባጅ ቁጥር",
+    "password": "የይለፍ ቃል",
+    "email": "የኢሜይል አድራሻ",
+    "newPassword": "አዲስ የይለፍ ቃል",
+    "confirmPassword": "አዲስ የይለፍ ቃል አረጋግጥ",
+    "rememberMe": "አስታውሰኝ",
+    "forgotPassword": "የይለፍ ቃል ረሳህ",
+    "showPassword": "የይለፍ ቃል አሳይ",
+    "hidePassword": "የይለፍ ቃል ደብቅ",
+    "loginSubmit": "ግባ",
+    "resetSubmit": "አዲስ የይለፍ ቃል ያስቀምጡ"
+  },
+  "topbar": {
+    "openMenu": "ምናሌ ክፈት",
+    "notifications": "ማሳወቂያዎች",
+    "accountMenu": "የመለያ ምናሌ",
+    "commandPalette": "የትእዛዝ ፓለት ክፈት",
+    "commandPaletteHint": "Ctrl+K"
+  },
+  "navigation": {
+    "primary": "ዋና ናቪጌሽን"
+  },
+  "skipToMain": "ወደ ዋና ይዘት ዝለል",
+  "table": {
+    "selectAll": "ሁሉንም ረድፎች ምረጥ",
+    "selectRow": "ረድፍ ምረጥ"
+  }
+}

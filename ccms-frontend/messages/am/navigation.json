@@ -1,0 +1,53 @@
+{
+  "sections": {
+    "operations": "ስራዎች",
+    "evidence": "ማስረጃ",
+    "legal": "ህጋዊ",
+    "personnel": "ሰራተኞች",
+    "organisation": "ድርጅት",
+    "intelligence": "ስለላ",
+    "system": "ስርዓት",
+    "account": "መለያ"
+  },
+  "items": {
+    "dashboard": "ዳሽቦርድ",
+    "cases": "ጉዳዮች",
+    "evidence": "ማስረጃ",
+    "arrests": "እስሮች",
+    "courtCases": "የፍርድ ቤት ጉዳዮች",
+    "persons": "ሰዎች",
+    "officers": "መኮንኖች",
+    "departments": "ክፍሎች",
+    "reports": "ሪፖርቶች",
+    "locations": "ቦታዎች",
+    "crimeTypes": "የወንጀል ዓይነቶች",
+    "systemHealth": "የስርዓት ጤና",
+    "audit": "የኦዲት ምዝገባ",
+    "settings": "ቅንብሮች",
+    "profile": "መገለጫዬ",
+    "password": "የይለፍ ቃል ቀይር",
+    "logout": "ውጣ"
+  },
+  "breadcrumbs": {
+    "home": "መነሻ",
+    "cases": "ጉዳዮች",
+    "newCase": "አዲስ ጉዳይ",
+    "evidence": "ማስረጃ",
+    "officers": "መኮንኖች",
+    "persons": "ሰዎች",
+    "departments": "ክፍሎች",
+    "reports": "ሪፖርቶች",
+    "admin": "አስተዳዳሪ",
+    "settings": "ቅንብሮች",
+    "legal": "ህጋዊ",
+    "arrests": "እስሮች",
+    "interrogations": "ምርመራዎች",
+    "timeline": "ጊዜ ሰሌዳ",
+    "permissions": "ፈቃዶች"
+  },
+  "sidebar": {
+    "collapseLabel": "ሳይድባር አሳንስ",
+    "expandLabel": "ሳይድባር አሳፋ",
+    "openMobileMenu": "የናቪጌሽን ምናሌ ክፈት"
+  }
+}

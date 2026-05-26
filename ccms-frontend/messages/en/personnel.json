@@ -1,0 +1,15 @@
+{
+  "pageTitle": "Personnel",
+  "officers": {
+    "listHeading": "Officers",
+    "listSkeleton": "Loading officers...",
+    "detailHeading": "Officer Details",
+    "detailSkeleton": "Loading officer details..."
+  },
+  "persons": {
+    "listHeading": "Persons",
+    "listSkeleton": "Loading persons...",
+    "detailHeading": "Person Details",
+    "detailSkeleton": "Loading person details..."
+  }
+}

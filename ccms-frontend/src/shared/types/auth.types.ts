@@ -13,7 +13,7 @@ export interface OfficerProfile {
   departmentId: string
   permissions: string[]
   isActive: boolean
-  lastLoginAt: string
+  lastLoginAt: string | null
 }
 
 export interface AuthSession {

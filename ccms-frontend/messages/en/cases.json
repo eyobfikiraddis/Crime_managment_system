@@ -1,0 +1,54 @@
+{
+  "pageTitle": "Cases",
+  "list": {
+    "heading": "All Cases",
+    "skeleton": "Loading cases...",
+    "searchPlaceholder": "Search cases..."
+  },
+  "newCase": {
+    "heading": "New Case",
+    "skeleton": "Preparing case form..."
+  },
+  "detail": {
+    "heading": "Case Details",
+    "skeleton": "Loading case details..."
+  },
+  "sections": {
+    "arrests": {
+      "heading": "Arrests",
+      "skeleton": "Loading arrests..."
+    },
+    "evidence": {
+      "heading": "Evidence",
+      "skeleton": "Loading evidence..."
+    },
+    "evidenceDetail": {
+      "heading": "Evidence Details",
+      "skeleton": "Loading evidence details..."
+    },
+    "legal": {
+      "heading": "Legal",
+      "skeleton": "Loading legal summary..."
+    },
+    "officers": {
+      "heading": "Assigned Officers",
+      "skeleton": "Loading officers..."
+    },
+    "interrogations": {
+      "heading": "Interrogations",
+      "skeleton": "Loading interrogations..."
+    },
+    "reports": {
+      "heading": "Reports",
+      "skeleton": "Loading reports..."
+    },
+    "permissions": {
+      "heading": "Permissions",
+      "skeleton": "Loading permissions..."
+    },
+    "timeline": {
+      "heading": "Timeline",
+      "skeleton": "Loading timeline..."
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "sections": {
+    "operations": "Operations",
+    "evidence": "Evidence",
+    "legal": "Legal",
+    "personnel": "Personnel",
+    "organisation": "Organisation",
+    "intelligence": "Intelligence",
+    "system": "System",
+    "account": "Account"
+  },
+  "items": {
+    "dashboard": "Dashboard",
+    "cases": "Cases",
+    "evidence": "Evidence",
+    "arrests": "Arrests",
+    "courtCases": "Court Cases",
+    "persons": "Persons",
+    "officers": "Officers",
+    "departments": "Departments",
+    "reports": "Reports",
+    "locations": "Locations",
+    "crimeTypes": "Crime Types",
+    "systemHealth": "System Health",
+    "audit": "Audit Log",
+    "settings": "Settings",
+    "profile": "My Profile",
+    "password": "Change Password",
+    "logout": "Sign Out"
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "cases": "Cases",
+    "newCase": "New Case",
+    "evidence": "Evidence",
+    "officers": "Officers",
+    "persons": "Persons",
+    "departments": "Departments",
+    "reports": "Reports",
+    "admin": "Admin",
+    "settings": "Settings",
+    "legal": "Legal",
+    "arrests": "Arrests",
+    "interrogations": "Interrogations",
+    "timeline": "Timeline",
+    "permissions": "Permissions"
+  },
+  "sidebar": {
+    "collapseLabel": "Collapse sidebar",
+    "expandLabel": "Expand sidebar",
+    "openMobileMenu": "Open navigation menu"
+  }
+}

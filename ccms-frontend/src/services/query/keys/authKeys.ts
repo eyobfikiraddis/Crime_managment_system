@@ -5,4 +5,5 @@ export const authKeys = {
   details: () => [...authKeys.all, 'detail'] as const,
   detail: (id: string) => [...authKeys.details(), id] as const,
   session: () => [...authKeys.all, 'session'] as const,
+  profile: () => [...authKeys.all, 'profile'] as const,
 } as const

@@ -1,0 +1,11 @@
+{
+  "pageTitle": "Dashboard",
+  "heading": "Overview",
+  "skeleton": "Loading dashboard...",
+  "sections": {
+    "activity": {
+      "title": "Recent Activity",
+      "skeleton": "Loading activity..."
+    }
+  }
+}

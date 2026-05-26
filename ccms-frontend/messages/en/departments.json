@@ -1,0 +1,11 @@
+{
+  "pageTitle": "Departments",
+  "list": {
+    "heading": "Departments",
+    "skeleton": "Loading departments..."
+  },
+  "detail": {
+    "heading": "Department Details",
+    "skeleton": "Loading department details..."
+  }
+}

@@ -1,12 +1,48 @@
 import axios, { type AxiosError, type AxiosRequestConfig } from 'axios'
 
 import { env } from '@/config/env'
+import { defaultLocale, locales, type Locale } from '@/config/i18n'
 import { useAuthStore } from '@/shared/stores/auth.store'
 import { useNotificationStore } from '@/shared/stores/notification.store'
 
 import { ApiError } from './errors'
+import errorsEn from '../../../messages/en/errors.json'
+import errorsAm from '../../../messages/am/errors.json'
 
 type RetryRequestConfig = AxiosRequestConfig & { _retry?: boolean }
+
+type QueueItem = {
+  resolve: (value: unknown) => void
+  reject: (reason?: unknown) => void
+}
+
+const errorMessagesByLocale: Record<Locale, typeof errorsEn> = {
+  en: errorsEn,
+  am: errorsAm,
+}
+
+const getLocaleFromCookie = () => {
+  if (typeof document === 'undefined') return defaultLocale
+  const match = document.cookie.match(/(?:^|; )ccms_locale=([^;]*)/)
+  const value = match ? decodeURIComponent(match[1]) : null
+  if (value && locales.includes(value as Locale)) {
+    return value as Locale
+  }
+  return defaultLocale
+}
+
+const getErrorMessage = (path: string, fallback: string) => {
+  const locale = getLocaleFromCookie()
+  const messages = errorMessagesByLocale[locale]
+  return (
+    path.split('.').reduce<unknown>((acc, key) => {
+      if (acc && typeof acc === 'object' && key in acc) {
+        return (acc as Record<string, unknown>)[key]
+      }
+      return null
+    }, messages) || fallback
+  ) as string
+}
 
 const apiClient = axios.create({
   baseURL: env.NEXT_PUBLIC_API_URL,
@@ -39,8 +75,26 @@ const createRequestId = () => {
 apiClient.interceptors.request.use((config) => {
   config.headers = config.headers ?? {}
   config.headers['X-Request-ID'] = createRequestId()
+  const method = (config.method ?? 'get').toLowerCase()
+  if (['post', 'put', 'patch', 'delete'].includes(method)) {
+    config.headers['X-Requested-With'] = 'XMLHttpRequest'
+  }
   return config
 })
+
+let isRefreshing = false
+let failedQueue: QueueItem[] = []
+
+const processQueue = (error?: unknown) => {
+  failedQueue.forEach((promise) => {
+    if (error) {
+      promise.reject(error)
+      return
+    }
+    promise.resolve(null)
+  })
+  failedQueue = []
+}
 
 apiClient.interceptors.response.use(
   (response) => response.data,
@@ -51,7 +105,7 @@ apiClient.interceptors.response.use(
 
     if (!error.response) {
       notify({
-        message: 'Network error. Please check your connection.',
+        message: getErrorMessage('api.network', apiError.message),
         variant: 'error',
       })
       throw apiError
@@ -60,31 +114,53 @@ apiClient.interceptors.response.use(
     if (statusCode === 401) {
       const originalRequest = error.config as RetryRequestConfig | undefined
 
-      if (originalRequest && !originalRequest._retry) {
-        originalRequest._retry = true
+      if (!originalRequest) {
+        throw apiError
+      }
 
-        try {
-          await refreshClient.post('/api/v1/auth/refresh')
-          return apiClient(originalRequest)
-        } catch {
-          useAuthStore.getState().clearSession()
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login'
-          }
+      if (originalRequest._retry) {
+        throw apiError
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then(() => apiClient(originalRequest))
+          .catch((queueError) => {
+            throw queueError
+          })
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        await refreshClient.post('/api/v1/auth/refresh')
+        processQueue()
+        return apiClient(originalRequest)
+      } catch (refreshError) {
+        processQueue(refreshError)
+        useAuthStore.getState().clearSession()
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login'
         }
+        throw apiError
+      } finally {
+        isRefreshing = false
       }
     }
 
     if (statusCode === 403) {
       notify({
-        message: 'You do not have permission to perform this action.',
+        message: getErrorMessage('api.forbidden', apiError.message),
         variant: 'error',
       })
     }
 
     if (statusCode === 429) {
       notify({
-        message: 'Too many requests. Please slow down and try again.',
+        message: getErrorMessage('api.rateLimited', apiError.message),
         variant: 'warning',
       })
     }

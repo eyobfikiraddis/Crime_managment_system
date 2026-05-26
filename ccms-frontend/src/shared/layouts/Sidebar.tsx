@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
@@ -24,6 +25,9 @@ export function Sidebar() {
   const toggleSidebar = useUiStore((state) => state.toggleSidebar)
   const isMobile = useMediaQuery(MOBILE_BREAKPOINT)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const tCommon = useTranslations('common')
+  const tNav = useTranslations('navigation')
+  const tA11y = useTranslations('accessibility')
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -56,13 +60,15 @@ export function Sidebar() {
 
   const navigationContent = (
     <div className="flex h-full flex-col gap-6 px-4 py-6">
-      <div className="text-xs font-semibold uppercase text-foreground-muted">CCMS</div>
-      <nav className="flex flex-1 flex-col gap-6" aria-label="Primary">
+      <div className="text-xs font-semibold uppercase text-foreground-muted">
+        {tCommon('systemName')}
+      </div>
+      <nav className="flex flex-1 flex-col gap-6" aria-label={tA11y('navigation.primary')}>
         {sections.map((section) => (
           <div key={section.label} className="space-y-2">
             {!sidebarCollapsed ? (
               <p className="text-xs font-semibold uppercase text-foreground-muted">
-                {section.label}
+                {tNav(section.label)}
               </p>
             ) : null}
             <div className="flex flex-col gap-1" role="menu">
@@ -79,7 +85,7 @@ export function Sidebar() {
                     }`}
                   >
                     <item.icon className="size-4" aria-hidden="true" />
-                    {!sidebarCollapsed ? <span>{item.label}</span> : null}
+                    {!sidebarCollapsed ? <span>{tNav(item.label)}</span> : null}
                   </Link>
                 )
 
@@ -87,7 +93,7 @@ export function Sidebar() {
                   return (
                     <Tooltip key={item.href} delayDuration={0}>
                       <TooltipTrigger asChild>{content}</TooltipTrigger>
-                      <TooltipContent side="right">{item.label}</TooltipContent>
+                      <TooltipContent side="right">{tNav(item.label)}</TooltipContent>
                     </Tooltip>
                   )
                 }
@@ -104,10 +110,12 @@ export function Sidebar() {
           variant="ghost"
           className="justify-start gap-2"
           onClick={toggleSidebar}
-          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={
+            sidebarCollapsed ? tNav('sidebar.expandLabel') : tNav('sidebar.collapseLabel')
+          }
         >
           {sidebarCollapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
-          {!sidebarCollapsed ? 'Collapse' : null}
+          {!sidebarCollapsed ? tNav('sidebar.collapseLabel') : null}
         </Button>
       ) : null}
     </div>

@@ -5,8 +5,8 @@ const config = {
   darkMode: 'class',
   theme: {
     fontFamily: {
-      sans: ['Inter', 'system-ui', 'sans-serif'],
-      mono: ['JetBrains Mono', 'monospace'],
+      sans: ['var(--font-sans)'],
+      mono: ['var(--font-mono)', 'monospace'],
     },
     fontSize: {
       xs: ['var(--text-xs)', { lineHeight: 'var(--leading-xs)' }],

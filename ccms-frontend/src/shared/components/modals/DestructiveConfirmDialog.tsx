@@ -19,11 +19,12 @@ interface DestructiveConfirmDialogProps {
   onOpenChange: (open: boolean) => void
   title: string
   description: string
-  confirmLabel?: string
-  cancelLabel?: string
+  confirmLabel: string
+  cancelLabel: string
   onConfirm: () => void
   isConfirming?: boolean
   confirmPhrase?: string
+  confirmPrompt?: string
 }
 
 export function DestructiveConfirmDialog({
@@ -31,11 +32,12 @@ export function DestructiveConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   isConfirming,
   confirmPhrase,
+  confirmPrompt,
 }: DestructiveConfirmDialogProps) {
   const [inputValue, setInputValue] = useState('')
   const phraseMatches = confirmPhrase ? inputValue === confirmPhrase : true
@@ -49,9 +51,11 @@ export function DestructiveConfirmDialog({
         </AlertDialogHeader>
         {confirmPhrase ? (
           <div className="space-y-2">
-            <p className="text-xs text-foreground-muted">
-              Type <span className="font-semibold">{confirmPhrase}</span> to confirm.
-            </p>
+            {confirmPrompt ? (
+              <p className="text-xs text-foreground-muted">
+                {confirmPrompt}
+              </p>
+            ) : null}
             <Input value={inputValue} onChange={(event) => setInputValue(event.target.value)} />
           </div>
         ) : null}

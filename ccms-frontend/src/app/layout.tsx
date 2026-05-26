@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Inter, JetBrains_Mono, Noto_Sans_Ethiopic } from 'next/font/google'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 import { Toaster } from 'sonner'
 
 import './globals.css'
@@ -9,11 +11,20 @@ import { Providers } from '@/shared/providers/Providers'
 const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
+  display: 'swap',
 })
 
 const jetBrainsMono = JetBrains_Mono({
   variable: '--font-mono',
   subsets: ['latin'],
+  display: 'swap',
+})
+
+const notoSansEthiopic = Noto_Sans_Ethiopic({
+  variable: '--font-ethiopic',
+  subsets: ['ethiopic'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -32,22 +43,27 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
     <html
-      lang="en"
-      className={`${inter.variable} ${jetBrainsMono.variable} dark h-full antialiased`}
+      lang={locale}
+      className={`${inter.variable} ${notoSansEthiopic.variable} ${jetBrainsMono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full bg-background text-foreground">
-        <Providers>
-          {children}
-          <ModalRenderer />
-          <Toaster richColors />
-        </Providers>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <Providers>
+            {children}
+            <ModalRenderer />
+            <Toaster richColors />
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

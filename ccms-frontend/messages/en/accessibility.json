@@ -1,0 +1,33 @@
+{
+  "localeToggle": {
+    "label": "Change language"
+  },
+  "auth": {
+    "badgeNumber": "Badge number",
+    "password": "Password",
+    "email": "Email address",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "loginSubmit": "Sign in",
+    "resetSubmit": "Set new password"
+  },
+  "topbar": {
+    "openMenu": "Open menu",
+    "notifications": "Notifications",
+    "accountMenu": "Account menu",
+    "commandPalette": "Open command palette",
+    "commandPaletteHint": "Ctrl+K"
+  },
+  "navigation": {
+    "primary": "Primary navigation"
+  },
+  "skipToMain": "Skip to main content",
+  "table": {
+    "selectAll": "Select all rows",
+    "selectRow": "Select row"
+  }
+}

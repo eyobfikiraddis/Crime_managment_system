@@ -25,7 +25,7 @@
 }
 
 html {
-  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 
 body {
@@ -37,7 +37,7 @@ body {
 code,
 kbd,
 pre {
-  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  font-family: var(--font-mono), monospace;
 }
 
 :focus-visible {

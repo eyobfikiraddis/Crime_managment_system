@@ -7,19 +7,21 @@ interface FormActionsProps {
   onSubmit?: () => void
   isSubmitting?: boolean
   submitLabel?: string
+  cancelLabel?: string
 }
 
 export function FormActions({
   onCancel,
   onSubmit,
   isSubmitting,
-  submitLabel = 'Save',
+  submitLabel,
+  cancelLabel,
 }: FormActionsProps) {
   return (
     <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-border bg-card px-4 py-3">
       {onCancel ? (
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
-          Cancel
+          {cancelLabel}
         </Button>
       ) : null}
       <Button type="button" onClick={onSubmit} disabled={isSubmitting}>
