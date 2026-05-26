@@ -9,5 +9,5 @@ interface TableEmptyStateProps {
 }
 
 export function TableEmptyState({ title, description, action }: TableEmptyStateProps) {
-  return <EmptyState title={title} description={description} action={action} />
+  return <EmptyState title={title} description={description ?? 'No data found.'} action={action} />
 }

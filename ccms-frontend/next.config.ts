@@ -22,6 +22,7 @@ const cspHeader = `
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  typedRoutes: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
@@ -34,7 +35,6 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    typedRoutes: true,
     optimizePackageImports: ['lucide-react', 'recharts'],
   },
   async headers() {

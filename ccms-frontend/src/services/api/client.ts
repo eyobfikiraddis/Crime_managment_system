@@ -1,6 +1,6 @@
 import axios, { type AxiosError, type AxiosRequestConfig } from 'axios'
+import { envClient } from '@/config/env.client'
 
-import { env } from '@/config/env'
 import { defaultLocale, locales, type Locale } from '@/config/i18n'
 import { useAuthStore } from '@/shared/stores/auth.store'
 import { useNotificationStore } from '@/shared/stores/notification.store'
@@ -9,7 +9,11 @@ import { ApiError } from './errors'
 import errorsEn from '../../../messages/en/errors.json'
 import errorsAm from '../../../messages/am/errors.json'
 
-type RetryRequestConfig = AxiosRequestConfig & { _retry?: boolean }
+type RetryRequestConfig = AxiosRequestConfig & {
+  _retry?: boolean
+  skipAuthRefresh?: boolean
+  skipErrorToast?: boolean
+}
 
 type QueueItem = {
   resolve: (value: unknown) => void
@@ -24,7 +28,7 @@ const errorMessagesByLocale: Record<Locale, typeof errorsEn> = {
 const getLocaleFromCookie = () => {
   if (typeof document === 'undefined') return defaultLocale
   const match = document.cookie.match(/(?:^|; )ccms_locale=([^;]*)/)
-  const value = match ? decodeURIComponent(match[1]) : null
+  const value = match?.[1] ? decodeURIComponent(match[1]) : null;
   if (value && locales.includes(value as Locale)) {
     return value as Locale
   }
@@ -45,7 +49,7 @@ const getErrorMessage = (path: string, fallback: string) => {
 }
 
 const apiClient = axios.create({
-  baseURL: env.NEXT_PUBLIC_API_URL,
+  baseURL: envClient.NEXT_PUBLIC_API_URL,
   timeout: 30_000,
   headers: {
     'Content-Type': 'application/json',
@@ -55,7 +59,7 @@ const apiClient = axios.create({
 })
 
 const refreshClient = axios.create({
-  baseURL: env.NEXT_PUBLIC_API_URL,
+  baseURL: envClient.NEXT_PUBLIC_API_URL,
   timeout: 30_000,
   headers: {
     'Content-Type': 'application/json',
@@ -102,19 +106,25 @@ apiClient.interceptors.response.use(
     const apiError = ApiError.fromAxiosError(error)
     const statusCode = apiError.statusCode
     const notify = useNotificationStore.getState().addToast
+    const originalRequest = error.config as RetryRequestConfig | undefined
+    const skipErrorToast = Boolean(originalRequest?.skipErrorToast)
 
     if (!error.response) {
-      notify({
-        message: getErrorMessage('api.network', apiError.message),
-        variant: 'error',
-      })
+      if (!skipErrorToast) {
+        notify({
+          message: getErrorMessage('api.network', apiError.message),
+          variant: 'error',
+        })
+      }
       throw apiError
     }
 
     if (statusCode === 401) {
-      const originalRequest = error.config as RetryRequestConfig | undefined
-
       if (!originalRequest) {
+        throw apiError
+      }
+
+      if (originalRequest.skipAuthRefresh) {
         throw apiError
       }
 
@@ -152,17 +162,21 @@ apiClient.interceptors.response.use(
     }
 
     if (statusCode === 403) {
-      notify({
-        message: getErrorMessage('api.forbidden', apiError.message),
-        variant: 'error',
-      })
+      if (!skipErrorToast) {
+        notify({
+          message: getErrorMessage('api.forbidden', apiError.message),
+          variant: 'error',
+        })
+      }
     }
 
     if (statusCode === 429) {
-      notify({
-        message: getErrorMessage('api.rateLimited', apiError.message),
-        variant: 'warning',
-      })
+      if (!skipErrorToast) {
+        notify({
+          message: getErrorMessage('api.rateLimited', apiError.message),
+          variant: 'warning',
+        })
+      }
     }
 
     throw apiError

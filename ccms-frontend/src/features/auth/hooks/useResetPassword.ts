@@ -13,7 +13,9 @@ export function useResetPassword() {
     mutationFn: (payload: ResetPasswordPayload) => resetPassword(payload),
     onSuccess: () => {
       setIsSuccess(true)
-      router.refresh()
+      setTimeout(() => {
+        router.push('/login')
+      }, 3000)
     },
   })
 

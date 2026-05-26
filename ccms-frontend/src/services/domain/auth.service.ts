@@ -7,8 +7,23 @@ import type {
 import { apiClient } from '@/services/api/client'
 import { authSessionSchema } from '@/features/auth/schemas/auth-session.schema'
 
-export async function login(credentials: LoginCredentials): Promise<AuthSession> {
-  const response = await apiClient.post<AuthSession>('/api/v1/auth/login', credentials)
+type AuthRequestConfig = Parameters<typeof apiClient.post>[2] & {
+  skipAuthRefresh?: boolean
+  skipErrorToast?: boolean
+}
+
+export async function login(
+  credentials: LoginCredentials,
+  rememberMe = false,
+): Promise<AuthSession> {
+  const config: AuthRequestConfig = {
+    skipAuthRefresh: true,
+    skipErrorToast: true,
+  }
+//   if (credentials.rememberMe) {
+//   config.headers = { 'X-Remember-Me': 'true' };
+// }
+  const response = await apiClient.post<AuthSession>('/api/v1/auth/login', credentials, config)
   return authSessionSchema.parse(response)
 }
 
@@ -22,13 +37,21 @@ export async function refreshToken(): Promise<AuthSession> {
 }
 
 export async function forgotPassword(email: string): Promise<{ message: string }> {
-  return apiClient.post('/api/v1/auth/forgot-password', { email })
+  const config: AuthRequestConfig = {
+    skipAuthRefresh: true,
+    skipErrorToast: true,
+  }
+  return apiClient.post('/api/v1/auth/forgot-password', { email }, config)
 }
 
 export async function resetPassword(
   payload: ResetPasswordPayload,
 ): Promise<{ message: string }> {
-  return apiClient.post('/api/v1/auth/reset-password', payload)
+  const config: AuthRequestConfig = {
+    skipAuthRefresh: true,
+    skipErrorToast: true,
+  }
+  return apiClient.post('/api/v1/auth/reset-password', payload, config)
 }
 
 export async function getSession(): Promise<AuthSession | null> {

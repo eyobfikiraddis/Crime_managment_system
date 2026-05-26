@@ -111,7 +111,7 @@ export function DataTable<TData>({
   }
 
   if (rows.length === 0) {
-    return <TableEmptyState title={emptyTitle ?? ''} description={emptyMessage} />
+    return <TableEmptyState title={emptyTitle ?? ''} description={emptyMessage ?? 'No data found.'}/>
   }
 
   return (

@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import {
   Bell,
@@ -22,19 +21,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
-import { useAuthStore } from '@/shared/stores/auth.store'
 import { useUiStore } from '@/shared/stores/ui.store'
 import { LocaleToggle } from '@/shared/components/i18n/LocaleToggle'
 
 import { Breadcrumb } from './Breadcrumb'
 
 export function TopBar() {
-  const router = useRouter()
-  const clearSession = useAuthStore((state) => state.clearSession)
   const toggleCommandPalette = useUiStore((state) => state.toggleCommandPalette)
+  const openModal = useUiStore((state) => state.openModal)
   const isMobile = useMediaQuery('(max-width: 1024px)')
   const tCommon = useTranslations('common')
   const tNav = useTranslations('navigation')
+  const tAuth = useTranslations('auth')
   const tA11y = useTranslations('accessibility')
 
   useEffect(() => {
@@ -51,8 +49,7 @@ export function TopBar() {
   }, [toggleCommandPalette])
 
   const handleLogout = () => {
-    clearSession()
-    router.push('/login')
+    openModal('logout-confirm')
   }
 
   const openSidebar = () => {
@@ -124,7 +121,9 @@ export function TopBar() {
               <Link href="/settings/password">{tNav('items.password')}</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>{tNav('items.logout')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
+              {tAuth('logout.menuLabel')}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

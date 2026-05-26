@@ -20,14 +20,14 @@ export function useLogout() {
     mutationFn: logout,
     onSuccess: () => {
       clearSession()
-      queryClient.removeQueries({ queryKey: authKeys.all })
+      queryClient.clear()
       addToast({ message: tAuth('logout.successMessage'), variant: 'success' })
       router.push('/login')
       router.refresh()
     },
     onError: () => {
       clearSession()
-      queryClient.removeQueries({ queryKey: authKeys.all })
+      queryClient.clear()
       router.push('/login')
       router.refresh()
     },

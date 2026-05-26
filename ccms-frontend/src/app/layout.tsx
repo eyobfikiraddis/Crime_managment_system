@@ -3,6 +3,8 @@ import { Inter, JetBrains_Mono, Noto_Sans_Ethiopic } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
 import { Toaster } from 'sonner'
+import { serverEnv } from '@/config/env.server'
+// The import alone will run the check when the module loads on the server.
 
 import './globals.css'
 import { ModalRenderer } from '@/shared/components/modals/ModalRenderer'

@@ -10,15 +10,17 @@ export function useSession() {
 
   return useQuery({
     queryKey: authKeys.session(),
-    queryFn: getSession,
-    onSuccess: (session) => {
+    queryFn: async () => {
+      const session = await getSession()
       if (session) {
         setSession(session.officer, session.officer.permissions ?? [], session.sessionId)
-        return
+      } else {
+        clearSession()
       }
-      clearSession()
+      return session
     },
-    onError: () => clearSession(),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
     refetchOnWindowFocus: true,
   })
 }

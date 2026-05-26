@@ -67,3 +67,74 @@ pre {
   white-space: nowrap;
   border-width: 0;
 }
+
+@keyframes auth-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes auth-error-banner {
+  from {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    max-height: 200px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes auth-shake {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes auth-success-flash {
+  0%,
+  100% {
+    background-color: var(--color-primary);
+  }
+  50% {
+    background-color: var(--color-success);
+  }
+}
+
+.auth-card-entrance {
+  animation: auth-card-enter 300ms ease-out both;
+}
+
+.auth-error-banner {
+  animation: auth-error-banner 200ms ease-out both;
+}
+
+.auth-shake {
+  animation: auth-shake 280ms ease-in-out;
+}
+
+.auth-success-flash {
+  animation: auth-success-flash 200ms ease-out;
+}
