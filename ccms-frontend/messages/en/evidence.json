@@ -1,11 +1,181 @@
 {
   "pageTitle": "Evidence",
-  "list": {
+  "tab": {
     "heading": "Evidence",
-    "skeleton": "Loading evidence..."
+    "entityCount": "{count} item(s)",
+    "addEvidence": "Add Evidence",
+    "viewToggle": {
+      "table": "Table view",
+      "gallery": "Gallery view"
+    },
+    "filters": {
+      "search": "Search by description...",
+      "type": "Evidence Type",
+      "collectedBy": "Collected By",
+      "dateRange": "Date Range",
+      "clearAll": "Clear all filters"
+    },
+    "loading": "Loading evidence...",
+    "empty": "No evidence recorded for this case.",
+    "emptyDescription": "Add the first evidence item using the button above.",
+    "emptyFiltered": "No evidence matches your filters.",
+    "columns": {
+      "evidenceNumber": "Evidence No.",
+      "description": "Description",
+      "type": "Type",
+      "collectedBy": "Collected By",
+      "collectedAt": "Collected",
+      "storageLocation": "Location",
+      "custodyStatus": "Custody",
+      "actions": "Actions"
+    },
+    "rowActions": {
+      "view": "View Details",
+      "recordCustody": "Record Custody Event",
+      "delete": "Delete Evidence"
+    }
+  },
+  "types": {
+    "DIGITAL": "Digital",
+    "CRIME_SCENE_PHOTO": "Crime Scene Photo",
+    "PHYSICAL": "Physical Object",
+    "DOCUMENT": "Document",
+    "BIOLOGICAL": "Biological Sample",
+    "FORENSIC_REPORT": "Forensic Report",
+    "WEAPON": "Weapon",
+    "VEHICLE": "Vehicle",
+    "WITNESS_STATEMENT": "Witness Statement",
+    "AUDIO": "Audio Recording",
+    "VIDEO": "Video Recording",
+    "OTHER": "Other"
+  },
+  "custodyStatus": {
+    "COLLECTED": "Collected",
+    "TRANSFERRED": "Transferred",
+    "EXAMINED": "Examined",
+    "STORED": "Stored",
+    "PRESENTED_IN_COURT": "In Court",
+    "RETURNED": "Returned",
+    "DESTROYED": "Destroyed"
+  },
+  "upload": {
+    "drawerTitle": "Add Evidence",
+    "drawerDescription": "Record a new evidence item for this case.",
+    "section1Title": "Evidence Details",
+    "section2Title": "File Upload",
+    "section2Description": "Attach a file to this evidence item. Supported: images, PDF, audio, video. Maximum 50 MB.",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe the evidence item in detail...",
+    "typeLabel": "Evidence Type",
+    "typePlaceholder": "Select evidence type...",
+    "collectedByLabel": "Collected By",
+    "collectedByPlaceholder": "Search officers...",
+    "collectedAtLabel": "Date & Time Collected",
+    "storageLocationLabel": "Storage Location",
+    "storageLocationPlaceholder": "e.g. Evidence Locker 4B, Bole Division",
+    "notesLabel": "Notes (optional)",
+    "notesPlaceholder": "Any additional notes about this evidence item...",
+    "fileLabel": "Attach File",
+    "fileDragPrompt": "Drag a file here or click to browse",
+    "fileSizeLimit": "Maximum 50 MB",
+    "fileReplacePrompt": "Click to replace",
+    "uploadPhase": {
+      "signing": "Preparing upload...",
+      "uploading": "Uploading file: {progress}%",
+      "recording": "Saving evidence record...",
+      "success": "Evidence added successfully.",
+      "error": "Upload failed. See error above."
+    },
+    "submitButton": "Add Evidence",
+    "retryButton": "Retry",
+    "cancelButton": "Cancel",
+    "successMessage": "Evidence item added successfully.",
+    "errorMessage": "Failed to add evidence. Please try again."
   },
   "detail": {
-    "heading": "Evidence Details",
-    "skeleton": "Loading evidence details..."
+    "drawerTitle": "Evidence Details",
+    "evidenceNumber": "Evidence Number",
+    "type": "Type",
+    "description": "Description",
+    "collectedBy": "Collected By",
+    "collectedAt": "Date Collected",
+    "storageLocation": "Storage Location",
+    "notes": "Notes",
+    "mediaSection": "Attached File",
+    "viewFullImage": "View full image",
+    "downloadFile": "Download",
+    "noMedia": "No file attached.",
+    "forensicSection": "Forensic Report",
+    "forensicReportNumber": "Report Number",
+    "forensicLab": "Laboratory",
+    "forensicSubmittedBy": "Submitted By",
+    "forensicSubmittedAt": "Submitted",
+    "forensicFindings": "Findings",
+    "forensicConclusion": "Conclusion",
+    "noForensicReport": "No forensic report has been submitted.",
+    "vehicleSection": "Vehicle Details",
+    "weaponSection": "Weapon Details",
+    "recordCustodyButton": "Record Custody Event"
+  },
+  "custody": {
+    "sectionTitle": "Chain of Custody",
+    "intactBadge": "Chain Intact",
+    "brokenBadge": "Custody Gap Detected",
+    "gapWarning": "A custody gap of {hours} hour(s) was detected after this event.",
+    "immutableTooltip": "This custody record cannot be modified or deleted.",
+    "eventTypes": {
+      "COLLECTED": "Collected",
+      "TRANSFERRED": "Transferred",
+      "EXAMINED": "Examined",
+      "STORED": "Stored",
+      "PRESENTED_IN_COURT": "Presented in Court",
+      "RETURNED": "Returned",
+      "DESTROYED": "Destroyed"
+    },
+    "from": "From",
+    "to": "To",
+    "location": "Location",
+    "reason": "Reason",
+    "empty": "No custody events recorded.",
+    "recordDrawerTitle": "Record Custody Event",
+    "recordDrawerDescription": "Record a new transfer or examination event for this evidence item.",
+    "eventTypeLabel": "Event Type",
+    "toOfficerLabel": "Receiving Officer",
+    "toOfficerPlaceholder": "Search officers...",
+    "locationLabel": "Location",
+    "locationPlaceholder": "e.g. Forensic Lab 2, Federal Police HQ",
+    "reasonLabel": "Reason / Notes (optional)",
+    "submitButton": "Record Event",
+    "eventRecordedMessage": "Custody event recorded successfully."
+  },
+  "gallery": {
+    "empty": "No photos for this case.",
+    "emptyDescription": "Add photo evidence using the 'Add Evidence' button.",
+    "hover": {
+      "view": "View",
+      "details": "Details"
+    }
+  },
+  "lightbox": {
+    "closeLabel": "Close lightbox",
+    "prevLabel": "Previous photo",
+    "nextLabel": "Next photo",
+    "openMetadata": "Show metadata",
+    "closeMetadata": "Hide metadata",
+    "downloadLabel": "Download photo",
+    "photoCount": "{current} of {total}",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetZoom": "Reset zoom"
+  },
+  "delete": {
+    "confirmTitle": "Delete evidence item?",
+    "confirmDescription": "This will permanently delete evidence item {evidenceNumber} and remove it from the chain of custody. This action cannot be undone.",
+    "confirmPhrase": "delete {evidenceNumber}",
+    "successMessage": "Evidence item deleted successfully."
+  },
+  "update": {
+    "successMessage": "Evidence updated successfully.",
+    "errorMessage": "Failed to update evidence."
   }
 }

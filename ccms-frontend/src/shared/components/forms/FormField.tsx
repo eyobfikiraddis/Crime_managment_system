@@ -5,9 +5,9 @@ import { FieldError } from './FieldError'
 
 interface FormFieldProps {
   label: string
-  required?: boolean
-  helperText?: string
-  error?: string
+  required?: boolean | undefined
+  helperText?: string | undefined
+  error?: string | undefined
   children: ReactNode
 }
 

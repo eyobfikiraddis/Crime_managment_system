@@ -9,6 +9,9 @@ import { useUiStore } from '@/shared/stores/ui.store'
 
 type ModalComponent = (props: Record<string, unknown>) => ReactNode
 
+// NOTE: EvidenceLightbox is intentionally excluded from the global MODAL_REGISTRY.
+// It requires complex component-local state, specifically the list of sibling photos
+// and the current image index, which are not suitable for global routing/registry props.
 const MODAL_REGISTRY: Record<string, ModalComponent> = {
   'idle-warning': () => <IdleWarningModal />,
   'logout-confirm': () => <LogoutConfirmModal />,

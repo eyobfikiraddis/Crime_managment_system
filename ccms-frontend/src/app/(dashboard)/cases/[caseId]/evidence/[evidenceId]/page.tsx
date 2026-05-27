@@ -1,25 +1,23 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
-
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('cases')
-  return { title: t('pageTitle') }
-}
+import { EvidenceDetailPage } from '@/features/evidence/components/EvidenceDetailPage'
 
 type PageProps = {
-  params: { caseId: string; evidenceId: string }
-  searchParams: Record<string, string | string[] | undefined>
+  params: Promise<{ caseId: string; evidenceId: string }> | { caseId: string; evidenceId: string }
 }
 
-export default async function EvidenceDetailPage({ params, searchParams }: PageProps) {
-  void params
-  void searchParams
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const t = await getTranslations('evidence')
+  const resolvedParams = await params
+  return { title: `${t('detail.drawerTitle')} - ${resolvedParams.evidenceId}` }
+}
 
-  const t = await getTranslations('cases')
+export default async function EvidenceDetailRoute({ params }: PageProps) {
+  const resolvedParams = await params
+  const { caseId, evidenceId } = resolvedParams
 
   return (
-    <div>
-      <h1>{t('sections.evidenceDetail.heading')}</h1>
-    </div>
+    <EvidenceDetailPage caseId={caseId} evidenceId={evidenceId} />
   )
 }
+

@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
-import { EmptyState } from '@/shared/components/display/EmptyState'
-import { Info } from 'lucide-react'
+import { EvidenceTab } from '@/features/evidence/components/EvidenceTab'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('cases')
+  const t = await getTranslations('evidence')
   return { title: t('pageTitle') }
 }
 
@@ -13,16 +12,9 @@ type PageProps = {
 }
 
 export default async function CaseEvidencePage({ params }: PageProps) {
-  void params
-  const t = await getTranslations('cases')
+  const resolvedParams = await params
+  const { caseId } = resolvedParams
 
-  return (
-    <div className="py-6">
-      <EmptyState
-        title={t('skeletonTabs.evidence')}
-        description="This module is scheduled for development in Phase 5."
-        icon={Info}
-      />
-    </div>
-  )
+  return <EvidenceTab caseId={caseId} />
 }
+

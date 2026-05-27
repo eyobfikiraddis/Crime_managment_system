@@ -1,11 +1,181 @@
 {
   "pageTitle": "ማስረጃ",
-  "list": {
+  "tab": {
     "heading": "ማስረጃ",
-    "skeleton": "ማስረጃ በመጫን ላይ..."
+    "entityCount": "{count} ንጥሎች",
+    "addEvidence": "ማስረጃ ጨምር",
+    "viewToggle": {
+      "table": "ሰንጠረዥ እይታ",
+      "gallery": "ጋለሪ እይታ"
+    },
+    "filters": {
+      "search": "በመግለጫ ፈልግ...",
+      "type": "የማስረጃ ዓይነት",
+      "collectedBy": "የሰበሰበው",
+      "dateRange": "የቀን ክልል",
+      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+    },
+    "loading": "ማስረጃ እየጫነ ነው...",
+    "empty": "ለዚህ ጉዳይ ምንም ማስረጃ አልተመዘገበም።",
+    "emptyDescription": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ማስረጃ ይጨምሩ።",
+    "emptyFiltered": "ምንም ማስረጃ ከማጣሪያዎ ጋር አይዛመድም።",
+    "columns": {
+      "evidenceNumber": "ማስረጃ ቁ.",
+      "description": "መግለጫ",
+      "type": "ዓይነት",
+      "collectedBy": "የሰበሰበው",
+      "collectedAt": "የተሰበሰበ",
+      "storageLocation": "ቦታ",
+      "custodyStatus": "ጥበቃ",
+      "actions": "ድርጊቶች"
+    },
+    "rowActions": {
+      "view": "ዝርዝሮች ተመልከት",
+      "recordCustody": "የጥበቃ ክስተት መዝግብ",
+      "delete": "ማስረጃ ሰርዝ"
+    }
+  },
+  "types": {
+    "DIGITAL": "ዲጂታል",
+    "CRIME_SCENE_PHOTO": "የወንጀል ቦታ ፎቶ",
+    "PHYSICAL": "አካላዊ ዕቃ",
+    "DOCUMENT": "ሰነድ",
+    "BIOLOGICAL": "ባዮሎጂካዊ ናሙና",
+    "FORENSIC_REPORT": "የፎረንሲክ ሪፖርት",
+    "WEAPON": "መሳሪያ",
+    "VEHICLE": "ተሸከርካሪ",
+    "WITNESS_STATEMENT": "የምስክር ቃል",
+    "AUDIO": "የድምጽ መቅጃ",
+    "VIDEO": "የቪዲዮ መቅጃ",
+    "OTHER": "ሌላ"
+  },
+  "custodyStatus": {
+    "COLLECTED": "ተሰብስቧል",
+    "TRANSFERRED": "ተዛውሯል",
+    "EXAMINED": "ተፈትሷል",
+    "STORED": "ተቀምጧል",
+    "PRESENTED_IN_COURT": "ለፍርድ ቤት ቀርቧል",
+    "RETURNED": "ተመልሷል",
+    "DESTROYED": "ወድሟል"
+  },
+  "upload": {
+    "drawerTitle": "ማስረጃ ጨምር",
+    "drawerDescription": "ለዚህ ጉዳይ አዲስ ማስረጃ ይመዝገቡ።",
+    "section1Title": "የማስረጃ ዝርዝሮች",
+    "section2Title": "ፋይል ስቀል",
+    "section2Description": "ለዚህ ማስረጃ ፋይል ያያይዙ። ተቀባይ: ምስሎች፣ PDF፣ ድምጽ፣ ቪዲዮ። ከፍተኛ 50 MB።",
+    "descriptionLabel": "መግለጫ",
+    "descriptionPlaceholder": "የማስረጃ ንጥሉን በዝርዝር ያብራሩ...",
+    "typeLabel": "የማስረጃ ዓይነት",
+    "typePlaceholder": "የማስረጃ ዓይነት ምረጥ...",
+    "collectedByLabel": "የሰበሰበው",
+    "collectedByPlaceholder": "መኮንን ፈልግ...",
+    "collectedAtLabel": "የተሰበሰበ ቀን እና ሰዓት",
+    "storageLocationLabel": "የማቆያ ቦታ",
+    "storageLocationPlaceholder": "ለምሳሌ ማስረጃ ሎከር 4B፣ ቦሌ ዲቪዥን",
+    "notesLabel": "ማስታወሻ (አማራጭ)",
+    "notesPlaceholder": "ስለ ማስረጃ ንጥሉ ተጨማሪ ማስታወሻ...",
+    "fileLabel": "ፋይል ያያይዙ",
+    "fileDragPrompt": "ፋይል ወደ ዚህ ጎትቱ ወይም ክፈቱ",
+    "fileSizeLimit": "ከፍተኛ 50 MB",
+    "fileReplacePrompt": "ለመቀየር ጠቅ ያድርጉ",
+    "uploadPhase": {
+      "signing": "ስቀላ እያዘጋጀ ነው...",
+      "uploading": "ፋይል እየስቀለ ነው: {progress}%",
+      "recording": "የማስረጃ መዝገብ እያስቀመጠ ነው...",
+      "success": "ማስረጃ በተሳካ ሁኔታ ተጨምሯል።",
+      "error": "ስቀላ አልተሳካም። ላይ ያለውን ስህተት ተመልከቱ።"
+    },
+    "submitButton": "ማስረጃ ጨምር",
+    "retryButton": "እንደገና ሞክር",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "ማስረጃ ንጥሉ በተሳካ ሁኔታ ተጨምሯል።",
+    "errorMessage": "ማስረጃ ለመጨመር አልተሳካም። እንደገና ይሞክሩ።"
   },
   "detail": {
-    "heading": "የማስረጃ ዝርዝር",
-    "skeleton": "የማስረጃ ዝርዝር በመጫን ላይ..."
+    "drawerTitle": "የማስረጃ ዝርዝሮች",
+    "evidenceNumber": "የማስረጃ ቁጥር",
+    "type": "ዓይነት",
+    "description": "መግለጫ",
+    "collectedBy": "የሰበሰበው",
+    "collectedAt": "የተሰበሰበ ቀን",
+    "storageLocation": "የማቆያ ቦታ",
+    "notes": "ማስታወሻ",
+    "mediaSection": "የተያያዘ ፋይል",
+    "viewFullImage": "ሙሉ ምስል ተመልከት",
+    "downloadFile": "አውርድ",
+    "noMedia": "ምንም ፋይል አልተያያዘም።",
+    "forensicSection": "የፎረንሲክ ሪፖርት",
+    "forensicReportNumber": "ሪፖርት ቁጥር",
+    "forensicLab": "ላቦራቶሪ",
+    "forensicSubmittedBy": "ያቀረበው",
+    "forensicSubmittedAt": "የቀረበ",
+    "forensicFindings": "ግኝቶች",
+    "forensicConclusion": "መደምደሚያ",
+    "noForensicReport": "ምንም የፎረንሲክ ሪፖርት አልቀረበም።",
+    "vehicleSection": "የተሸከርካሪ ዝርዝሮች",
+    "weaponSection": "የመሳሪያ ዝርዝሮች",
+    "recordCustodyButton": "የጥበቃ ክስተት መዝግብ"
+  },
+  "custody": {
+    "sectionTitle": "የጥበቃ ሰንሰለት",
+    "intactBadge": "ሰንሰለት ሙሉ ነው",
+    "brokenBadge": "ክፍተት ተገኝቷል",
+    "gapWarning": "ከዚህ ክስተት በኋላ {hours} ሰዓት ክፍተት ተገኝቷል።",
+    "immutableTooltip": "ይህ የጥበቃ መዝገብ ሊቀየር ወይም ሊሰረዝ አይችልም።",
+    "eventTypes": {
+      "COLLECTED": "ተሰብስቧል",
+      "TRANSFERRED": "ተዛውሯል",
+      "EXAMINED": "ተፈትሷል",
+      "STORED": "ተቀምጧል",
+      "PRESENTED_IN_COURT": "ለፍርድ ቤት ቀርቧል",
+      "RETURNED": "ተመልሷል",
+      "DESTROYED": "ወድሟል"
+    },
+    "from": "ከ",
+    "to": "ወደ",
+    "location": "ቦታ",
+    "reason": "ምክንያት",
+    "empty": "ምንም የጥበቃ ክስተቶች አልተመዘገቡም።",
+    "recordDrawerTitle": "የጥበቃ ክስተት መዝግብ",
+    "recordDrawerDescription": "ለዚህ ማስረጃ አዲስ ዝውውር ወይም ምርምር ክስተት ይመዝገቡ።",
+    "eventTypeLabel": "ክስተት ዓይነት",
+    "toOfficerLabel": "ተቀባይ መኮንን",
+    "toOfficerPlaceholder": "መኮንን ፈልግ...",
+    "locationLabel": "ቦታ",
+    "locationPlaceholder": "ለምሳሌ ፎረንሲክ ላብ 2፣ የፌዴራል ፖሊስ ዋና መምሪያ",
+    "reasonLabel": "ምክንያት / ማስታወሻ (አማራጭ)",
+    "submitButton": "ክስተት መዝግብ",
+    "eventRecordedMessage": "የጥበቃ ክስተት በተሳካ ሁኔታ ተመዝግቧል።"
+  },
+  "gallery": {
+    "empty": "ለዚህ ጉዳይ ምንም ፎቶ የለም።",
+    "emptyDescription": "ፎቶ ማስረጃ ለመጨመር 'ማስረጃ ጨምር' አዝራሩን ይጠቀሙ።",
+    "hover": {
+      "view": "ተመልከት",
+      "details": "ዝርዝሮች"
+    }
+  },
+  "lightbox": {
+    "closeLabel": "ቀጥታ ዝጋ",
+    "prevLabel": "ቀዳሚ ፎቶ",
+    "nextLabel": "ቀጣዩ ፎቶ",
+    "openMetadata": "ዘዴዳ አሳይ",
+    "closeMetadata": "ዘዴዳ ደብቅ",
+    "downloadLabel": "ፎቶ አውርድ",
+    "photoCount": "{total} ከ {current}",
+    "zoomIn": "አበሳቁ",
+    "zoomOut": "አንቃ",
+    "resetZoom": "ዙም ዳግም ጀምር"
+  },
+  "delete": {
+    "confirmTitle": "ማስረጃ ንጥሉን ሰርዝ?",
+    "confirmDescription": "ማስረጃ ቁጥር {evidenceNumber} ቋሚ ሆኖ ይሰረዛል። ይህ ድርጊት ሊቀለበስ አይችልም።",
+    "confirmPhrase": "{evidenceNumber} ሰርዝ",
+    "successMessage": "ማስረጃ ንጥሉ በተሳካ ሁኔታ ተሰርዟል።"
+  },
+  "update": {
+    "successMessage": "ማስረጃ በተሳካ ሁኔታ ተዘምኗል።",
+    "errorMessage": "ማስረጃን ለማዘመን አልተሳካም።"
   }
 }

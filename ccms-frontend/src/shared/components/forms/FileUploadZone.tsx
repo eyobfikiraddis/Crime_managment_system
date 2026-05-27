@@ -11,6 +11,9 @@ interface FileUploadZoneProps {
   onFile: (file: File) => void
   isUploading: boolean
   progress?: number
+  title?: string
+  subtitle?: string
+  onClick?: () => void
 }
 
 export function FileUploadZone({
@@ -19,6 +22,9 @@ export function FileUploadZone({
   onFile,
   isUploading,
   progress = 0,
+  title,
+  subtitle,
+  onClick,
 }: FileUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -52,6 +58,7 @@ export function FileUploadZone({
       className={`flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-6 py-8 text-center transition-colors ${
         isDragging ? 'bg-card-hover' : 'bg-card'
       }`}
+      onClick={onClick}
       onDragOver={(event) => {
         event.preventDefault()
         setIsDragging(true)
@@ -68,8 +75,12 @@ export function FileUploadZone({
     >
       <UploadCloud className="size-6 text-foreground-muted" aria-hidden="true" />
       <div className="space-y-1">
-        <p className="text-sm font-medium">Drag and drop a file here</p>
-        <p className="text-xs text-foreground-muted">Max size: {Math.round(maxSize / 1024 / 1024)}MB</p>
+        <p className="text-sm font-medium">
+          {title ?? 'Drag and drop a file here'}
+        </p>
+        <p className="text-xs text-foreground-muted">
+          {subtitle ?? `Max size: ${Math.round(maxSize / 1024 / 1024)}MB`}
+        </p>
       </div>
       {previewUrl ? (
         <img src={previewUrl} alt="Uploaded preview" className="h-24 w-24 rounded-md object-cover" />
