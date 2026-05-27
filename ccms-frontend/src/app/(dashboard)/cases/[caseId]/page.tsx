@@ -1,5 +1,8 @@
-import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
+import { CaseOverviewTab } from '@features/cases/components/CaseOverviewTab'
+import { Skeleton } from '@shared/components/feedback/Skeleton'
+import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('cases')
@@ -7,19 +10,18 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 type PageProps = {
-  params: { caseId: string }
+  params: Promise<{ caseId: string }> | { caseId: string }
   searchParams: Record<string, string | string[] | undefined>
 }
 
 export default async function CaseOverviewPage({ params, searchParams }: PageProps) {
-  void params
   void searchParams
-
-  const t = await getTranslations('cases')
+  const resolvedParams = await params
+  const { caseId } = resolvedParams
 
   return (
-    <div>
-      <h1>{t('detail.heading')}</h1>
-    </div>
+    <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+      <CaseOverviewTab caseId={caseId} />
+    </Suspense>
   )
 }

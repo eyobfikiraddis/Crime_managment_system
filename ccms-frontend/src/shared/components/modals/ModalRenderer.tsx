@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 
 import { IdleWarningModal } from '@/features/auth/components/IdleWarningModal'
 import { LogoutConfirmModal } from '@/features/auth/components/LogoutConfirmModal'
+import { CaseStatusTransitionDrawer } from '@/features/cases/components/CaseStatusTransitionDrawer'
 import { useUiStore } from '@/shared/stores/ui.store'
 
 type ModalComponent = (props: Record<string, unknown>) => ReactNode
@@ -11,6 +12,7 @@ type ModalComponent = (props: Record<string, unknown>) => ReactNode
 const MODAL_REGISTRY: Record<string, ModalComponent> = {
   'idle-warning': () => <IdleWarningModal />,
   'logout-confirm': () => <LogoutConfirmModal />,
+  'case-status-transition': (props) => <CaseStatusTransitionDrawer caseId={props.caseId as string} />,
 }
 
 export function ModalRenderer() {

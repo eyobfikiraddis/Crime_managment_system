@@ -1,4 +1,4 @@
-# CCMS Frontend — Phase 2: Authentication Module & Internationalisation
+# CCMS Frontend — Phase 3: Cases Module
 ## Execution Specification for AI Agent
 ### Year: 2026 | Runtime: Modern 2026 Ecosystem | Package Manager: pnpm | Target: Production-Grade Enterprise Frontend
 
@@ -6,699 +6,1081 @@
 
 # 1. Mission Overview
 
-## 1.1 Objective
+## 1.1 Current Project State
 
-You are continuing the CCMS (Criminal Case Management System) frontend build. Phase 1 established the complete foundational infrastructure: the project scaffold, design token system, all three Zustand stores, the Axios API client, React Query infrastructure, the App Shell layout system, all shared components, route skeletons, and the testing/tooling stack.
+Phases 1 and 2 are complete. The following infrastructure is fully operational:
 
-**Phase 2 has two equal-priority deliverables:**
+- **Foundation**: Next.js 16 App Router, TypeScript strict, all config files, design token system, TailwindCSS v4
+- **Auth**: Login, logout, forgot-password, reset-password — fully wired to backend
+- **Session**: Idle timeout (15 min) with warning modal at 13 min, silent token refresh
+- **i18n**: English + Amharic via next-intl, LocaleToggle in AuthShell and TopBar
+- **App Shell**: AppShell, Sidebar (collapsible, role-filtered, Sheet on mobile), TopBar (breadcrumbs, Cmd+K, notifications, avatar menu), Breadcrumb
+- **Shared components**: All 34 components implemented — DataTable, FormField system, ConfirmDialog, SlideOverDrawer, StatusBadge, PermissionGuard suite, Timeline, etc.
+- **Stores**: authStore, uiStore (persisted), notificationStore — all implemented
+- **API Client**: Axios with 401 refresh queue, error classification, ApiError class
+- **Query infrastructure**: queryClient, all 12 key factories, all 12 domain service stubs
+- **RBAC**: RoleGuard, PermissionGuard, CaseAccessGuard + permission/role helpers
+- **Routes**: All route skeletons render; middleware protects all dashboard routes
 
-1. **Full Authentication Module** — Complete, production-ready implementation of login, logout, forgot-password, and reset-password flows. All UI must be visually exceptional: this is the first screen every officer sees. It must be authoritative, professional, and polished. No placeholder styling.
+## 1.2 Phase 3 Objective
 
-2. **Global Internationalisation (i18n) System** — The CCMS serves Ethiopian law enforcement. All user-visible text in the application must support both **English (en)** and **Amharic (am)**. This is not a retrofit. It is architected now and applied to every component from this phase forward. All text previously written in Phase 1 skeleton pages must be migrated to the i18n system as part of this phase.
+Phase 3 delivers the **Cases module** — the operational heart of CCMS. This is the most complex and most used feature in the system. The case list, case creation workflow, and case detail workspace are where investigators spend the majority of their time. The UI must match that weight: dense with information, fast to navigate, visually authoritative.
 
-## 1.2 Package Manager
+**Phase 3 has one primary deliverable: the complete Cases module**, comprising:
 
-**All commands in this document use `pnpm`.** Do not use `npm` or `yarn`. If Phase 1 scaffold used npm, do not change the lock file format — but all new install commands issued in this phase use `pnpm add` and `pnpm dlx`.
+1. **Cases list page** — full DataTable with server-side pagination, sorting, and filtering
+2. **Case creation flow** — multi-step guided form producing a new case record
+3. **Case detail layout** — header card with interactive status badge, persistent across all tabs
+4. **Case overview tab** — the landing tab for any case; assembles metadata, summary panels, officers, and recent activity
+5. **Case timeline tab** — real-time audit stream with polling, inline note creation, and print view
+6. **Case status transition workflow** — role-aware state machine drawer
+7. **Remaining skeleton routes** — three admin pages, two settings pages, and the /403 page that were not created in Phase 1
 
-## 1.3 What Must Be Completed in This Run
+**The other case sub-tabs** (evidence, arrests, interrogations, legal, officers, reports, permissions) **remain as skeleton pages** with correct tab chrome. They will be fully implemented in Phases 5–7.
 
-**Internationalisation:**
-- Install and configure `next-intl` as the i18n framework
-- Define the complete message file architecture under `/messages/`
-- Create English and Amharic message files for all routes and shared UI covered in Phase 1 and Phase 2
-- Configure Next.js middleware to detect and persist locale preference
-- Implement a language toggle component mountable in both AuthShell and TopBar
-- Migrate all Phase 1 skeleton pages to consume localised strings
-- Configure TypeScript types for all message keys (type-safe translations)
+## 1.3 Package Manager
 
-**Authentication — UI & Logic:**
-- Login page: full pixel-perfect implementation with badge number + password form
-- Forgot password page: full implementation with email submission and success state
-- Reset password page: full implementation with password + confirm password and strength indicator
-- Logout flow: triggered from TopBar dropdown, calls auth service, clears session, redirects
-- Auth service: wire `login`, `logout`, `forgotPassword`, `resetPassword`, `getSession` to real API calls (replacing the `throw new Error('Not yet implemented')` stubs from Phase 1)
-- Auth hooks: fully implement `useLogin`, `useLogout`, `useSession`, `useForgotPassword`, `useResetPassword`
-- AuthProvider: implement session hydration on app mount using `useSession`
-- Middleware: upgrade from cookie-presence-only check to cookie + role extraction (still no full JWT verification on edge — document where that goes)
-- Auth error handling: map API error codes to localised user-facing messages
-- Idle session timeout: detect inactivity, show a warning dialog at T-2 minutes, force logout at T
-- Session expiry: silent token refresh logic in the Axios interceptor (replace stub)
-- "Remember me" checkbox: controls session cookie duration via a request header
-- CSRF protection header: attach `X-Requested-With` header on all state-changing requests
+All commands use **pnpm**. Do not use npm or yarn.
 
-**Auth UI Polish:**
-- Loading states: skeleton pulse on initial session check; spinner within the login button during submission
-- Error states: inline field errors (from Zod) and banner errors (from API)
-- Transition animations: form entrance animation, error shake animation, success redirect animation — all respecting `prefers-reduced-motion`
-- Accessibility: full keyboard navigation, ARIA labels, `aria-live` error regions, focus management on modal dialogs
-- Responsive: perfect layout on mobile, tablet, and desktop
+## 1.4 What Must Be Completed
 
-**Security:**
-- All tokens handled via httpOnly cookies exclusively
-- No sensitive data written to `localStorage` or `sessionStorage`
-- Badge number field: `autocomplete="username"`; password field: `autocomplete="current-password"` and `autocomplete="new-password"` where appropriate
-- Rate limit error from API (429) renders a clear lockout message with a countdown timer
+**Cases service:**
+- Replace `throw new Error('Not yet implemented')` stubs in `cases.service.ts` with real Axios calls for all case CRUD and case sub-resource endpoints
+- Implement typed response validation via Zod schemas
 
-## 1.4 What Must NOT Be Implemented in This Run
+**Cases types and schemas:**
+- Define all TypeScript types for cases, case status, case filters, case timeline events, and case members
+- Define all Zod schemas for create-case form, case search filters, and add-case-note form
 
-- OAuth / SSO integration
-- Two-factor authentication (2FA) UI
-- Biometric login
-- Any feature module screens beyond auth
-- Case, evidence, personnel, or dashboard screens
-- PWA / offline capability
-- Full JWT cryptographic verification in middleware (edge runtime constraint — documented placeholder only)
+**Cases query hooks:**
+- `useCases(filters)` — list query with filter params
+- `useCase(caseId)` — single case detail
+- `useCaseTimeline(caseId)` — timeline with 30s polling when tab is active
+- `useCaseOfficers(caseId)` — assigned officers list
+- `useCaseSummary(caseId)` — aggregated counts for overview panels
+- `useCreateCase()` — creation mutation
+- `useUpdateCase(caseId)` — update mutation
+- `useTransitionCaseStatus(caseId)` — status transition mutation
+- `useAddCaseNote(caseId)` — add timeline note mutation
+- `useDeleteCase(caseId)` — deletion mutation (superadmin only)
 
-## 1.5 Handoff Standard
+**Cases i18n messages:**
+- Fully populate `messages/en/cases.json` and `messages/am/cases.json` (replacing Phase 2 skeletons with all real strings for every piece of UI in this phase)
 
-When this run finishes:
-- `pnpm dev` starts, navigating to `/` redirects to `/login`
-- The login page is visually complete and functionally wired to the API
-- Switching language between English and Amharic updates all visible text instantly
+**Cases list page (`/cases`):**
+- `PageHeader` with "Cases" title + entity count + "New Case" action button (permission guarded)
+- `TableFilterBar` with search input, status multi-select filter, crime-type filter, department filter (role-scoped), date-range picker
+- Active filter chips below filter bar; clearing a chip removes that filter from URL
+- Full `DataTable` integration: all columns defined, sortable columns, row click navigates to case detail, kebab action menu per row
+- Loading skeleton: TableSkeleton on first load; existing rows stay visible on background refetch
+- Empty state: context-appropriate message with "Create First Case" CTA
+- URL-driven state: all filters, page, pageSize, sort field, sort direction serialised to URL via `nuqs`
+- Pagination strip: prev/next, page number display, page-size selector (10/25/50/100), total count
+
+**Case creation flow (`/cases/new`):**
+- Multi-step wizard: Step 1 (Basic Info), Step 2 (Crime Details), Step 3 (Initial Assignment)
+- Step indicator bar showing current step, completed steps (check), and upcoming steps
+- Navigation: "Back" and "Next/Submit" buttons; "Back" does not lose form data
+- Dirty-state guard: navigating away from a partially filled form triggers a confirmation dialog
+- Zod schema validation per step; errors shown on attempted Next click
+- On successful creation: navigate to the new case detail page (`/cases/[caseId]`)
+- Accessible: each step rendered as a `<fieldset>` with a `<legend>` matching the step name
+
+**Case detail layout (`/cases/[caseId]/layout.tsx`):**
+- Full case header card: case number (monospace), title, status badge (interactive for authorised roles), department badge, crime type label, date reported, lead officer link, action buttons
+- Tab navigation bar: all nine tabs rendered as route links; inaccessible tabs are disabled (not hidden) with a `Lock` icon tooltip explaining the minimum required role
+- `CaseAccessGuard` wrapping the entire layout — renders `ForbiddenState` if read access is denied
+- Error boundary scoped to the case detail layout
+
+**Case overview tab (`/cases/[caseId]/page.tsx`):**
+- Metadata card: two-column grid of all case fields
+- Description block: full case description, whitespace-preserved, plain text
+- Summary panels row: three compact cards — Evidence count, Arrests count, Charges count — each linking to the respective tab
+- Assigned officers section: compact officer list with role, assignment date, linked to officer detail
+- Recent activity strip: last five audit entries from the case timeline; links to the Timeline tab
+- All sections have correct loading skeletons and empty states
+
+**Case timeline tab (`/cases/[caseId]/timeline/page.tsx`):**
+- 30-second polling interval while the tab is active; no polling on other tabs
+- `TableFilterBar` variant: actor search, event-type multi-select, date range
+- Timeline rendered with `Timeline`, `TimelineEntry`, and `TimelineConnector` shared components
+- Each entry: event-type icon, event label, actor (linked for admin+), ISO 8601 timestamp (relative on hover tooltip), optional diff viewer panel (before/after), security badge for security events, immutability padlock indicator
+- Add case note: inline form at the top of the timeline (a single-line text input + submit button). On success, immediately invalidates `caseKeys.timeline(caseId)`.
+- Print timeline: button in the PageHeader actions slot; triggers `window.print()` with a CSS print stylesheet that strips all nav chrome and renders the timeline with CCMS letterhead
+
+**Case status transition workflow:**
+- Clicking the interactive status badge in the case header opens a `SlideOverDrawer`
+- Drawer content: current status (highlighted), available next statuses (per state machine + role), reason/notes `Textarea` (optional for most, required for archival), confirm button
+- Unavailable transitions shown as disabled items with a tooltip naming the required role
+- On success: updates the status badge, closes the drawer, adds a toast, invalidates `caseKeys.detail(caseId)` and `caseKeys.lists()`
+
+**Missing routes from Phase 1:**
+- `src/app/(errors)/403/page.tsx` — full ForbiddenState page with link to dashboard
+- `src/app/(dashboard)/admin/locations/page.tsx` — skeleton with PageHeader
+- `src/app/(dashboard)/admin/crime-types/page.tsx` — skeleton with PageHeader
+- `src/app/(dashboard)/admin/health/page.tsx` — skeleton with PageHeader
+- `src/app/(dashboard)/settings/profile/page.tsx` — skeleton with PageHeader
+- `src/app/(dashboard)/settings/password/page.tsx` — skeleton with PageHeader
+
+## 1.5 What Must NOT Be Implemented
+
+- Evidence tab functionality (Phase 5)
+- Arrests tab functionality (Phase 6)
+- Interrogations tab functionality (Phase 6)
+- Legal tab functionality (Phase 7)
+- Officers tab (case member management) functionality — skeleton only
+- Reports tab within a case — skeleton only
+- Permissions tab (case ACL management) — skeleton only
+- Dashboard widgets and charts (Phase 10)
+- Personnel module screens (Phase 8)
+- Departments module screens (Phase 9)
+- Admin module business logic (Phase 9)
+- Reports module (Phase 10)
+- Settings module forms (Phase 8)
+
+## 1.6 Handoff Standard
+
+When Phase 3 finishes, a developer must be able to:
+- Navigate to `/cases` and see a fully functional case list with working filters, sorting, and pagination wired to the backend
+- Click "New Case" and complete the multi-step creation form
+- Click any case row and see the case detail workspace with header, tabs, overview content, and timeline
+- Click the status badge and execute a status transition
+- Add a note to the timeline and see it appear immediately
 - `pnpm type-check` exits with zero errors
 - `pnpm lint` exits with zero warnings
-- `pnpm test` passes all auth-related unit and component tests
-- Every text string visible on screen comes from a message file — no hardcoded strings anywhere
+- `pnpm test` passes all cases-module tests
 
 ---
 
-# 2. Internationalisation Architecture
+# 2. Dependencies to Install
 
-## 2.1 Framework Choice: next-intl
-
-Use **`next-intl`** (latest stable, v3.x+). It is the authoritative i18n solution for Next.js App Router. It provides:
-- Server Component support (no client-side bundle penalty for message loading)
-- Type-safe message keys via generated types
-- Pluralisation, number formatting, date formatting
-- Locale detection via middleware
-- Named parameter interpolation
-
-## 2.2 Installation
+The following package is required and not yet installed:
 
 ```bash
-pnpm add next-intl
+pnpm add nuqs
 ```
 
-No other i18n packages are required. Do not install `i18next`, `react-i18next`, or `react-intl`.
+`nuqs` is already in `package.json` as a dependency (it was listed in Phase 1 spec) but verify it is installed. It provides type-safe URL search parameter management and is the backbone of all filter state management.
 
-## 2.3 Supported Locales
+No other new packages are required. All other dependencies (Axios, React Query, TanStack Table, Zod, react-hook-form, Lucide) are already installed.
 
-| Locale Code | Language | Script | Direction |
-|-------------|----------|--------|-----------|
-| `en` | English | Latin | LTR |
-| `am` | Amharic | Ethiopic (Ge'ez) | LTR |
-
-Default locale: `en`. The system is LTR for both locales. Amharic uses the Ge'ez script (ፊደል). The Inter font does not cover Ethiopic glyphs — see Section 2.9 for the Amharic font solution.
-
-## 2.4 Message File Architecture
-
-Create the `/messages/` directory at the project root (sibling to `src/`). Organise messages into **namespace files** per feature domain, with separate files per locale. Every locale directory mirrors the exact same file structure.
-
-```
-messages/
-├── en/
-│   ├── common.json          # Buttons, labels, status, actions shared everywhere
-│   ├── auth.json            # All auth screen text (login, logout, forgot, reset)
-│   ├── navigation.json      # Sidebar labels, section headers, breadcrumb labels
-│   ├── errors.json          # Error messages, validation errors, API error codes
-│   ├── accessibility.json   # aria-label strings, screen-reader-only text
-│   ├── cases.json           # Cases module (skeleton now, content in Phase 4)
-│   ├── evidence.json        # Evidence module (skeleton)
-│   ├── personnel.json       # Personnel module (skeleton)
-│   ├── departments.json     # Departments module (skeleton)
-│   ├── legal.json           # Legal module (skeleton)
-│   ├── reports.json         # Reports module (skeleton)
-│   ├── dashboard.json       # Dashboard module (skeleton)
-│   ├── admin.json           # Admin module (skeleton)
-│   ├── settings.json        # Settings module (skeleton)
-│   └── audit.json           # Audit/timeline module (skeleton)
-└── am/
-    ├── common.json          # Amharic equivalents — exact same key structure
-    ├── auth.json
-    ├── navigation.json
-    ├── errors.json
-    ├── accessibility.json
-    ├── cases.json
-    ├── evidence.json
-    ├── personnel.json
-    ├── departments.json
-    ├── legal.json
-    ├── reports.json
-    ├── dashboard.json
-    ├── admin.json
-    ├── settings.json
-    └── audit.json
+Verify the `date-fns` package is installed (it should be from Phase 1/2):
+```bash
+pnpm why date-fns
 ```
 
-**Rule:** Every key that exists in `en/*.json` must exist in `am/*.json` with an identical key path. Missing keys cause a TypeScript error at build time.
+If not present: `pnpm add date-fns`
 
-## 2.5 Message File Content Specification
+---
 
-### 2.5.1 `common.json`
+# 3. Type Definitions
 
-```json
-{
-  "actions": {
-    "save": "Save",
-    "cancel": "Cancel",
-    "confirm": "Confirm",
-    "delete": "Delete",
-    "edit": "Edit",
-    "view": "View",
-    "create": "Create",
-    "search": "Search",
-    "filter": "Filter",
-    "export": "Export",
-    "print": "Print",
-    "retry": "Try Again",
-    "back": "Back",
-    "next": "Next",
-    "previous": "Previous",
-    "close": "Close",
-    "submit": "Submit",
-    "clear": "Clear",
-    "refresh": "Refresh",
-    "loading": "Loading...",
-    "submitting": "Submitting...",
-    "saving": "Saving..."
-  },
-  "status": {
-    "open": "Open",
-    "closed": "Closed",
-    "archived": "Archived",
-    "active": "Active",
-    "inactive": "Inactive",
-    "pending": "Pending",
-    "underInvestigation": "Under Investigation",
-    "referredToCourt": "Referred to Court",
-    "protected": "Protected"
-  },
-  "pagination": {
-    "showing": "Showing {from}–{to} of {total}",
-    "rowsPerPage": "Rows per page",
-    "goToPage": "Go to page",
-    "firstPage": "First page",
-    "lastPage": "Last page",
-    "nextPage": "Next page",
-    "previousPage": "Previous page"
-  },
-  "table": {
-    "noResults": "No results found.",
-    "noResultsDescription": "Try adjusting your search or filter criteria.",
-    "selectAll": "Select all rows",
-    "selectRow": "Select row",
-    "clearSelection": "Clear selection",
-    "selectedCount": "{count} row(s) selected"
-  },
-  "time": {
-    "justNow": "Just now",
-    "minutesAgo": "{count} minute(s) ago",
-    "hoursAgo": "{count} hour(s) ago",
-    "daysAgo": "{count} day(s) ago",
-    "today": "Today",
-    "yesterday": "Yesterday"
-  },
-  "classification": "Authorised personnel only. All access is logged.",
-  "systemName": "CCMS",
-  "systemFullName": "Criminal Case Management System",
-  "notFound": "Not found",
-  "forbidden": "Access denied"
+## 3.1 Case Types (`src/features/cases/types/case.types.ts`)
+
+```typescript
+import type { OfficerRole } from '@shared/constants/roles'
+
+// ─── Status ────────────────────────────────────────────────────────────────
+export const CaseStatus = {
+  OPEN: 'OPEN',
+  UNDER_INVESTIGATION: 'UNDER_INVESTIGATION',
+  REFERRED_TO_COURT: 'REFERRED_TO_COURT',
+  CLOSED: 'CLOSED',
+  ARCHIVED: 'ARCHIVED',
+} as const
+export type CaseStatus = (typeof CaseStatus)[keyof typeof CaseStatus]
+
+// ─── State machine: which statuses can follow which ───────────────────────
+export const CASE_STATUS_TRANSITIONS: Record<CaseStatus, CaseStatus[]> = {
+  OPEN: ['UNDER_INVESTIGATION', 'CLOSED'],
+  UNDER_INVESTIGATION: ['REFERRED_TO_COURT', 'CLOSED'],
+  REFERRED_TO_COURT: ['CLOSED'],
+  CLOSED: ['ARCHIVED'],
+  ARCHIVED: [],
+}
+
+// Roles that can execute each type of transition
+export const STATUS_TRANSITION_MIN_ROLE: Partial<Record<CaseStatus, OfficerRole>> = {
+  ARCHIVED: 'DEPT_HEAD',
+}
+
+// ─── Core entities ─────────────────────────────────────────────────────────
+export interface CaseOfficer {
+  id: string
+  badgeNumber: string
+  firstName: string
+  lastName: string
+  role: OfficerRole
+  departmentId: string
+  departmentName: string
+}
+
+export interface CaseMember {
+  officer: CaseOfficer
+  accessLevel: 'READ' | 'WRITE' | 'ADMIN'
+  assignedAt: string
+  assignedBy: string
+}
+
+export interface CrimeType {
+  id: string
+  name: string
+  code: string
+}
+
+export interface Location {
+  id: string
+  name: string
+  address?: string
+}
+
+export interface Department {
+  id: string
+  name: string
+}
+
+// ─── Case ─────────────────────────────────────────────────────────────────
+export interface Case {
+  id: string
+  caseNumber: string // e.g. "CASE-2026-00142"
+  title: string
+  description: string
+  status: CaseStatus
+  crimeType: CrimeType
+  location: Location | null
+  department: Department
+  leadOfficer: CaseOfficer
+  incidentDate: string         // ISO 8601 date string
+  reportedDate: string         // ISO 8601 date string
+  closedDate: string | null
+  lastActivityAt: string
+  evidenceCount: number
+  arrestCount: number
+  chargeCount: number
+  memberCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+// A lighter shape returned in list responses
+export interface CaseListItem {
+  id: string
+  caseNumber: string
+  title: string
+  status: CaseStatus
+  crimeType: CrimeType
+  department: Department
+  leadOfficer: Pick<CaseOfficer, 'id' | 'badgeNumber' | 'firstName' | 'lastName'>
+  incidentDate: string
+  reportedDate: string
+  evidenceCount: number
+  arrestCount: number
+  lastActivityAt: string
+}
+
+// ─── Case summary (for overview panels) ───────────────────────────────────
+export interface CaseSummary {
+  evidenceCount: number
+  arrestCount: number
+  interrogationCount: number
+  chargeCount: number
+  officerCount: number
+  openTaskCount: number
+}
+
+// ─── Case filters ──────────────────────────────────────────────────────────
+export interface CaseFilters {
+  search?: string
+  status?: CaseStatus[]
+  crimeTypeId?: string
+  departmentId?: string
+  leadOfficerId?: string
+  dateFrom?: string   // ISO 8601 date
+  dateTo?: string
+  page?: number
+  pageSize?: number
+  sortField?: 'caseNumber' | 'title' | 'status' | 'reportedDate' | 'lastActivityAt'
+  sortDirection?: 'asc' | 'desc'
+}
+
+// ─── Timeline ──────────────────────────────────────────────────────────────
+export const TimelineEventType = {
+  CASE_CREATED: 'CASE_CREATED',
+  CASE_UPDATED: 'CASE_UPDATED',
+  STATUS_CHANGED: 'STATUS_CHANGED',
+  EVIDENCE_ADDED: 'EVIDENCE_ADDED',
+  EVIDENCE_UPDATED: 'EVIDENCE_UPDATED',
+  OFFICER_ASSIGNED: 'OFFICER_ASSIGNED',
+  OFFICER_REMOVED: 'OFFICER_REMOVED',
+  ARREST_RECORDED: 'ARREST_RECORDED',
+  INTERROGATION_RECORDED: 'INTERROGATION_RECORDED',
+  LEGAL_ACTION: 'LEGAL_ACTION',
+  NOTE_ADDED: 'NOTE_ADDED',
+  PERMISSION_CHANGED: 'PERMISSION_CHANGED',
+  LOGIN_FAILURE: 'LOGIN_FAILURE',
+} as const
+export type TimelineEventType = (typeof TimelineEventType)[keyof typeof TimelineEventType]
+
+export interface TimelineDiff {
+  fieldName: string
+  before: unknown
+  after: unknown
+}
+
+export interface TimelineEntry {
+  id: string
+  eventType: TimelineEventType
+  eventLabel: string          // Human-readable string from backend
+  actor: CaseOfficer
+  description: string
+  diff: TimelineDiff[] | null
+  securitySeverity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | null
+  createdAt: string           // ISO 8601, immutable
+}
+
+export interface TimelineFilters {
+  actorSearch?: string
+  eventTypes?: TimelineEventType[]
+  dateFrom?: string
+  dateTo?: string
+}
+
+// ─── Status transition ─────────────────────────────────────────────────────
+export interface StatusTransitionPayload {
+  toStatus: CaseStatus
+  reason?: string
+}
+
+// ─── Create case ──────────────────────────────────────────────────────────
+export interface CreateCaseStep1 {
+  title: string
+  description: string
+  incidentDate: string
+  locationId?: string
+}
+
+export interface CreateCaseStep2 {
+  crimeTypeId: string
+  departmentId: string
+}
+
+export interface CreateCaseStep3 {
+  leadOfficerId: string
+  additionalOfficerIds?: string[]
+}
+
+export type CreateCasePayload = CreateCaseStep1 & CreateCaseStep2 & CreateCaseStep3
+```
+
+## 3.2 Barrel Export (`src/features/cases/types/index.ts`)
+
+Re-export all types from `case.types.ts`.
+
+---
+
+# 4. Zod Schemas
+
+## 4.1 `src/features/cases/schemas/create-case.schema.ts`
+
+```typescript
+import { z } from 'zod'
+
+export const createCaseStep1Schema = z.object({
+  title: z
+    .string()
+    .min(5, { message: 'Title must be at least 5 characters.' })
+    .max(200, { message: 'Title must be no more than 200 characters.' }),
+  description: z
+    .string()
+    .min(10, { message: 'Description must be at least 10 characters.' })
+    .max(5000),
+  incidentDate: z.string().min(1, { message: 'Incident date is required.' }),
+  locationId: z.string().optional(),
+})
+
+export const createCaseStep2Schema = z.object({
+  crimeTypeId: z.string().min(1, { message: 'Crime type is required.' }),
+  departmentId: z.string().min(1, { message: 'Department is required.' }),
+})
+
+export const createCaseStep3Schema = z.object({
+  leadOfficerId: z.string().min(1, { message: 'Lead officer is required.' }),
+  additionalOfficerIds: z.array(z.string()).optional().default([]),
+})
+
+export const createCaseSchema = createCaseStep1Schema
+  .merge(createCaseStep2Schema)
+  .merge(createCaseStep3Schema)
+
+export type CreateCaseStep1Values = z.infer<typeof createCaseStep1Schema>
+export type CreateCaseStep2Values = z.infer<typeof createCaseStep2Schema>
+export type CreateCaseStep3Values = z.infer<typeof createCaseStep3Schema>
+export type CreateCaseValues = z.infer<typeof createCaseSchema>
+```
+
+## 4.2 `src/features/cases/schemas/case-filters.schema.ts`
+
+```typescript
+import { z } from 'zod'
+import { CaseStatus } from '../types/case.types'
+
+export const caseFiltersSchema = z.object({
+  search: z.string().optional(),
+  status: z.array(z.nativeEnum(CaseStatus)).optional(),
+  crimeTypeId: z.string().optional(),
+  departmentId: z.string().optional(),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+  page: z.coerce.number().min(1).optional().default(1),
+  pageSize: z.coerce.number().min(10).max(100).optional().default(25),
+  sortField: z
+    .enum(['caseNumber', 'title', 'status', 'reportedDate', 'lastActivityAt'])
+    .optional()
+    .default('reportedDate'),
+  sortDirection: z.enum(['asc', 'desc']).optional().default('desc'),
+})
+
+export type CaseFiltersValues = z.infer<typeof caseFiltersSchema>
+```
+
+## 4.3 `src/features/cases/schemas/add-note.schema.ts`
+
+```typescript
+import { z } from 'zod'
+
+export const addCaseNoteSchema = z.object({
+  content: z
+    .string()
+    .min(1, { message: 'Note cannot be empty.' })
+    .max(1000, { message: 'Note must be no more than 1000 characters.' }),
+})
+
+export type AddCaseNoteValues = z.infer<typeof addCaseNoteSchema>
+```
+
+## 4.4 `src/features/cases/schemas/status-transition.schema.ts`
+
+```typescript
+import { z } from 'zod'
+import { CaseStatus } from '../types/case.types'
+
+export const statusTransitionSchema = z
+  .object({
+    toStatus: z.nativeEnum(CaseStatus),
+    reason: z.string().max(500).optional(),
+  })
+  .refine(
+    (data) => {
+      // Archival requires a reason
+      if (data.toStatus === CaseStatus.ARCHIVED) {
+        return (data.reason?.trim().length ?? 0) > 0
+      }
+      return true
+    },
+    {
+      message: 'A reason is required when archiving a case.',
+      path: ['reason'],
+    },
+  )
+
+export type StatusTransitionValues = z.infer<typeof statusTransitionSchema>
+```
+
+## 4.5 API Response Schemas (`src/features/cases/schemas/case-api.schema.ts`)
+
+Define Zod schemas for validating API responses. These ensure the frontend breaks loudly if the backend contract drifts.
+
+```typescript
+import { z } from 'zod'
+import { CaseStatus, TimelineEventType } from '../types/case.types'
+
+export const caseOfficerSchema = z.object({
+  id: z.string().uuid(),
+  badgeNumber: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  role: z.string(),
+  departmentId: z.string().uuid(),
+  departmentName: z.string(),
+})
+
+export const caseListItemSchema = z.object({
+  id: z.string().uuid(),
+  caseNumber: z.string(),
+  title: z.string(),
+  status: z.nativeEnum(CaseStatus),
+  crimeType: z.object({ id: z.string(), name: z.string(), code: z.string() }),
+  department: z.object({ id: z.string(), name: z.string() }),
+  leadOfficer: caseOfficerSchema.pick({
+    id: true,
+    badgeNumber: true,
+    firstName: true,
+    lastName: true,
+  }),
+  incidentDate: z.string(),
+  reportedDate: z.string(),
+  evidenceCount: z.number(),
+  arrestCount: z.number(),
+  lastActivityAt: z.string(),
+})
+
+export const caseDetailSchema = caseListItemSchema.extend({
+  description: z.string(),
+  location: z
+    .object({ id: z.string(), name: z.string(), address: z.string().optional() })
+    .nullable(),
+  chargeCount: z.number(),
+  memberCount: z.number(),
+  closedDate: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
+
+export const timelineEntrySchema = z.object({
+  id: z.string().uuid(),
+  eventType: z.nativeEnum(TimelineEventType),
+  eventLabel: z.string(),
+  actor: caseOfficerSchema,
+  description: z.string(),
+  diff: z
+    .array(z.object({ fieldName: z.string(), before: z.unknown(), after: z.unknown() }))
+    .nullable(),
+  securitySeverity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).nullable(),
+  createdAt: z.string(),
+})
+
+export const paginatedCasesSchema = z.object({
+  data: z.array(caseListItemSchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+  totalPages: z.number(),
+})
+
+export const paginatedTimelineSchema = z.object({
+  data: z.array(timelineEntrySchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+})
+```
+
+---
+
+# 5. Cases Service Implementation
+
+## 5.1 `src/services/domain/cases.service.ts`
+
+Replace all stubs with real Axios calls. All responses are validated against Zod schemas before being returned. The `apiClient` automatically unwraps `response.data` via the response interceptor, so functions receive the data object directly.
+
+```typescript
+import { apiClient } from '@services/api/client'
+import {
+  paginatedCasesSchema,
+  caseDetailSchema,
+  paginatedTimelineSchema,
+} from '@features/cases/schemas/case-api.schema'
+import type {
+  Case,
+  CaseListItem,
+  CaseFilters,
+  TimelineEntry,
+  TimelineFilters,
+  CaseMember,
+  CaseSummary,
+  CreateCasePayload,
+  StatusTransitionPayload,
+} from '@features/cases/types/case.types'
+import type { PaginatedResponse } from '@shared/types/api.types'
+
+// ─── List ──────────────────────────────────────────────────────────────────
+export async function getCases(
+  filters: CaseFilters,
+): Promise<PaginatedResponse<CaseListItem>> {
+  const params = new URLSearchParams()
+  if (filters.search) params.set('search', filters.search)
+  if (filters.status?.length) params.set('status', filters.status.join(','))
+  if (filters.crimeTypeId) params.set('crimeTypeId', filters.crimeTypeId)
+  if (filters.departmentId) params.set('departmentId', filters.departmentId)
+  if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
+  if (filters.dateTo) params.set('dateTo', filters.dateTo)
+  params.set('page', String(filters.page ?? 1))
+  params.set('pageSize', String(filters.pageSize ?? 25))
+  if (filters.sortField) params.set('sortField', filters.sortField)
+  if (filters.sortDirection) params.set('sortDirection', filters.sortDirection)
+
+  const raw = await apiClient.get(`/api/v1/cases?${params.toString()}`)
+  return paginatedCasesSchema.parse(raw)
+}
+
+// ─── Detail ────────────────────────────────────────────────────────────────
+export async function getCase(caseId: string): Promise<Case> {
+  const raw = await apiClient.get(`/api/v1/cases/${caseId}`)
+  return caseDetailSchema.parse(raw)
+}
+
+// ─── Create ────────────────────────────────────────────────────────────────
+export async function createCase(payload: CreateCasePayload): Promise<Case> {
+  const raw = await apiClient.post('/api/v1/cases', payload)
+  return caseDetailSchema.parse(raw)
+}
+
+// ─── Update ────────────────────────────────────────────────────────────────
+export async function updateCase(
+  caseId: string,
+  payload: Partial<CreateCasePayload>,
+): Promise<Case> {
+  const raw = await apiClient.patch(`/api/v1/cases/${caseId}`, payload)
+  return caseDetailSchema.parse(raw)
+}
+
+// ─── Delete ────────────────────────────────────────────────────────────────
+export async function deleteCase(caseId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/cases/${caseId}`)
+}
+
+// ─── Status transition ─────────────────────────────────────────────────────
+export async function transitionCaseStatus(
+  caseId: string,
+  payload: StatusTransitionPayload,
+): Promise<Case> {
+  const raw = await apiClient.patch(`/api/v1/cases/${caseId}/status`, payload)
+  return caseDetailSchema.parse(raw)
+}
+
+// ─── Timeline ──────────────────────────────────────────────────────────────
+export async function getCaseTimeline(
+  caseId: string,
+  filters: TimelineFilters & { page?: number; pageSize?: number },
+): Promise<PaginatedResponse<TimelineEntry>> {
+  const params = new URLSearchParams()
+  if (filters.actorSearch) params.set('actorSearch', filters.actorSearch)
+  if (filters.eventTypes?.length) params.set('eventTypes', filters.eventTypes.join(','))
+  if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
+  if (filters.dateTo) params.set('dateTo', filters.dateTo)
+  params.set('page', String(filters.page ?? 1))
+  params.set('pageSize', String(filters.pageSize ?? 50))
+
+  const raw = await apiClient.get(
+    `/api/v1/cases/${caseId}/timeline?${params.toString()}`,
+  )
+  return paginatedTimelineSchema.parse(raw)
+}
+
+export async function addCaseNote(
+  caseId: string,
+  content: string,
+): Promise<TimelineEntry> {
+  const raw = await apiClient.post(`/api/v1/cases/${caseId}/timeline/notes`, { content })
+  return raw as TimelineEntry
+}
+
+// ─── Members / Officers ────────────────────────────────────────────────────
+export async function getCaseMembers(caseId: string): Promise<CaseMember[]> {
+  return apiClient.get(`/api/v1/cases/${caseId}/officers`)
+}
+
+// ─── Summary ──────────────────────────────────────────────────────────────
+export async function getCaseSummary(caseId: string): Promise<CaseSummary> {
+  return apiClient.get(`/api/v1/cases/${caseId}/summary`)
+}
+
+// ─── Reference data needed for create-case form ───────────────────────────
+export async function getCrimeTypes(): Promise<Array<{ id: string; name: string; code: string }>> {
+  return apiClient.get('/api/v1/admin/crime-types')
+}
+
+export async function getLocations(): Promise<Array<{ id: string; name: string; address?: string }>> {
+  return apiClient.get('/api/v1/admin/locations')
 }
 ```
 
-Amharic `common.json` uses identical keys with Amharic values. Example:
-```json
-{
-  "actions": {
-    "save": "አስቀምጥ",
-    "cancel": "ሰርዝ",
-    "confirm": "አረጋግጥ",
-    "delete": "ሰርዝ",
-    "edit": "አርትዕ",
-    "view": "ተመልከት",
-    "create": "ፍጠር",
-    "search": "ፈልግ",
-    "filter": "አጣራ",
-    "export": "ላክ",
-    "print": "አትም",
-    "retry": "እንደገና ሞክር",
-    "back": "ተመለስ",
-    "next": "ቀጣይ",
-    "previous": "ቀዳሚ",
-    "close": "ዝጋ",
-    "submit": "አስረከብ",
-    "clear": "አጽዳ",
-    "refresh": "አድስ",
-    "loading": "እየጫነ ነው...",
-    "submitting": "እያስረከበ ነው...",
-    "saving": "እያስቀመጠ ነው..."
-  },
-  "status": {
-    "open": "ክፍት",
-    "closed": "ዝግ",
-    "archived": "ማህደር",
-    "active": "ንቁ",
-    "inactive": "ንቁ ያልሆነ",
-    "pending": "በመጠባበቅ ላይ",
-    "underInvestigation": "በምርመራ ላይ",
-    "referredToCourt": "ለፍርድ ቤት ቀርቧል",
-    "protected": "የተጠበቀ"
-  },
-  "pagination": {
-    "showing": "{total} ከ {from}–{to} አሳይቷል",
-    "rowsPerPage": "በገጽ ረድፎች",
-    "goToPage": "ወደ ገጽ ሂድ",
-    "firstPage": "የመጀመሪያ ገጽ",
-    "lastPage": "የመጨረሻ ገጽ",
-    "nextPage": "ቀጣዩ ገጽ",
-    "previousPage": "ቀዳሚ ገጽ"
-  },
-  "table": {
-    "noResults": "ምንም ውጤት አልተገኘም።",
-    "noResultsDescription": "ፍለጋ ወይም ማጣሪያ ሁኔታዎን ያስተካክሉ።",
-    "selectAll": "ሁሉንም ረድፎች ምረጥ",
-    "selectRow": "ረድፍ ምረጥ",
-    "clearSelection": "ምርጫ አጽዳ",
-    "selectedCount": "{count} ረድፍ ተመርጧል"
-  },
-  "time": {
-    "justNow": "ሀዲስ",
-    "minutesAgo": "ከ{count} ደቂቃ በፊት",
-    "hoursAgo": "ከ{count} ሰዓት በፊት",
-    "daysAgo": "ከ{count} ቀን በፊት",
-    "today": "ዛሬ",
-    "yesterday": "ትናንት"
-  },
-  "classification": "ፈቃደኛ ሰራተኞች ብቻ። ሁሉም መዳረሻ ተመዝግቧል።",
-  "systemName": "CCMS",
-  "systemFullName": "የወንጀል ጉዳይ አስተዳደር ስርዓት",
-  "notFound": "አልተገኘም",
-  "forbidden": "ፈቃድ የለም"
+---
+
+# 6. Query Key Factory Update
+
+## 6.1 `src/services/query/keys/caseKeys.ts`
+
+Confirm (or create if missing) the full hierarchical key factory:
+
+```typescript
+export const caseKeys = {
+  all: ['cases'] as const,
+
+  lists: () => [...caseKeys.all, 'list'] as const,
+  list: (filters: Record<string, unknown>) => [...caseKeys.lists(), filters] as const,
+
+  details: () => [...caseKeys.all, 'detail'] as const,
+  detail: (id: string) => [...caseKeys.details(), id] as const,
+
+  // Sub-resources keyed under detail(id) for precise invalidation
+  summary: (id: string) => [...caseKeys.detail(id), 'summary'] as const,
+  timeline: (id: string) => [...caseKeys.detail(id), 'timeline'] as const,
+  timelineFiltered: (id: string, filters: Record<string, unknown>) =>
+    [...caseKeys.timeline(id), filters] as const,
+  officers: (id: string) => [...caseKeys.detail(id), 'officers'] as const,
+  evidence: (id: string) => [...caseKeys.detail(id), 'evidence'] as const,
+  arrests: (id: string) => [...caseKeys.detail(id), 'arrests'] as const,
+  interrogations: (id: string) => [...caseKeys.detail(id), 'interrogations'] as const,
+  permissions: (id: string) => [...caseKeys.detail(id), 'permissions'] as const,
+
+  // Reference data
+  crimeTypes: () => [...caseKeys.all, 'crimeTypes'] as const,
+  locations: () => [...caseKeys.all, 'locations'] as const,
 }
 ```
 
-### 2.5.2 `auth.json` — English
+---
 
-```json
-{
-  "login": {
-    "pageTitle": "Sign In",
-    "heading": "Welcome back",
-    "subheading": "Sign in to your CCMS account to continue.",
-    "badgeNumberLabel": "Badge Number",
-    "badgeNumberPlaceholder": "e.g. BD-00142",
-    "passwordLabel": "Password",
-    "passwordPlaceholder": "Enter your password",
-    "rememberMe": "Remember me for 30 days",
-    "forgotPassword": "Forgot password?",
-    "submitButton": "Sign In",
-    "submittingButton": "Signing in...",
-    "noAccount": "Need access? Contact your administrator.",
-    "errors": {
-      "invalidCredentials": "Invalid badge number or password. Please try again.",
-      "accountInactive": "This account has been deactivated. Contact your administrator.",
-      "rateLimited": "Too many failed attempts. Your account is locked for {minutes} minute(s).",
-      "networkError": "Cannot reach the server. Check your connection and try again.",
-      "sessionExpired": "Your session has expired. Please sign in again."
-    }
-  },
-  "logout": {
-    "menuLabel": "Sign Out",
-    "confirmTitle": "Sign Out?",
-    "confirmDescription": "You will be signed out of this session. Any unsaved changes will be lost.",
-    "confirmButton": "Sign Out",
-    "cancelButton": "Stay Signed In",
-    "successMessage": "You have been signed out successfully."
-  },
-  "forgotPassword": {
-    "pageTitle": "Reset Password",
-    "heading": "Forgot your password?",
-    "subheading": "Enter your registered email address and we will send you a reset link.",
-    "emailLabel": "Email Address",
-    "emailPlaceholder": "officer@ccms.gov.et",
-    "submitButton": "Send Reset Link",
-    "submittingButton": "Sending...",
-    "backToLogin": "Back to Sign In",
-    "successTitle": "Reset link sent",
-    "successDescription": "If an account exists for {email}, a password reset link has been sent. Check your inbox and spam folder.",
-    "errors": {
-      "emailNotFound": "No account found with this email address.",
-      "rateLimited": "Too many requests. Please wait before requesting another reset link.",
-      "networkError": "Cannot reach the server. Please try again."
-    }
-  },
-  "resetPassword": {
-    "pageTitle": "Set New Password",
-    "heading": "Set a new password",
-    "subheading": "Choose a strong password for your account.",
-    "newPasswordLabel": "New Password",
-    "newPasswordPlaceholder": "Minimum 8 characters",
-    "confirmPasswordLabel": "Confirm New Password",
-    "confirmPasswordPlaceholder": "Re-enter your new password",
-    "submitButton": "Set New Password",
-    "submittingButton": "Saving...",
-    "backToLogin": "Back to Sign In",
-    "passwordStrength": {
-      "label": "Password strength",
-      "weak": "Weak",
-      "fair": "Fair",
-      "strong": "Strong",
-      "veryStrong": "Very Strong"
-    },
-    "requirements": {
-      "title": "Password must contain:",
-      "minLength": "At least 8 characters",
-      "uppercase": "At least one uppercase letter",
-      "digit": "At least one number",
-      "special": "At least one special character (!@#$%^&*)"
-    },
-    "successTitle": "Password updated",
-    "successDescription": "Your password has been changed successfully. You can now sign in with your new password.",
-    "errors": {
-      "tokenInvalid": "This reset link is invalid or has expired. Request a new one.",
-      "passwordMismatch": "Passwords do not match.",
-      "passwordTooWeak": "Password does not meet the strength requirements.",
-      "networkError": "Cannot reach the server. Please try again."
-    }
-  },
-  "session": {
-    "idleWarningTitle": "Are you still there?",
-    "idleWarningDescription": "You will be automatically signed out in {minutes} minute(s) due to inactivity.",
-    "idleStayButton": "Stay Signed In",
-    "idleLogoutButton": "Sign Out Now",
-    "autoLogoutMessage": "You were signed out due to inactivity."
-  }
+# 7. React Query Hooks
+
+Create all hooks in `src/features/cases/hooks/`.
+
+## 7.1 `useCases.ts`
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getCases } from '@services/domain/cases.service'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import type { CaseFilters } from '../types/case.types'
+
+export function useCases(filters: CaseFilters) {
+  return useQuery({
+    queryKey: caseKeys.list(filters as Record<string, unknown>),
+    queryFn: () => getCases(filters),
+    staleTime: 2 * 60 * 1000,
+    placeholderData: (prev) => prev, // Keep previous page data visible during refetch
+  })
 }
 ```
 
-### 2.5.3 `auth.json` — Amharic
+## 7.2 `useCase.ts`
 
-```json
-{
-  "login": {
-    "pageTitle": "ግባ",
-    "heading": "እንኳን ደህና መጡ",
-    "subheading": "ለቀጠለ ተሳትፎ ወደ CCMS መለያዎ ይግቡ።",
-    "badgeNumberLabel": "የባጅ ቁጥር",
-    "badgeNumberPlaceholder": "ለምሳሌ BD-00142",
-    "passwordLabel": "የይለፍ ቃል",
-    "passwordPlaceholder": "የይለፍ ቃልዎን ያስገቡ",
-    "rememberMe": "ለ30 ቀናት አስታዉሰኝ",
-    "forgotPassword": "የይለፍ ቃል ረሳህ?",
-    "submitButton": "ግባ",
-    "submittingButton": "እየገባ ነው...",
-    "noAccount": "ፈቃድ ያስፈልጋል? አስተዳዳሪዎን ያናጋ።",
-    "errors": {
-      "invalidCredentials": "የባጅ ቁጥር ወይም የይለፍ ቃል ትክክል አይደለም። እንደገና ይሞክሩ።",
-      "accountInactive": "ይህ መለያ ተሰናክሏል። አስተዳዳሪዎን ያናጋ።",
-      "rateLimited": "ብዙ ጊዜ ስህተት ተሞክሯል። መለያዎ ለ{minutes} ደቂቃ ተቆልፏል።",
-      "networkError": "አገልጋዩ ላይ መድረስ አልተቻለም። ግንኙነትዎን ያረጋግጡ።",
-      "sessionExpired": "ክፍለ ጊዜዎ አብቅቷል። እንደገና ይግቡ።"
-    }
-  },
-  "logout": {
-    "menuLabel": "ውጣ",
-    "confirmTitle": "ልትወጣ?",
-    "confirmDescription": "ከዚህ ክፍለ ጊዜ ትወጣለህ። ያልተቀመጡ ለውጦች ይጠፋሉ።",
-    "confirmButton": "ውጣ",
-    "cancelButton": "ግባ ቆይ",
-    "successMessage": "በተሳካ ሁኔታ ወጥተሃል።"
-  },
-  "forgotPassword": {
-    "pageTitle": "የይለፍ ቃል ዳግም ያስጀምሩ",
-    "heading": "የይለፍ ቃልዎን ረሱ?",
-    "subheading": "የተመዘገበ ኢሜይልዎን ያስገቡ — የዳግም ማስጀመሪያ ሊንክ እንልካለን።",
-    "emailLabel": "የኢሜይል አድራሻ",
-    "emailPlaceholder": "officer@ccms.gov.et",
-    "submitButton": "የዳግም ማስጀመሪያ ሊንክ ላክ",
-    "submittingButton": "እየላከ ነው...",
-    "backToLogin": "ወደ መግቢያ ተመለስ",
-    "successTitle": "ሊንክ ተልኳል",
-    "successDescription": "ለ{email} መለያ ካለ፣ የዳግም ማስጀመሪያ ሊንክ ተልኳል። ሳጥንዎን ያረጋግጡ።",
-    "errors": {
-      "emailNotFound": "በዚህ ኢሜይል መለያ አልተገኘም።",
-      "rateLimited": "ብዙ ጥያቄዎች። ሌላ ሊንክ ከመጠየቅዎ በፊት ይጠብቁ።",
-      "networkError": "አገልጋዩ ላይ መድረስ አልተቻለም። እንደገና ይሞክሩ።"
-    }
-  },
-  "resetPassword": {
-    "pageTitle": "አዲስ የይለፍ ቃል ያስጀምሩ",
-    "heading": "አዲስ የይለፍ ቃል ያዘጋጁ",
-    "subheading": "ለመለያዎ ጠንካራ የይለፍ ቃል ይምረጡ።",
-    "newPasswordLabel": "አዲስ የይለፍ ቃል",
-    "newPasswordPlaceholder": "ቢያንስ 8 ቁምፊዎች",
-    "confirmPasswordLabel": "አዲስ የይለፍ ቃል አረጋግጥ",
-    "confirmPasswordPlaceholder": "አዲሱን የይለፍ ቃል እንደገና ያስገቡ",
-    "submitButton": "አዲስ የይለፍ ቃል ያስቀምጡ",
-    "submittingButton": "እያስቀመጠ ነው...",
-    "backToLogin": "ወደ መግቢያ ተመለስ",
-    "passwordStrength": {
-      "label": "የይለፍ ቃል ጥንካሬ",
-      "weak": "ደካማ",
-      "fair": "መካከለኛ",
-      "strong": "ጠንካራ",
-      "veryStrong": "በጣም ጠንካራ"
-    },
-    "requirements": {
-      "title": "የይለፍ ቃሉ መያዝ ያለበት:",
-      "minLength": "ቢያንስ 8 ቁምፊዎች",
-      "uppercase": "ቢያንስ አንድ ትልቅ ፊደል",
-      "digit": "ቢያንስ አንድ ቁጥር",
-      "special": "ቢያንስ አንድ ልዩ ቁምፊ (!@#$%^&*)"
-    },
-    "successTitle": "የይለፍ ቃል ተቀይሯል",
-    "successDescription": "የይለፍ ቃልዎ በተሳካ ሁኔታ ተቀይሯል። አዲሱን የይለፍ ቃልዎን ተጠቅመው ይግቡ።",
-    "errors": {
-      "tokenInvalid": "ይህ ሊንክ ልክ አይደለም ወይም አብቅቷል። አዲስ ያዘዙ።",
-      "passwordMismatch": "የይለፍ ቃሎቹ አይዛመዱም።",
-      "passwordTooWeak": "የይለፍ ቃሉ መስፈርቶችን አያሟላም።",
-      "networkError": "አገልጋዩ ላይ መድረስ አልተቻለም። እንደገና ይሞክሩ።"
-    }
-  },
-  "session": {
-    "idleWarningTitle": "አሁንም እዚህ አሉ?",
-    "idleWarningDescription": "ንቁ ስላልሆኑ ከ{minutes} ደቂቃ በኋላ ተዘጋ ይባላሉ።",
-    "idleStayButton": "ቆይ ፈቀድ",
-    "idleLogoutButton": "አሁን ውጣ",
-    "autoLogoutMessage": "ስለ ንቃት ማጣት ወጥቷል።"
-  }
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getCase } from '@services/domain/cases.service'
+import { caseKeys } from '@services/query/keys/caseKeys'
+
+export function useCase(caseId: string) {
+  return useQuery({
+    queryKey: caseKeys.detail(caseId),
+    queryFn: () => getCase(caseId),
+    staleTime: 2 * 60 * 1000,
+    enabled: Boolean(caseId),
+  })
 }
 ```
 
-### 2.5.4 `navigation.json` — English
+## 7.3 `useCaseTimeline.ts`
 
-```json
-{
-  "sections": {
-    "operations": "Operations",
-    "evidence": "Evidence",
-    "legal": "Legal",
-    "personnel": "Personnel",
-    "organisation": "Organisation",
-    "intelligence": "Intelligence",
-    "system": "System",
-    "account": "Account"
-  },
-  "items": {
-    "dashboard": "Dashboard",
-    "cases": "Cases",
-    "arrests": "Arrests",
-    "courtCases": "Court Cases",
-    "persons": "Persons",
-    "officers": "Officers",
-    "departments": "Departments",
-    "reports": "Reports",
-    "locations": "Locations",
-    "crimeTypes": "Crime Types",
-    "systemHealth": "System Health",
-    "audit": "Audit Log",
-    "settings": "Settings",
-    "profile": "My Profile",
-    "password": "Change Password",
-    "logout": "Sign Out"
-  },
-  "breadcrumbs": {
-    "home": "Home",
-    "cases": "Cases",
-    "newCase": "New Case",
-    "evidence": "Evidence",
-    "officers": "Officers",
-    "persons": "Persons",
-    "departments": "Departments",
-    "reports": "Reports",
-    "admin": "Admin",
-    "settings": "Settings",
-    "legal": "Legal",
-    "arrests": "Arrests",
-    "interrogations": "Interrogations",
-    "timeline": "Timeline",
-    "permissions": "Permissions"
-  },
-  "sidebar": {
-    "collapseLabel": "Collapse sidebar",
-    "expandLabel": "Expand sidebar",
-    "openMobileMenu": "Open navigation menu"
-  }
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getCaseTimeline } from '@services/domain/cases.service'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import type { TimelineFilters } from '../types/case.types'
+
+interface UseCaseTimelineOptions {
+  caseId: string
+  filters?: TimelineFilters & { page?: number; pageSize?: number }
+  enabled?: boolean
+}
+
+export function useCaseTimeline({ caseId, filters = {}, enabled = true }: UseCaseTimelineOptions) {
+  return useQuery({
+    queryKey: caseKeys.timelineFiltered(caseId, filters as Record<string, unknown>),
+    queryFn: () => getCaseTimeline(caseId, filters),
+    staleTime: 0,                        // Always considered stale — timeline is real-time
+    refetchInterval: enabled ? 30_000 : false,  // Poll every 30s only when tab is active
+    enabled: Boolean(caseId) && enabled,
+  })
 }
 ```
 
-### 2.5.5 `navigation.json` — Amharic
+## 7.4 `useCaseSummary.ts`
 
-```json
-{
-  "sections": {
-    "operations": "ስራዎች",
-    "evidence": "ማስረጃ",
-    "legal": "ህጋዊ",
-    "personnel": "ሰራተኞች",
-    "organisation": "ድርጅት",
-    "intelligence": "ስለላ",
-    "system": "ስርዓት",
-    "account": "መለያ"
-  },
-  "items": {
-    "dashboard": "ዳሽቦርድ",
-    "cases": "ጉዳዮች",
-    "arrests": "እስሮች",
-    "courtCases": "የፍርድ ቤት ጉዳዮች",
-    "persons": "ሰዎች",
-    "officers": "መኮንኖች",
-    "departments": "ክፍሎች",
-    "reports": "ሪፖርቶች",
-    "locations": "ቦታዎች",
-    "crimeTypes": "የወንጀል ዓይነቶች",
-    "systemHealth": "የስርዓት ጤና",
-    "audit": "የኦዲት ምዝገባ",
-    "settings": "ቅንብሮች",
-    "profile": "መገለጫዬ",
-    "password": "የይለፍ ቃል ቀይር",
-    "logout": "ውጣ"
-  },
-  "breadcrumbs": {
-    "home": "መነሻ",
-    "cases": "ጉዳዮች",
-    "newCase": "አዲስ ጉዳይ",
-    "evidence": "ማስረጃ",
-    "officers": "መኮንኖች",
-    "persons": "ሰዎች",
-    "departments": "ክፍሎች",
-    "reports": "ሪፖርቶች",
-    "admin": "አስተዳዳሪ",
-    "settings": "ቅንብሮች",
-    "legal": "ህጋዊ",
-    "arrests": "እስሮች",
-    "interrogations": "ምርመራዎች",
-    "timeline": "ጊዜ ሰሌዳ",
-    "permissions": "ፈቃዶች"
-  },
-  "sidebar": {
-    "collapseLabel": "ሳይድባር አሳንስ",
-    "expandLabel": "ሳይድባር አሳፋ",
-    "openMobileMenu": "የናቪጌሽን ምናሌ ክፈት"
-  }
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getCaseSummary } from '@services/domain/cases.service'
+import { caseKeys } from '@services/query/keys/caseKeys'
+
+export function useCaseSummary(caseId: string) {
+  return useQuery({
+    queryKey: caseKeys.summary(caseId),
+    queryFn: () => getCaseSummary(caseId),
+    staleTime: 2 * 60 * 1000,
+    enabled: Boolean(caseId),
+  })
 }
 ```
 
-### 2.5.6 `errors.json` — English
+## 7.5 `useCaseOfficers.ts`
 
-```json
-{
-  "validation": {
-    "required": "This field is required.",
-    "email": "Enter a valid email address.",
-    "minLength": "Must be at least {min} characters.",
-    "maxLength": "Must be no more than {max} characters.",
-    "passwordMismatch": "Passwords do not match.",
-    "invalidFormat": "Invalid format.",
-    "badgeNumberFormat": "Badge number must be in the format BD-XXXXX."
-  },
-  "api": {
-    "generic": "An unexpected error occurred. Please try again.",
-    "network": "Network error. Check your connection.",
-    "unauthorized": "You are not authorised to perform this action.",
-    "forbidden": "You do not have permission to access this resource.",
-    "notFound": "The requested resource was not found.",
-    "serverError": "A server error occurred. Please contact support if the problem persists.",
-    "rateLimited": "You have made too many requests. Please wait before trying again.",
-    "validationFailed": "Please correct the highlighted errors and try again."
-  },
-  "pages": {
-    "404": {
-      "title": "Page Not Found",
-      "description": "The page you are looking for does not exist or has been moved.",
-      "action": "Go to Dashboard"
-    },
-    "403": {
-      "title": "Access Denied",
-      "description": "You do not have permission to view this page. If you believe this is an error, contact your administrator.",
-      "action": "Go to Dashboard"
-    },
-    "500": {
-      "title": "Something Went Wrong",
-      "description": "An unexpected error occurred. Our team has been notified.",
-      "action": "Reload Page"
-    }
-  }
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getCaseMembers } from '@services/domain/cases.service'
+import { caseKeys } from '@services/query/keys/caseKeys'
+
+export function useCaseOfficers(caseId: string) {
+  return useQuery({
+    queryKey: caseKeys.officers(caseId),
+    queryFn: () => getCaseMembers(caseId),
+    staleTime: 2 * 60 * 1000,
+    enabled: Boolean(caseId),
+  })
 }
 ```
 
-### 2.5.7 `errors.json` — Amharic
+## 7.6 `useCreateCase.ts`
 
-```json
-{
-  "validation": {
-    "required": "ይህ ሜዳ ያስፈልጋል።",
-    "email": "ትክክለኛ ኢሜይል አድራሻ ያስገቡ።",
-    "minLength": "ቢያንስ {min} ቁምፊዎች መሆን አለበት።",
-    "maxLength": "ከ{max} ቁምፊዎች አልበልጥ።",
-    "passwordMismatch": "የይለፍ ቃሎቹ አይዛመዱም።",
-    "invalidFormat": "ልክ ያልሆነ ቅርጸት።",
-    "badgeNumberFormat": "የባጅ ቁጥር BD-XXXXX መልክ መሆን አለበት።"
-  },
-  "api": {
-    "generic": "ያልተጠበቀ ስህተት ተከስቷል። እንደገና ይሞክሩ።",
-    "network": "የአውታረ መረብ ስህተት። ግንኙነትዎን ያረጋግጡ።",
-    "unauthorized": "ይህን ድርጊት ለማከናወን ፈቃድ የለዎትም።",
-    "forbidden": "ይህን ምንጭ ለማስተናገድ ፈቃድ የለዎትም።",
-    "notFound": "የጠየቁት ምንጭ አልተገኘም።",
-    "serverError": "የአገልጋይ ስህተት ተከስቷል። ችግሩ ከቀጠለ ድጋፍን ያናጋ።",
-    "rateLimited": "ብዙ ጥያቄዎች ተደርገዋል። ከመሞከርዎ በፊት ይጠብቁ።",
-    "validationFailed": "የተጠቀሱ ስህተቶችን አርምዕ እንደገና ይሞክሩ።"
-  },
-  "pages": {
-    "404": {
-      "title": "ገጽ አልተገኘም",
-      "description": "የሚፈልጉት ገጽ የለም ወይም ተዘዋውሯል።",
-      "action": "ወደ ዳሽቦርድ ሂድ"
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { createCase } from '@services/domain/cases.service'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { CreateCasePayload } from '../types/case.types'
+
+export function useCreateCase() {
+  const queryClient = useQueryClient()
+  const router = useRouter()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('cases')
+
+  return useMutation({
+    mutationFn: (payload: CreateCasePayload) => createCase(payload),
+    onSuccess: (newCase) => {
+      // Invalidate the cases list so it refreshes on next visit
+      void queryClient.invalidateQueries({ queryKey: caseKeys.lists() })
+      // Pre-populate the detail cache so the detail page loads instantly
+      queryClient.setQueryData(caseKeys.detail(newCase.id), newCase)
+      addToast({ message: t('create.successMessage', { caseNumber: newCase.caseNumber }), variant: 'success' })
+      router.push(`/cases/${newCase.id}`)
     },
-    "403": {
-      "title": "ፈቃድ የለም",
-      "description": "ይህን ገጽ ለማየት ፈቃድ የለዎትም። ስህተት ይመስልዎት ከሆነ አስተዳዳሪዎን ያናጋ።",
-      "action": "ወደ ዳሽቦርድ ሂድ"
+    onError: (error: unknown) => {
+      if (error instanceof ApiError && error.isValidationError()) {
+        // Field errors handled by the form via setError — no toast needed
+        return
+      }
+      addToast({ message: t('create.errorMessage'), variant: 'error' })
     },
-    "500": {
-      "title": "ችግር ተፈጥሯል",
-      "description": "ያልተጠበቀ ስህተት ተከስቷል። ቡድናችን ተወካካ ነው።",
-      "action": "ገጽ አድስ"
-    }
-  }
+  })
 }
 ```
 
-All remaining namespace files (`cases.json`, `evidence.json`, `personnel.json`, `departments.json`, `legal.json`, `reports.json`, `dashboard.json`, `admin.json`, `settings.json`, `audit.json`, `accessibility.json`) must be created for both `en/` and `am/`. For Phase 2 these are skeleton files containing at minimum the page title, loading message, and skeleton placeholder text for every route under that namespace. They will be completed in the phases where those modules are fully implemented.
+## 7.7 `useUpdateCase.ts`
 
-Example skeleton `cases.json` (English):
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { updateCase } from '@services/domain/cases.service'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import type { Case, CreateCasePayload } from '../types/case.types'
+
+export function useUpdateCase(caseId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('cases')
+
+  return useMutation({
+    mutationFn: (payload: Partial<CreateCasePayload>) => updateCase(caseId, payload),
+    onSuccess: (updatedCase: Case) => {
+      queryClient.setQueryData(caseKeys.detail(caseId), updatedCase)
+      void queryClient.invalidateQueries({ queryKey: caseKeys.lists() })
+      addToast({ message: t('update.successMessage'), variant: 'success' })
+    },
+  })
+}
+```
+
+## 7.8 `useTransitionCaseStatus.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { transitionCaseStatus } from '@services/domain/cases.service'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { useUIStore } from '@shared/stores/ui.store'
+import type { StatusTransitionPayload } from '../types/case.types'
+
+export function useTransitionCaseStatus(caseId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const { closeModal } = useUIStore()
+  const t = useTranslations('cases')
+
+  return useMutation({
+    mutationFn: (payload: StatusTransitionPayload) => transitionCaseStatus(caseId, payload),
+    onSuccess: (updatedCase) => {
+      queryClient.setQueryData(caseKeys.detail(caseId), updatedCase)
+      void queryClient.invalidateQueries({ queryKey: caseKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: caseKeys.timeline(caseId) })
+      closeModal()
+      addToast({ message: t('status.transitionSuccess'), variant: 'success' })
+    },
+  })
+}
+```
+
+## 7.9 `useAddCaseNote.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { addCaseNote } from '@services/domain/cases.service'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+
+export function useAddCaseNote(caseId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('cases')
+
+  return useMutation({
+    mutationFn: (content: string) => addCaseNote(caseId, content),
+    onSuccess: () => {
+      // Immediately invalidate timeline — the new note must appear at once
+      void queryClient.invalidateQueries({ queryKey: caseKeys.timeline(caseId) })
+    },
+    onError: () => {
+      addToast({ message: t('timeline.noteError'), variant: 'error' })
+    },
+  })
+}
+```
+
+## 7.10 `useDeleteCase.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { deleteCase } from '@services/domain/cases.service'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+
+export function useDeleteCase() {
+  const queryClient = useQueryClient()
+  const router = useRouter()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('cases')
+
+  return useMutation({
+    mutationFn: (caseId: string) => deleteCase(caseId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: caseKeys.lists() })
+      addToast({ message: t('delete.successMessage'), variant: 'success' })
+      router.push('/cases')
+    },
+  })
+}
+```
+
+## 7.11 Reference data hooks
+
+Create `useCrimeTypes.ts` and `useLocations.ts` using `getCrimeTypes()` and `getLocations()` with `staleTime: 30 * 60 * 1000` (30 minutes — reference data changes rarely).
+
+## 7.12 Hook barrel (`src/features/cases/hooks/index.ts`)
+
+Export all hooks from a single barrel.
+
+---
+
+# 8. Internationalisation — Cases Messages
+
+## 8.1 `messages/en/cases.json` — Full population (replace Phase 2 skeleton)
+
 ```json
 {
   "pageTitle": "Cases",
   "list": {
     "heading": "All Cases",
-    "skeleton": "Loading cases...",
+    "entityCount": "{count} case(s)",
     "newCase": "New Case",
-    "searchPlaceholder": "Search cases..."
+    "searchPlaceholder": "Search by case number, title...",
+    "filterStatus": "Status",
+    "filterCrimeType": "Crime Type",
+    "filterDepartment": "Department",
+    "filterDateRange": "Date Range",
+    "noResults": "No cases found.",
+    "noResultsDescription": "Try adjusting your search or filter criteria.",
+    "loading": "Loading cases...",
+    "columns": {
+      "caseNumber": "Case No.",
+      "title": "Title",
+      "status": "Status",
+      "crimeType": "Crime Type",
+      "department": "Department",
+      "leadOfficer": "Lead Officer",
+      "reportedDate": "Reported",
+      "lastActivity": "Last Activity",
+      "actions": "Actions"
+    },
+    "rowActions": {
+      "view": "View Case",
+      "edit": "Edit Case",
+      "transition": "Change Status",
+      "delete": "Delete Case"
+    }
+  },
+  "create": {
+    "pageTitle": "New Case",
+    "heading": "Create New Case",
+    "successMessage": "Case {caseNumber} created successfully.",
+    "errorMessage": "Failed to create the case. Please check the form and try again.",
+    "steps": {
+      "basicInfo": "Basic Information",
+      "crimeDetails": "Crime Details",
+      "assignment": "Assignment"
+    },
+    "step1": {
+      "heading": "Basic Information",
+      "titleLabel": "Case Title",
+      "titlePlaceholder": "e.g. Robbery at Bole Road Market — 12 June 2026",
+      "descriptionLabel": "Case Description",
+      "descriptionPlaceholder": "Describe the incident in detail...",
+      "incidentDateLabel": "Incident Date",
+      "locationLabel": "Location (optional)",
+      "locationPlaceholder": "Search locations..."
+    },
+    "step2": {
+      "heading": "Crime Details",
+      "crimeTypeLabel": "Crime Type",
+      "crimeTypePlaceholder": "Select a crime type...",
+      "departmentLabel": "Responsible Department",
+      "departmentPlaceholder": "Select a department..."
+    },
+    "step3": {
+      "heading": "Assignment",
+      "leadOfficerLabel": "Lead Investigator",
+      "leadOfficerPlaceholder": "Search officers...",
+      "additionalOfficersLabel": "Additional Officers (optional)",
+      "additionalOfficersPlaceholder": "Search officers..."
+    }
   },
   "detail": {
-    "skeleton": "Loading case details...",
+    "loading": "Loading case...",
+    "notFound": "Case not found.",
+    "headerCard": {
+      "caseNumberLabel": "Case Number",
+      "departmentLabel": "Department",
+      "crimeTypeLabel": "Crime Type",
+      "leadOfficerLabel": "Lead Officer",
+      "incidentDateLabel": "Incident Date",
+      "reportedDateLabel": "Date Reported",
+      "closedDateLabel": "Date Closed"
+    },
+    "actions": {
+      "edit": "Edit Case",
+      "managePermissions": "Manage Permissions",
+      "delete": "Delete Case",
+      "deleteConfirmTitle": "Delete this case?",
+      "deleteConfirmDescription": "This will permanently delete case {caseNumber} and all associated data. This action cannot be undone.",
+      "deleteConfirmPhrase": "delete {caseNumber}"
+    },
     "tabs": {
       "overview": "Overview",
       "evidence": "Evidence",
@@ -708,1392 +1090,1355 @@ Example skeleton `cases.json` (English):
       "officers": "Officers",
       "timeline": "Timeline",
       "reports": "Reports",
-      "permissions": "Permissions"
+      "permissions": "Permissions",
+      "lockedTooltip": "Requires {minRole} role or higher"
     }
-  }
-}
-```
-
-Amharic equivalent with same key structure must be present.
-
-## 2.6 next-intl Configuration
-
-### 2.6.1 `src/config/i18n.ts`
-
-Create this file. It is the single source of truth for locale configuration.
-
-```typescript
-export const locales = ['en', 'am'] as const
-export type Locale = (typeof locales)[number]
-export const defaultLocale: Locale = 'en'
-
-export const localeNames: Record<Locale, string> = {
-  en: 'English',
-  am: 'አማርኛ',
-}
-
-export const localeFlags: Record<Locale, string> = {
-  en: '🇬🇧',
-  am: '🇪🇹',
-}
-```
-
-### 2.6.2 `src/i18n/request.ts`
-
-This is the next-intl server-side configuration file:
-
-```typescript
-import { getRequestConfig } from 'next-intl/server'
-import { cookies } from 'next/headers'
-import { defaultLocale, type Locale, locales } from '@config/i18n'
-
-export default getRequestConfig(async () => {
-  const cookieStore = await cookies()
-  const rawLocale = cookieStore.get('ccms_locale')?.value
-  const locale: Locale =
-    rawLocale && locales.includes(rawLocale as Locale)
-      ? (rawLocale as Locale)
-      : defaultLocale
-
-  return {
-    locale,
-    messages: {
-      ...(await import(`../../messages/${locale}/common.json`)).default,
-      // Individual namespaces are loaded per-layout/page via next-intl's
-      // namespace scoping. This root config loads only common.
+  },
+  "overview": {
+    "metadataCard": "Case Details",
+    "descriptionCard": "Description",
+    "summaryPanels": {
+      "evidence": "Evidence Items",
+      "arrests": "Arrests",
+      "charges": "Charges",
+      "officers": "Assigned Officers",
+      "viewAll": "View all"
     },
+    "officersSection": "Assigned Officers",
+    "officersSectionEmpty": "No officers assigned to this case.",
+    "recentActivity": "Recent Activity",
+    "recentActivityEmpty": "No activity recorded yet.",
+    "viewAllActivity": "View full timeline"
+  },
+  "timeline": {
+    "pageTitle": "Case Timeline",
+    "loading": "Loading timeline...",
+    "empty": "No events recorded yet.",
+    "filterActor": "Search by officer...",
+    "filterEventType": "Event Type",
+    "filterDateRange": "Date Range",
+    "addNote": "Add Note",
+    "notePlaceholder": "Add a note to this case...",
+    "noteSubmit": "Add Note",
+    "noteError": "Failed to add note. Please try again.",
+    "printButton": "Print Timeline",
+    "immutableTooltip": "This audit record cannot be modified or deleted.",
+    "securityBadge": {
+      "LOW": "Low Severity",
+      "MEDIUM": "Medium Severity",
+      "HIGH": "High Severity",
+      "CRITICAL": "Critical Severity"
+    },
+    "eventTypes": {
+      "CASE_CREATED": "Case Created",
+      "CASE_UPDATED": "Case Updated",
+      "STATUS_CHANGED": "Status Changed",
+      "EVIDENCE_ADDED": "Evidence Added",
+      "EVIDENCE_UPDATED": "Evidence Updated",
+      "OFFICER_ASSIGNED": "Officer Assigned",
+      "OFFICER_REMOVED": "Officer Removed",
+      "ARREST_RECORDED": "Arrest Recorded",
+      "INTERROGATION_RECORDED": "Interrogation Recorded",
+      "LEGAL_ACTION": "Legal Action",
+      "NOTE_ADDED": "Note Added",
+      "PERMISSION_CHANGED": "Permission Changed",
+      "LOGIN_FAILURE": "Login Failure"
+    }
+  },
+  "status": {
+    "OPEN": "Open",
+    "UNDER_INVESTIGATION": "Under Investigation",
+    "REFERRED_TO_COURT": "Referred to Court",
+    "CLOSED": "Closed",
+    "ARCHIVED": "Archived",
+    "transitionDrawerTitle": "Change Case Status",
+    "transitionDrawerDescription": "Select the new status for this case. Some transitions may require a reason.",
+    "currentStatus": "Current status",
+    "availableTransitions": "Available transitions",
+    "noTransitionsAvailable": "No status transitions available for your role.",
+    "reasonLabel": "Reason for change",
+    "reasonPlaceholder": "Describe why the status is changing...",
+    "reasonRequired": "A reason is required for this transition.",
+    "transitionButton": "Confirm Transition",
+    "transitionSuccess": "Case status updated successfully.",
+    "lockedTransitionTooltip": "Requires {minRole} role",
+    "confirmButton": "Change Status",
+    "cancelButton": "Cancel"
+  },
+  "update": {
+    "successMessage": "Case updated successfully.",
+    "errorMessage": "Failed to update the case."
+  },
+  "delete": {
+    "successMessage": "Case deleted successfully."
+  },
+  "skeletonTabs": {
+    "evidence": "Evidence — Coming in Phase 5",
+    "arrests": "Arrests — Coming in Phase 6",
+    "interrogations": "Interrogations — Coming in Phase 6",
+    "legal": "Legal — Coming in Phase 7",
+    "officers": "Officers — Coming in Phase 8",
+    "reports": "Reports — Coming in Phase 10",
+    "permissions": "Permissions — Coming in Phase 8"
   }
-})
-```
-
-**Note on message loading strategy:** Use next-intl's namespace approach — each layout and page imports only the namespaces it needs via `getTranslations('namespace')` on the server and `useTranslations('namespace')` on the client. Do not load all namespaces globally. This keeps server component bundles lean.
-
-The actual message loading with multiple namespaces:
-
-```typescript
-// In src/i18n/request.ts — load all namespaces at request time
-import { getRequestConfig } from 'next-intl/server'
-import { cookies } from 'next/headers'
-import { defaultLocale, type Locale, locales } from '@config/i18n'
-
-const NAMESPACES = [
-  'common', 'auth', 'navigation', 'errors', 'accessibility',
-  'cases', 'evidence', 'personnel', 'departments', 'legal',
-  'reports', 'dashboard', 'admin', 'settings', 'audit',
-] as const
-
-export default getRequestConfig(async () => {
-  const cookieStore = await cookies()
-  const rawLocale = cookieStore.get('ccms_locale')?.value
-  const locale: Locale =
-    rawLocale && locales.includes(rawLocale as Locale)
-      ? (rawLocale as Locale)
-      : defaultLocale
-
-  const messages: Record<string, unknown> = {}
-  for (const ns of NAMESPACES) {
-    messages[ns] = (await import(`../../messages/${locale}/${ns}.json`)).default
-  }
-
-  return { locale, messages }
-})
-```
-
-### 2.6.3 `next.config.ts` Update
-
-Add next-intl plugin wrapping to the Next.js config:
-
-```typescript
-import createNextIntlPlugin from 'next-intl/plugin'
-const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
-
-const nextConfig = {
-  // ... existing config
 }
-
-export default withNextIntl(nextConfig)
 ```
 
-### 2.6.4 TypeScript Message Types
+## 8.2 `messages/am/cases.json`
 
-Create `src/types/messages.d.ts` (or let next-intl CLI generate it):
+Create the complete Amharic equivalent with identical key structure. Every key from `en/cases.json` must appear in `am/cases.json`. Key translations:
 
-Run after setup:
-```bash
-pnpm dlx next-intl generate-types
-```
-
-This generates type-safe message key types so that `t('auth.login.heading')` is type-checked against the message files. Add this to the CI pipeline. If using generated types, add the output file to `.gitignore` and regenerate on CI.
-
-Add to `package.json` scripts:
 ```json
-"i18n:types": "next-intl generate-types"
-```
-
-## 2.7 Middleware Locale Handling
-
-Update `src/middleware.ts` to handle locale cookie detection alongside the existing auth logic. The middleware must:
-
-1. Read `ccms_locale` cookie — if present and valid, use it. If absent, detect from `Accept-Language` header and fall back to `en`.
-2. Do NOT redirect to locale-prefixed URLs (e.g., `/en/login`) — this application does NOT use URL-based locale routing. Locale is entirely cookie-driven. This simplifies URL structure for a closed enterprise system.
-3. Set `ccms_locale` cookie on the response if it was absent, establishing the detected default.
-
-The existing auth redirect logic is unchanged. Locale detection runs before auth checks.
-
-## 2.8 Language Toggle Component
-
-Create `src/shared/components/i18n/LocaleToggle.tsx`.
-
-This is a Client Component. It renders a compact toggle/dropdown showing the current locale name and flag, allowing the user to switch. On selection, it:
-1. Calls a server action (or API route) that sets the `ccms_locale` cookie
-2. Calls `router.refresh()` to reload the page with the new locale
-
-**Implementation:**
-
-```typescript
-// src/shared/components/i18n/LocaleToggle.tsx
-'use client'
-
-// Uses shadcn DropdownMenu. Shows current locale with flag emoji.
-// Two items: English / አማርኛ
-// On select: POST to /api/locale with { locale }
-// then router.refresh()
-```
-
-Create the locale API route at `src/app/api/locale/route.ts`:
-
-```typescript
-import { NextRequest, NextResponse } from 'next/server'
-import { locales, defaultLocale, type Locale } from '@config/i18n'
-
-export async function POST(request: NextRequest) {
-  const { locale } = await request.json() as { locale: string }
-  const validLocale: Locale = locales.includes(locale as Locale)
-    ? (locale as Locale)
-    : defaultLocale
-
-  const response = NextResponse.json({ locale: validLocale })
-  response.cookies.set('ccms_locale', validLocale, {
-    httpOnly: false, // must be readable client-side for the toggle initial state
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 365, // 1 year
-    path: '/',
-  })
-  return response
+{
+  "pageTitle": "ጉዳዮች",
+  "list": {
+    "heading": "ሁሉም ጉዳዮች",
+    "entityCount": "{count} ጉዳይ",
+    "newCase": "አዲስ ጉዳይ",
+    "searchPlaceholder": "በጉዳይ ቁጥር ወይም ርዕስ ፈልግ...",
+    "filterStatus": "ሁኔታ",
+    "filterCrimeType": "የወንጀል ዓይነት",
+    "filterDepartment": "ክፍል",
+    "filterDateRange": "የቀን ክልል",
+    "noResults": "ምንም ጉዳይ አልተገኘም።",
+    "noResultsDescription": "ፍለጋ ወይም ማጣሪያ ሁኔታዎን ያስተካክሉ።",
+    "loading": "ጉዳዮችን እየጫነ ነው...",
+    "columns": {
+      "caseNumber": "ጉዳይ ቁ.",
+      "title": "ርዕስ",
+      "status": "ሁኔታ",
+      "crimeType": "የወንጀል ዓይነት",
+      "department": "ክፍል",
+      "leadOfficer": "ዋና መኮንን",
+      "reportedDate": "ዘግቧል",
+      "lastActivity": "የኋለኛ እንቅስቃሴ",
+      "actions": "ድርጊቶች"
+    },
+    "rowActions": {
+      "view": "ጉዳይ ተመልከት",
+      "edit": "ጉዳይ አርትዕ",
+      "transition": "ሁኔታ ቀይር",
+      "delete": "ጉዳይ ሰርዝ"
+    }
+  },
+  "create": {
+    "pageTitle": "አዲስ ጉዳይ",
+    "heading": "አዲስ ጉዳይ ፍጠር",
+    "successMessage": "ጉዳይ {caseNumber} በተሳካ ሁኔታ ተፈጥሯል።",
+    "errorMessage": "ጉዳዩን ለመፍጠር አልተሳካም። ቅጹን ያረጋግጡ።",
+    "steps": {
+      "basicInfo": "መሠረታዊ መረጃ",
+      "crimeDetails": "የወንጀል ዝርዝሮች",
+      "assignment": "ምደባ"
+    },
+    "step1": {
+      "heading": "መሠረታዊ መረጃ",
+      "titleLabel": "የጉዳይ ርዕስ",
+      "titlePlaceholder": "ለምሳሌ ዝርፊያ በቦሌ መንገድ ገበያ — ሰኔ 12 ቀን 2026",
+      "descriptionLabel": "የጉዳዩ መግለጫ",
+      "descriptionPlaceholder": "ክስተቱን በዝርዝር ያብራሩ...",
+      "incidentDateLabel": "የወንጀሉ ቀን",
+      "locationLabel": "ቦታ (አማራጭ)",
+      "locationPlaceholder": "ቦታ ፈልግ..."
+    },
+    "step2": {
+      "heading": "የወንጀል ዝርዝሮች",
+      "crimeTypeLabel": "የወንጀል ዓይነት",
+      "crimeTypePlaceholder": "የወንጀል ዓይነት ምረጥ...",
+      "departmentLabel": "ኃላፊ ክፍል",
+      "departmentPlaceholder": "ክፍል ምረጥ..."
+    },
+    "step3": {
+      "heading": "ምደባ",
+      "leadOfficerLabel": "ዋና መርማሪ",
+      "leadOfficerPlaceholder": "መኮንን ፈልግ...",
+      "additionalOfficersLabel": "ተጨማሪ መኮንኖች (አማራጭ)",
+      "additionalOfficersPlaceholder": "መኮንን ፈልግ..."
+    }
+  },
+  "detail": {
+    "loading": "ጉዳይ እየጫነ ነው...",
+    "notFound": "ጉዳይ አልተገኘም።",
+    "headerCard": {
+      "caseNumberLabel": "የጉዳይ ቁጥር",
+      "departmentLabel": "ክፍል",
+      "crimeTypeLabel": "የወንጀል ዓይነት",
+      "leadOfficerLabel": "ዋና መኮንን",
+      "incidentDateLabel": "የወንጀሉ ቀን",
+      "reportedDateLabel": "ዘግቦ የቀረበ ቀን",
+      "closedDateLabel": "የተዘጋ ቀን"
+    },
+    "actions": {
+      "edit": "ጉዳይ አርትዕ",
+      "managePermissions": "ፈቃዶች አስተዳድር",
+      "delete": "ጉዳይ ሰርዝ",
+      "deleteConfirmTitle": "ይህን ጉዳይ ሰርዝ?",
+      "deleteConfirmDescription": "ጉዳይ {caseNumber} እና ሁሉም ተዛማጅ ውሂብ ይሰርዘዋል። ይህ ድርጊት ሊቀለበስ አይችልም።",
+      "deleteConfirmPhrase": "{caseNumber} ሰርዝ"
+    },
+    "tabs": {
+      "overview": "አጠቃላይ እይታ",
+      "evidence": "ማስረጃ",
+      "arrests": "እስሮች",
+      "interrogations": "ምርመራዎች",
+      "legal": "ህጋዊ",
+      "officers": "መኮንኖች",
+      "timeline": "ጊዜ ሰሌዳ",
+      "reports": "ሪፖርቶች",
+      "permissions": "ፈቃዶች",
+      "lockedTooltip": "{minRole} ሚና ወይም ከዛ በላይ ያስፈልጋል"
+    }
+  },
+  "overview": {
+    "metadataCard": "የጉዳይ ዝርዝሮች",
+    "descriptionCard": "መግለጫ",
+    "summaryPanels": {
+      "evidence": "የማስረጃ ንጥሎች",
+      "arrests": "እስሮች",
+      "charges": "ክሶች",
+      "officers": "የተመደቡ መኮንኖች",
+      "viewAll": "ሁሉ ተመልከት"
+    },
+    "officersSection": "የተመደቡ መኮንኖች",
+    "officersSectionEmpty": "ለዚህ ጉዳይ ምንም መኮንን አልተመደበም።",
+    "recentActivity": "የቅርብ ጊዜ እንቅስቃሴ",
+    "recentActivityEmpty": "እስካሁን ምንም እንቅስቃሴ አልተመዘገበም።",
+    "viewAllActivity": "ሙሉ ጊዜ ሰሌዳ ተመልከት"
+  },
+  "timeline": {
+    "pageTitle": "የጉዳይ ጊዜ ሰሌዳ",
+    "loading": "ጊዜ ሰሌዳ እየጫነ ነው...",
+    "empty": "እስካሁን ምንም ክስተት አልተመዘገበም።",
+    "filterActor": "በመኮንን ፈልግ...",
+    "filterEventType": "የክስተት ዓይነት",
+    "filterDateRange": "የቀን ክልል",
+    "addNote": "ማስታወሻ ጨምር",
+    "notePlaceholder": "ለዚህ ጉዳይ ማስታወሻ ጨምር...",
+    "noteSubmit": "ማስታወሻ ጨምር",
+    "noteError": "ማስታወሻ ለመጨመር አልተሳካም። እንደገና ይሞክሩ።",
+    "printButton": "ጊዜ ሰሌዳ አትም",
+    "immutableTooltip": "ይህ የኦዲት መዝገብ ሊቀየር ወይም ሊሰረዝ አይችልም።",
+    "securityBadge": {
+      "LOW": "ዝቅተኛ ክብደት",
+      "MEDIUM": "መካከለኛ ክብደት",
+      "HIGH": "ከፍተኛ ክብደት",
+      "CRITICAL": "ወሳኝ ክብደት"
+    },
+    "eventTypes": {
+      "CASE_CREATED": "ጉዳይ ተፈጥሯል",
+      "CASE_UPDATED": "ጉዳይ ተዘምኗል",
+      "STATUS_CHANGED": "ሁኔታ ተቀይሯል",
+      "EVIDENCE_ADDED": "ማስረጃ ተጨምሯል",
+      "EVIDENCE_UPDATED": "ማስረጃ ተዘምኗል",
+      "OFFICER_ASSIGNED": "መኮንን ተመድቧል",
+      "OFFICER_REMOVED": "መኮንን ተወግዷል",
+      "ARREST_RECORDED": "እስር ተመዝግቧል",
+      "INTERROGATION_RECORDED": "ምርመራ ተመዝግቧል",
+      "LEGAL_ACTION": "ህጋዊ ድርጊት",
+      "NOTE_ADDED": "ማስታወሻ ተጨምሯል",
+      "PERMISSION_CHANGED": "ፈቃድ ተቀይሯል",
+      "LOGIN_FAILURE": "ግባ ስህተት"
+    }
+  },
+  "status": {
+    "OPEN": "ክፍት",
+    "UNDER_INVESTIGATION": "በምርመራ ላይ",
+    "REFERRED_TO_COURT": "ለፍርድ ቤት ቀርቧል",
+    "CLOSED": "ዝግ",
+    "ARCHIVED": "ማህደር",
+    "transitionDrawerTitle": "የጉዳይ ሁኔታ ቀይር",
+    "transitionDrawerDescription": "ለዚህ ጉዳይ አዲስ ሁኔታ ምረጥ።",
+    "currentStatus": "አሁን ያለ ሁኔታ",
+    "availableTransitions": "የሚቻሉ ሽግግሮች",
+    "noTransitionsAvailable": "ለሚናዎ ምንም ሁኔታ ሽግግር አይቻልም።",
+    "reasonLabel": "የለውጥ ምክንያት",
+    "reasonPlaceholder": "ሁኔታው ለምን እንደሚቀየር ያብራሩ...",
+    "reasonRequired": "ለዚህ ሽግግር ምክንያት ያስፈልጋል።",
+    "transitionButton": "ሽግግር አረጋግጥ",
+    "transitionSuccess": "የጉዳይ ሁኔታ በተሳካ ሁኔታ ተዘምኗል።",
+    "lockedTransitionTooltip": "{minRole} ሚና ያስፈልጋል",
+    "confirmButton": "ሁኔታ ቀይር",
+    "cancelButton": "ሰርዝ"
+  },
+  "update": {
+    "successMessage": "ጉዳይ በተሳካ ሁኔታ ተዘምኗል።",
+    "errorMessage": "ጉዳዩን ለማዘመን አልተሳካም።"
+  },
+  "delete": {
+    "successMessage": "ጉዳይ በተሳካ ሁኔታ ተሰርዟል።"
+  },
+  "skeletonTabs": {
+    "evidence": "ማስረጃ — በ Phase 5 ይቀርባል",
+    "arrests": "እስሮች — በ Phase 6 ይቀርባል",
+    "interrogations": "ምርመራዎች — በ Phase 6 ይቀርባል",
+    "legal": "ህጋዊ — በ Phase 7 ይቀርባል",
+    "officers": "መኮንኖች — በ Phase 8 ይቀርባል",
+    "reports": "ሪፖርቶች — በ Phase 10 ይቀርባል",
+    "permissions": "ፈቃዶች — በ Phase 8 ይቀርባል"
+  }
 }
 ```
 
-**Placement:**
-- In `AuthShell.tsx` — show in the top-right corner of the auth card, above the form
-- In `TopBar.tsx` — show in the right zone, between the notification bell and avatar menu
+---
 
-Create `src/shared/components/i18n/index.ts` exporting `LocaleToggle`.
+# 9. UI Implementation — Cases List Page
 
-## 2.9 Amharic Font Support
+## 9.1 Route: `src/app/(dashboard)/cases/page.tsx`
 
-Inter does not include Ethiopic Unicode glyphs (U+1200–U+137F). Without a proper font, Amharic text renders as tofu (empty squares).
-
-**Solution:** Add **Noto Sans Ethiopic** via `next/font/google` alongside Inter.
-
-In `src/app/layout.tsx`:
+This is a Server Component. It calls `getTranslations('cases')` and renders the `<CasesListView>` Client Component inside a `Suspense` boundary.
 
 ```typescript
-import { Inter, Noto_Sans_Ethiopic, JetBrains_Mono } from 'next/font/google'
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
-
-const notoSansEthiopic = Noto_Sans_Ethiopic({
-  subsets: ['ethiopic'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-ethiopic',
-  display: 'swap',
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  display: 'swap',
-})
-```
-
-Apply both font variables to `<html>`:
-```tsx
-<html
-  lang={locale}
-  className={`${inter.variable} ${notoSansEthiopic.variable} ${jetbrainsMono.variable} dark`}
->
-```
-
-Update `tokens.css` and global CSS font stack:
-```css
-:root {
-  --font-sans: var(--font-inter), var(--font-ethiopic), system-ui, sans-serif;
-  --font-mono: var(--font-mono), monospace;
-}
-```
-
-This ensures Inter renders Latin characters and Noto Sans Ethiopic renders Amharic characters — both in the same font stack with no visible gap.
-
-Also update `tailwind.config.ts`:
-```typescript
-fontFamily: {
-  sans: ['var(--font-inter)', 'var(--font-ethiopic)', 'system-ui', 'sans-serif'],
-  mono: ['var(--font-mono)', 'monospace'],
-}
-```
-
-## 2.10 Using Translations in Components
-
-### Server Components
-
-```typescript
+import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
+import { CasesListView } from '@features/cases/components/CasesListView'
+import { TableSkeleton } from '@shared/components/table/TableSkeleton'
+import type { Metadata } from 'next'
 
-export default async function LoginPage() {
-  const t = await getTranslations('auth')
-  return <h1>{t('login.heading')}</h1>
-}
-```
-
-### Client Components
-
-```typescript
-'use client'
-import { useTranslations } from 'next-intl'
-
-export function LoginForm() {
-  const t = useTranslations('auth')
-  const tCommon = useTranslations('common')
-  return <button>{tCommon('actions.submit')}</button>
-}
-```
-
-### Interpolation
-
-```typescript
-t('auth.login.errors.rateLimited', { minutes: 5 })
-// → "Your account is locked for 5 minute(s)."
-// → "መለያዎ ለ5 ደቂቃ ተቆልፏል።" (Amharic)
-```
-
-## 2.11 Migration of Phase 1 Skeleton Pages
-
-All existing `page.tsx` skeleton files under `src/app/(dashboard)/` must be updated to use `getTranslations` for their `<h1>` content and `metadata.title`. Replace all hardcoded strings like `"Cases — List [Skeleton]"` with:
-
-```typescript
-const t = await getTranslations('cases')
-// title: t('pageTitle') → "Cases" / "ጉዳዮች"
-```
-
-The `metadata` export:
-```typescript
-export async function generateMetadata() {
+export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('cases')
   return { title: t('pageTitle') }
 }
-```
 
----
-
-# 3. Auth Module — Full Implementation
-
-## 3.1 Auth Service (`src/services/domain/auth.service.ts`)
-
-Replace all `throw new Error('Not yet implemented')` stubs with real Axios calls. All responses are validated against Zod schemas before being returned to callers. All calls use the `apiClient` from `src/services/api/client.ts`.
-
-```typescript
-import { apiClient } from '@services/api/client'
-import type {
-  LoginCredentials,
-  AuthSession,
-  ResetPasswordPayload,
-} from '@shared/types/auth.types'
-import { authSessionSchema } from '@features/auth/schemas/auth-session.schema'
-
-export async function login(credentials: LoginCredentials): Promise<AuthSession> {
-  const response = await apiClient.post<AuthSession>(
-    '/api/v1/auth/login',
-    credentials,
+export default async function CasesListPage() {
+  return (
+    <Suspense fallback={<TableSkeleton columns={8} rows={10} />}>
+      <CasesListView />
+    </Suspense>
   )
-  return authSessionSchema.parse(response)
-}
-
-export async function logout(): Promise<void> {
-  await apiClient.post('/api/v1/auth/logout')
-}
-
-export async function refreshToken(): Promise<AuthSession> {
-  const response = await apiClient.post<AuthSession>('/api/v1/auth/refresh')
-  return authSessionSchema.parse(response)
-}
-
-export async function forgotPassword(email: string): Promise<{ message: string }> {
-  return apiClient.post('/api/v1/auth/forgot-password', { email })
-}
-
-export async function resetPassword(
-  payload: ResetPasswordPayload,
-): Promise<{ message: string }> {
-  return apiClient.post('/api/v1/auth/reset-password', payload)
-}
-
-export async function getSession(): Promise<AuthSession | null> {
-  try {
-    const response = await apiClient.get<AuthSession>('/api/v1/auth/session')
-    return authSessionSchema.parse(response)
-  } catch {
-    return null
-  }
 }
 ```
 
-Create `src/features/auth/schemas/auth-session.schema.ts` with a Zod schema matching `AuthSession`. This is the shape returned by the backend:
-
-```typescript
-import { z } from 'zod'
-import { OfficerRole } from '@shared/constants/roles'
-
-export const officerProfileSchema = z.object({
-  id: z.string().uuid(),
-  badgeNumber: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.string().email(),
-  role: z.nativeEnum(OfficerRole),
-  departmentId: z.string().uuid(),
-  permissions: z.array(z.string()),
-  isActive: z.boolean(),
-  lastLoginAt: z.string().datetime().nullable(),
-})
-
-export const authSessionSchema = z.object({
-  officer: officerProfileSchema,
-  sessionId: z.string(),
-  expiresAt: z.string().datetime(),
-})
-```
-
-## 3.2 Auth Hooks — Full Implementation
-
-### 3.2.1 `useLogin.ts`
+## 9.2 Column Definitions (`src/features/cases/components/case-columns.tsx`)
 
 ```typescript
 'use client'
-import { useMutation } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
+import type { ColumnDef } from '@tanstack/react-table'
+import type { CaseListItem } from '../types/case.types'
+import { StatusBadge } from '@shared/components/display/StatusBadge'
 import { useTranslations } from 'next-intl'
-import { login } from '@services/domain/auth.service'
-import { useAuthStore } from '@shared/stores/auth.store'
-import { useNotificationStore } from '@shared/stores/notification.store'
-import { ApiError } from '@services/api/errors'
-import type { LoginCredentials } from '@shared/types/auth.types'
+import { formatDistanceToNow } from 'date-fns'
+import Link from 'next/link'
+// ... column definitions
+```
 
-export function useLogin() {
-  const router = useRouter()
-  const { setSession } = useAuthStore()
-  const { addToast } = useNotificationStore()
-  const tAuth = useTranslations('auth')
-  const tErrors = useTranslations('errors')
+Define these columns:
 
-  return useMutation({
-    mutationFn: (credentials: LoginCredentials) => login(credentials),
-    onSuccess: (session) => {
-      setSession(session.officer, session.officer.permissions, session.sessionId)
-      router.push('/dashboard')
-      router.refresh()
-    },
-    onError: (error: unknown) => {
-      if (error instanceof ApiError) {
-        if (error.isUnauthorized()) {
-          // Return the error message for inline form display
-          // Do NOT add a toast — the form renders inline errors
-          return
-        }
-        if (error.statusCode === 403) {
-          addToast({
-            message: tAuth('login.errors.accountInactive'),
-            variant: 'error',
-          })
-          return
-        }
-        if (error.isRateLimited()) {
-          addToast({
-            message: tAuth('login.errors.rateLimited', { minutes: 5 }),
-            variant: 'error',
-          })
-          return
-        }
-      }
-      addToast({ message: tErrors('api.network'), variant: 'error' })
-    },
-  })
+| Column | Cell Content | Sortable | Min Width |
+|--------|-------------|----------|-----------|
+| `caseNumber` | Monospace text, coloured link to `/cases/[id]` | Yes | 120px |
+| `title` | Plain text, truncated at 60 chars with tooltip | Yes | 220px |
+| `status` | `<StatusBadge>` with correct variant mapping | Yes | 140px |
+| `crimeType` | `crimeType.name` text | No | 140px |
+| `department` | `department.name` text | No | 140px |
+| `leadOfficer` | `firstName lastName` with avatar initials | No | 160px |
+| `reportedDate` | Formatted date (dd MMM yyyy) | Yes | 110px |
+| `lastActivity` | Relative time ("2 hours ago") with tooltip of absolute | Yes | 130px |
+| `actions` | Kebab `DropdownMenu` with row actions | No | 48px |
+
+**Status → variant mapping for `StatusBadge`:**
+```typescript
+const STATUS_VARIANT_MAP: Record<CaseStatus, string> = {
+  OPEN: 'primary',
+  UNDER_INVESTIGATION: 'warning',
+  REFERRED_TO_COURT: 'accent',
+  CLOSED: 'success',
+  ARCHIVED: 'muted',
 }
 ```
 
-### 3.2.2 `useLogout.ts`
+## 9.3 CasesListView Component (`src/features/cases/components/CasesListView.tsx`)
+
+This Client Component owns the full list page interaction:
 
 ```typescript
 'use client'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { logout } from '@services/domain/auth.service'
+import { useQueryStates, parseAsString, parseAsArrayOf, parseAsInteger } from 'nuqs'
+import { useCases } from '../hooks/useCases'
+import { DataTable } from '@shared/components/table/DataTable'
+import { PageHeader } from '@shared/components/display/PageHeader'
+import { TableFilterBar } from '@shared/components/table/TableFilterBar'
+import { TablePagination } from '@shared/components/table/TablePagination'
+import { PermissionGuard } from '@shared/components/permission/PermissionGuard'
+import { Permission } from '@shared/constants/permissions'
+import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
+import Link from 'next/link'
+import { useCaseColumns } from './case-columns'
+```
+
+**URL state via nuqs:**
+
+```typescript
+const [filterState, setFilterState] = useQueryStates({
+  search: parseAsString.withDefault(''),
+  status: parseAsArrayOf(parseAsString).withDefault([]),
+  crimeTypeId: parseAsString.withDefault(''),
+  departmentId: parseAsString.withDefault(''),
+  dateFrom: parseAsString.withDefault(''),
+  dateTo: parseAsString.withDefault(''),
+  page: parseAsInteger.withDefault(1),
+  pageSize: parseAsInteger.withDefault(25),
+  sortField: parseAsString.withDefault('reportedDate'),
+  sortDirection: parseAsString.withDefault('desc'),
+})
+```
+
+**Filter bar layout:**
+
+```
+[ 🔍 Search ───────────────────── ] [Status ▾] [Crime Type ▾] [Department ▾] [Date ▾]
+Active chips: ✕ Under Investigation  ✕ Homicide  ✕ 2026-01-01 → 2026-06-30
+```
+
+Each active filter renders as a dismissible chip. Clicking the chip calls `setFilterState` to remove that filter and resets `page` to 1.
+
+**DataTable integration:**
+
+Pass the `data`, `columns`, `isLoading`, sorting state (controlled), pagination state (controlled), and `onRowClick` (navigate to `/cases/[id]`). Virtual scrolling activates automatically at 200+ rows via the shared `DataTable` component.
+
+**Page header actions slot:**
+
+```tsx
+<PermissionGuard permission={Permission.CASES_WRITE}>
+  <Button asChild>
+    <Link href="/cases/new">
+      <Plus className="mr-2 h-4 w-4" />
+      {t('list.newCase')}
+    </Link>
+  </Button>
+</PermissionGuard>
+```
+
+---
+
+# 10. UI Implementation — Case Creation
+
+## 10.1 Route: `src/app/(dashboard)/cases/new/page.tsx`
+
+Server Component that renders `<CreateCaseWizard>`.
+
+## 10.2 CreateCaseWizard (`src/features/cases/components/CreateCaseWizard.tsx`)
+
+Client Component implementing a multi-step form. Internal state manages which step is active and accumulates values across steps.
+
+### 10.2.1 Step indicator design
+
+```
+Step indicator bar (horizontal, full-width):
+
+  ●───────────●───────────●
+  1           2           3
+Basic Info  Crime Details  Assignment
+
+● = complete (check icon, success colour)
+● = current (filled primary blue)
+○ = upcoming (muted)
+── = connector line (muted; primary when left side is complete)
+```
+
+Render the step indicator as an `<ol>` with `aria-current="step"` on the active item.
+
+### 10.2.2 Step management
+
+```typescript
+const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
+const [step1Data, setStep1Data] = useState<Partial<CreateCaseStep1Values>>({})
+const [step2Data, setStep2Data] = useState<Partial<CreateCaseStep2Values>>({})
+// step3 is the final submit
+
+const handleStep1Next = (values: CreateCaseStep1Values) => {
+  setStep1Data(values)
+  setCurrentStep(2)
+}
+const handleStep2Next = (values: CreateCaseStep2Values) => {
+  setStep2Data(values)
+  setCurrentStep(3)
+}
+const handleStep3Submit = async (values: CreateCaseStep3Values) => {
+  await createCase({ ...step1Data, ...step2Data, ...values } as CreateCasePayload)
+}
+```
+
+Each step renders its own `useForm` instance with the step-specific Zod schema. This avoids polluting a single large form object. The accumulated data is combined only on final submission.
+
+### 10.2.3 Step 1 — Basic Information
+
+Fields: Title (text input), Description (textarea, 6 rows), Incident Date (DatePicker, must not be a future date), Location (SearchableSelect, server search of `/api/v1/admin/locations`).
+
+### 10.2.4 Step 2 — Crime Details
+
+Fields: Crime Type (SearchableSelect, loaded from `useCrimeTypes()`), Department (Select dropdown, loaded from departments list — scoped to officer's department for non-admins).
+
+### 10.2.5 Step 3 — Assignment
+
+Fields: Lead Officer (SearchableSelect, officer name search against `/api/v1/personnel/officers`), Additional Officers (multi-select, same search).
+
+On submit: calls `useCreateCase().mutate(combinedPayload)`.
+
+### 10.2.6 Dirty state guard
+
+```typescript
+const isDirty =
+  Object.keys(step1Data).length > 0 ||
+  Object.keys(step2Data).length > 0
+
+// Attach beforeunload listener if isDirty
+useEffect(() => {
+  if (!isDirty) return
+  const handler = (e: BeforeUnloadEvent) => { e.preventDefault() }
+  window.addEventListener('beforeunload', handler)
+  return () => window.removeEventListener('beforeunload', handler)
+}, [isDirty])
+```
+
+Also render a `ConfirmDialog` triggered by the Cancel link click when `isDirty` is true.
+
+---
+
+# 11. UI Implementation — Case Detail Layout
+
+## 11.1 `src/app/(dashboard)/cases/[caseId]/layout.tsx`
+
+This layout is a **Server Component**. It receives `params: { caseId: string }` and `children: React.ReactNode`.
+
+Structure:
+```tsx
+import { CaseDetailLayout } from '@features/cases/components/CaseDetailLayout'
+import { CaseAccessGuard } from '@shared/components/permission/CaseAccessGuard'
+
+export default function Layout({ children, params }) {
+  return (
+    <CaseAccessGuard caseId={params.caseId} requiredLevel="read">
+      <CaseDetailLayout caseId={params.caseId}>
+        {children}
+      </CaseDetailLayout>
+    </CaseAccessGuard>
+  )
+}
+```
+
+## 11.2 CaseDetailLayout (`src/features/cases/components/CaseDetailLayout.tsx`)
+
+Client Component that renders the header card and tab navigation, then `{children}`.
+
+### 11.2.1 Case header card — full visual specification
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  CASE-2026-00142                                    [🔵 Under Investigation] │  ← Monospace caseNumber + interactive StatusBadge
+│  Robbery at Bole Road Market — 12 June 2026                                  │  ← h1, 20px semibold
+│                                                                              │
+│  🏛 Homicide Unit      🏷 Armed Robbery      👤 Insp. Dawit Bekele           │  ← Icon + label chips
+│  📅 Incident: 12 Jun 2026    📋 Reported: 14 Jun 2026                        │
+│                                                               [Edit] [⋯]    │  ← Permission-guarded actions (right)
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Status badge interaction:** When the authenticated officer has `cases:write` permission OR is a case admin, the status badge renders as a `<button>`. Clicking it calls `uiStore.openModal('case-status-transition', { caseId })`. For lower-access officers, it renders as a non-interactive `<span>`.
+
+**Action buttons (right side of header):**
+- `Edit Case` — `PermissionGuard` requiring `cases:write`; navigates to `/cases/[caseId]/edit` (Phase 4 will implement this; for now renders a disabled-state placeholder)
+- Kebab `DropdownMenu`:
+  - `Manage Permissions` — `RoleGuard` requiring ADMIN+
+  - Separator
+  - `Delete Case` (destructive, red) — `RoleGuard` requiring SUPERADMIN; opens `DestructiveConfirmDialog` with `confirmPhrase`
+
+**Loading state:** Render a skeleton card matching the header dimensions while `useCase(caseId).isLoading` is true.
+
+### 11.2.2 Tab navigation bar — full specification
+
+Nine tabs rendered as `<Link>` components. The active tab is determined by `usePathname()`.
+
+```tsx
+import { usePathname } from 'next/navigation'
 import { useAuthStore } from '@shared/stores/auth.store'
-import { useNotificationStore } from '@shared/stores/notification.store'
+import { Tooltip } from '@/components/ui/tooltip'
+import { Lock } from 'lucide-react'
 
-export function useLogout() {
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const { clearSession } = useAuthStore()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('auth')
-
-  return useMutation({
-    mutationFn: logout,
-    onSuccess: () => {
-      clearSession()
-      queryClient.clear() // Purge all cached server data on logout
-      addToast({ message: t('logout.successMessage'), variant: 'success' })
-      router.push('/login')
-      router.refresh()
-    },
-    onError: () => {
-      // Force local logout even on network failure
-      clearSession()
-      queryClient.clear()
-      router.push('/login')
-      router.refresh()
-    },
-  })
-}
+const tabs = [
+  { label: t('detail.tabs.overview'), href: `/cases/${caseId}`, minRole: null },
+  { label: t('detail.tabs.evidence'), href: `/cases/${caseId}/evidence`, minRole: null },
+  { label: t('detail.tabs.arrests'), href: `/cases/${caseId}/arrests`, minRole: 'INVESTIGATOR' },
+  { label: t('detail.tabs.interrogations'), href: `/cases/${caseId}/interrogations`, minRole: 'INVESTIGATOR' },
+  { label: t('detail.tabs.legal'), href: `/cases/${caseId}/legal`, minRole: 'LEGAL_OFFICER' },
+  { label: t('detail.tabs.officers'), href: `/cases/${caseId}/officers`, minRole: null },
+  { label: t('detail.tabs.timeline'), href: `/cases/${caseId}/timeline`, minRole: null },
+  { label: t('detail.tabs.reports'), href: `/cases/${caseId}/reports`, minRole: 'DEPT_HEAD' },
+  { label: t('detail.tabs.permissions'), href: `/cases/${caseId}/permissions`, minRole: 'ADMIN' },
+]
 ```
 
-### 3.2.3 `useSession.ts`
+For tabs where the officer lacks the `minRole`:
+- Render as a `<span>` not a `<Link>`
+- Apply `cursor-not-allowed` and `opacity-50`
+- Wrap in a `<Tooltip>` showing `t('detail.tabs.lockedTooltip', { minRole })`
+- Render a `<Lock className="h-3 w-3 ml-1 inline" />` icon after the label
 
-```typescript
-import { useQuery } from '@tanstack/react-query'
-import { getSession } from '@services/domain/auth.service'
-import { useAuthStore } from '@shared/stores/auth.store'
-import { authKeys } from '@services/query/keys/authKeys'
+Active tab styling: bottom-border `2px solid var(--color-primary)`, foreground text colour. Inactive: `foreground-muted`. Hover: foreground.
 
-export function useSession() {
-  const { setSession, clearSession } = useAuthStore()
-
-  return useQuery({
-    queryKey: authKeys.session(),
-    queryFn: async () => {
-      const session = await getSession()
-      if (session) {
-        setSession(session.officer, session.officer.permissions, session.sessionId)
-      } else {
-        clearSession()
-      }
-      return session
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false,
-    refetchOnWindowFocus: true,
-  })
-}
-```
-
-### 3.2.4 `useForgotPassword.ts`
-
-```typescript
-import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
-import { forgotPassword } from '@services/domain/auth.service'
-import { ApiError } from '@services/api/errors'
-
-export function useForgotPassword() {
-  const [successEmail, setSuccessEmail] = useState<string | null>(null)
-
-  const mutation = useMutation({
-    mutationFn: (email: string) => forgotPassword(email),
-    onSuccess: (_, email) => {
-      setSuccessEmail(email)
-    },
-  })
-
-  return { ...mutation, successEmail }
-}
-```
-
-### 3.2.5 `useResetPassword.ts`
-
-```typescript
-import { useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { resetPassword } from '@services/domain/auth.service'
-import type { ResetPasswordPayload } from '@shared/types/auth.types'
-
-export function useResetPassword() {
-  const router = useRouter()
-  const [isSuccess, setIsSuccess] = useState(false)
-
-  const mutation = useMutation({
-    mutationFn: (payload: ResetPasswordPayload) => resetPassword(payload),
-    onSuccess: () => {
-      setIsSuccess(true)
-      setTimeout(() => router.push('/login'), 3000)
-    },
-  })
-
-  return { ...mutation, isSuccess }
-}
-```
-
-## 3.3 authKeys Update
-
-Add the `session` key to `src/services/query/keys/authKeys.ts`:
-
-```typescript
-export const authKeys = {
-  all: ['auth'] as const,
-  session: () => [...authKeys.all, 'session'] as const,
-  profile: () => [...authKeys.all, 'profile'] as const,
-}
-```
-
-## 3.4 AuthProvider — Full Implementation
-
-`src/shared/providers/AuthProvider.tsx` — replace the stub with a working implementation:
-
-```typescript
-'use client'
-import { useEffect } from 'react'
-import { useSession } from '@features/auth/hooks/useSession'
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { isLoading } = useSession()
-
-  // While the session check is in flight on the very first mount,
-  // render children anyway — the middleware has already validated the
-  // cookie. This avoids a full-page loading flash on protected routes.
-  // The authStore is populated by useSession's onSuccess callback.
-
-  return <>{children}</>
-}
-```
-
-## 3.5 Idle Session Timeout
-
-Create `src/features/auth/hooks/useIdleTimeout.ts`.
-
-**Logic:**
-- Track last user interaction (mouse move, keyboard, click, scroll) via `document` event listeners attached with `{ passive: true }`
-- Configurable `timeoutMs` (default: read from `env.SESSION_TIMEOUT_MS`, fallback `15 * 60 * 1000` = 15 minutes)
-- Warning threshold: `timeoutMs - 2 * 60 * 1000` (warn at T-2 minutes)
-- On warning threshold: open the idle warning dialog via `uiStore.openModal('idle-warning')`
-- On timeout: call `useLogout` mutation, add a timeout toast
-
-```typescript
-export function useIdleTimeout(timeoutMs = 15 * 60 * 1000) {
-  // Implementation detail: use a single setInterval that checks elapsed
-  // time since last activity, rather than resetting a timeout on every
-  // event (avoids creating thousands of timers).
-  // Reset lastActivity on any user interaction.
-  // Only active when isAuthenticated === true.
-}
-```
-
-Mount `useIdleTimeout` inside `AuthProvider` so it is active for all authenticated sessions.
-
-Create the `IdleWarningModal` component in `src/features/auth/components/IdleWarningModal.tsx`. Register it in the `ModalRenderer` registry under the key `'idle-warning'`.
-
-## 3.6 Token Refresh in Axios Interceptor
-
-In `src/services/api/client.ts`, replace the 401 handling stub with the real implementation:
-
-```typescript
-// In the response error interceptor:
-let isRefreshing = false
-let failedQueue: Array<{
-  resolve: (value: unknown) => void
-  reject: (reason?: unknown) => void
-}> = []
-
-const processQueue = (error: unknown) => {
-  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(null)))
-  failedQueue = []
-}
-
-// On 401 response:
-// 1. If already refreshing, queue this request
-// 2. If not refreshing, attempt refresh
-// 3. On refresh success: retry all queued requests
-// 4. On refresh failure: clear session, redirect to /login
-```
-
-Implement the queue pattern to prevent multiple simultaneous refresh calls when several requests 401 at the same time. The pattern is a standard implementation — do not over-abstract it.
+The tab bar is `overflow-x: auto` with `scrollbar-none` on mobile for horizontal scroll.
 
 ---
 
-# 4. Auth UI — Visual Design Specification
+# 12. UI Implementation — Case Overview Tab
 
-## 4.1 Design Philosophy for Auth Screens
+## 12.1 Route: `src/app/(dashboard)/cases/[caseId]/page.tsx`
 
-The auth screens are the entry point to a law enforcement system. They must convey:
-- **Authority**: This is a serious operational tool
-- **Security**: The UI signals that access is controlled and monitored
-- **Clarity**: Officers under operational stress must understand the interface instantly
-- **Polish**: The quality of the entry experience sets expectations for the entire system
+Server Component that renders `<CaseOverviewTab caseId={params.caseId} />`.
 
-The auth screens are the CCMS brand. Invest heavily in their visual execution.
+## 12.2 CaseOverviewTab (`src/features/cases/components/CaseOverviewTab.tsx`)
 
-## 4.2 Auth Shell — Enhanced Implementation
-
-Rebuild `src/shared/layouts/AuthShell.tsx` to match this specification precisely.
-
-**Full viewport layout:**
-```
-┌──────────────────────────────────────────────────────────┐
-│  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │  ← Background: #0F172A with subtle radial gradient
-│                                                          │
-│                    ┌──────────────────────┐              │  ← Shield icon (30px, primary blue, above mark)
-│                    │  🛡  CCMS            │              │  ← Logotype: "CCMS" in semibold + shield icon
-│                    │                      │              │
-│                    │  ┌────────────────┐  │              │  ← Locale toggle (top-right of card)
-│                    │  │   Form Area    │  │              │
-│                    │  └────────────────┘  │              │
-│                    └──────────────────────┘              │
-│                                                          │
-│  ─────────────────────────────────────────────────────── │  ← Separator
-│  "Authorised personnel only. All access is logged."      │  ← Classification footer (xs, muted, centred)
-└──────────────────────────────────────────────────────────┘
-```
-
-**Background:** `background: radial-gradient(ellipse at 50% -20%, rgba(59, 130, 246, 0.08) 0%, transparent 60%), var(--color-background)`. This adds a very subtle blue glow emanating from the top — not decorative, it echoes the primary colour for a sense of depth.
-
-**Card:** `background: var(--color-card)`, `border: 1px solid var(--color-border)`, `border-radius: var(--radius-xl)`, `box-shadow: var(--shadow-xl)`. Width: `420px` fixed on desktop; `100vw` minus `32px` margin on mobile.
-
-**CCMS Logotype:** Rendered entirely in text + icon. No image asset. Layout: shield icon from Lucide (`Shield`, size 28, `text-primary`) + text `"CCMS"` in `font-size: 22px, font-weight: 700, letter-spacing: 0.05em, color: var(--color-foreground)`. Below the logotype: `"Criminal Case Management System"` in `xs, muted, tracking-wide, uppercase`. 
-
-**Locale toggle:** Positioned in the top-right corner of the auth card, inside the card padding. Uses `LocaleToggle` component. Renders as a compact pill with flag + language code (`EN` / `አማ`).
-
-**Classification footer:** Fixed at the bottom of the viewport. `position: fixed; bottom: 0; width: 100%; padding: 12px; text-align: center`. Text: `xs, var(--color-muted)`. The footer does not scroll with content.
-
-## 4.3 Login Page — `src/app/(auth)/login/page.tsx`
-
-This is a Server Component that renders the `<LoginForm>` Client Component inside the AuthShell.
-
-### 4.3.1 LoginForm Visual Layout
-
-The form card content (inside the AuthShell card, below the logotype) follows this layout:
-
-```
-┌─────────────────────────────────────────────────────┐
-│  🛡  CCMS                                  [EN | አማ] │  ← Logotype + locale toggle
-│  Criminal Case Management System                     │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  Welcome back                                        │  ← h2, 20px, semibold, foreground
-│  Sign in to your CCMS account to continue.          │  ← p, sm, muted
-│                                                      │
-│  ┌──────────────────────────────────────────────┐   │
-│  │  Badge Number                                 │   │  ← Label
-│  │  [  BD-00142                               ] │   │  ← Input with left icon (badge icon)
-│  └──────────────────────────────────────────────┘   │
-│                                                      │
-│  ┌──────────────────────────────────────────────┐   │
-│  │  Password                          [Forgot?] │   │  ← Label row with inline link
-│  │  [  ••••••••••••                   [👁]    ] │   │  ← Password input with reveal toggle
-│  └──────────────────────────────────────────────┘   │
-│                                                      │
-│  ☐  Remember me for 30 days                         │  ← Checkbox
-│                                                      │
-│  ┌──────────────────────────────────────────────┐   │
-│  │  [Error banner — only visible on error]      │   │  ← Inline error card (destructive)
-│  └──────────────────────────────────────────────┘   │
-│                                                      │
-│  ┌──────────────────────────────────────────────┐   │
-│  │            Sign In               [→]         │   │  ← Primary button, full width
-│  └──────────────────────────────────────────────┘   │
-│                                                      │
-│  Need access? Contact your administrator.            │  ← Footer note, xs, muted, centred
-└─────────────────────────────────────────────────────┘
-```
-
-### 4.3.2 Input Field Design
-
-**Badge Number field:**
-- Left icon: `BadgeCheck` (Lucide) inside the input, 16px, `var(--color-muted)`. Icon turns `var(--color-primary)` on focus.
-- Input `autocomplete="username"`
-- Uppercase transform on input (badge numbers are uppercase)
-- On error: border turns `var(--color-destructive)`, icon turns destructive
-
-**Password field:**
-- Left icon: `Lock` (Lucide), same behaviour as above
-- Right side: eye icon toggle button (`Eye` / `EyeOff`) — reveals/hides password. Button has `aria-label` from `accessibility.json`
-- Input `autocomplete="current-password"`
-- No password strength meter on the login page (only on reset password)
-
-### 4.3.3 Error Handling
-
-Two types of errors on the login form:
-
-1. **Field validation errors** (Zod, triggered on blur): Red helper text below each field. `aria-live="assertive"`. Inline, no banner.
-2. **API errors** (401, 403, 429): Rendered as a banner error card that appears between the checkbox row and the submit button. The card has: a `AlertCircle` icon (destructive colour), the error message text, and an optional countdown timer for rate-limited responses. The card entrance is a smooth slide-down animation (200ms, respects reduced motion).
-
-### 4.3.4 Submit Button States
-
-| State | Appearance |
-|-------|-----------|
-| Default | Full-width, primary blue, "Sign In" + arrow icon |
-| Hover | `var(--color-primary-hover)` background, slight lift (box-shadow) |
-| Loading | Spinner (left) + "Signing in..." text, button disabled, opacity 0.85 |
-| Error | Returns to default state after error toast/banner appears |
-| Success | Brief green checkmark flash (150ms) before redirect |
-
-The submit button never re-enables during an in-flight mutation. This is enforced by `mutation.isPending`.
-
-### 4.3.5 Form Animations
-
-All animations must check `prefers-reduced-motion`:
-
-- **Card entrance**: The auth card fades in from `opacity: 0, translateY: 8px` to final state over 300ms on mount. Reduced motion: instant appearance.
-- **Error banner entrance**: Slides down from `height: 0` over 200ms. Reduced motion: immediate visibility.
-- **Error shake**: On API error, the form card plays a horizontal shake animation (`keyframes` with `transform: translateX`). Reduced motion: no shake, only the error banner appears.
-- **Success flash**: Button background briefly flashes `var(--color-success)` before redirect.
-
-### 4.3.6 Rate Limit Countdown
-
-When a `429` response includes a `retryAfter` value (seconds), display a countdown timer in the error banner:
-```
-Too many failed attempts. Account locked for 4:32
-```
-Use `setInterval` to count down. When the timer reaches zero, the error banner disappears and the form becomes interactive again. The countdown renders in monospace (`var(--font-mono)`).
-
-## 4.4 Forgot Password Page — `src/app/(auth)/forgot-password/page.tsx`
-
-### 4.4.1 Two-State Design
-
-**State 1 — Email Entry Form:**
-```
-┌─────────────────────────────────────────────────────┐
-│  🛡  CCMS                                  [EN | አማ] │
-│  Criminal Case Management System                     │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  Forgot your password?                               │  ← h2
-│  Enter your registered email address and we will     │  ← p, muted
-│  send you a reset link.                              │
-│                                                      │
-│  Email Address                                       │
-│  [ officer@ccms.gov.et                            ] │  ← Input with Mail icon
-│                                                      │
-│  [        Send Reset Link           ]                │  ← Primary button
-│                                                      │
-│  ← Back to Sign In                                  │  ← Link, sm, muted
-└─────────────────────────────────────────────────────┘
-```
-
-**State 2 — Success State (replaces form after submission):**
-```
-┌─────────────────────────────────────────────────────┐
-│  🛡  CCMS                                  [EN | አማ] │
-│  Criminal Case Management System                     │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  ✅  Reset link sent                                 │  ← Success icon (green check circle, 48px)
-│                                                      │
-│  If an account exists for                            │
-│  officer@example.com, a password reset link          │
-│  has been sent. Check your inbox and spam folder.    │
-│                                                      │
-│  [        Back to Sign In           ]                │  ← Secondary button (outline)
-└─────────────────────────────────────────────────────┘
-```
-
-The transition from Form state to Success state is an animated crossfade (200ms). In reduced motion: instant swap.
-
-**Security note on the success message:** Even if the email does not exist in the system, the success state is shown. The error message for email not found is intentionally vague: `"If an account exists..."`. Do not leak whether an email is registered. This is standard security practice.
-
-## 4.5 Reset Password Page — `src/app/(auth)/reset-password/page.tsx`
-
-### 4.5.1 Token Handling
-
-The reset password page receives the token via URL query param: `/reset-password?token=xxxxx`. The page must:
-1. Extract the token from `searchParams` (server component)
-2. Pass it to the client form component as a prop
-3. If `token` is absent, immediately show an invalid-token error state
-
-### 4.5.2 Form Layout
-
-```
-┌─────────────────────────────────────────────────────┐
-│  🛡  CCMS                                  [EN | አማ] │
-│  Criminal Case Management System                     │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  Set a new password                                  │  ← h2
-│  Choose a strong password for your account.         │  ← p, muted
-│                                                      │
-│  New Password                                        │
-│  [ ••••••••••                          [👁]       ] │
-│                                                      │
-│  ████████░░░░  Strong                               │  ← Password strength bar
-│  ✓ At least 8 characters                            │  ← Requirement checklist
-│  ✓ At least one uppercase letter                    │
-│  ✓ At least one number                              │
-│  ✗ At least one special character                   │
-│                                                      │
-│  Confirm New Password                                │
-│  [ ••••••••••                          [👁]       ] │
-│                                                      │
-│  [      Set New Password              ]              │
-│                                                      │
-│  ← Back to Sign In                                  │
-└─────────────────────────────────────────────────────┘
-```
-
-### 4.5.3 Password Strength Indicator
-
-Implement a real-time password strength analyser:
+Client Component. Fetches case detail, summary, officers, and recent timeline in parallel:
 
 ```typescript
-type PasswordStrength = 'weak' | 'fair' | 'strong' | 'veryStrong'
-
-function analysePasswordStrength(password: string): {
-  strength: PasswordStrength
-  score: number // 0–4
-  requirements: {
-    minLength: boolean
-    uppercase: boolean
-    digit: boolean
-    special: boolean
-  }
-}
+const { data: caseDetail, isLoading: caseLoading } = useCase(caseId)
+const { data: summary, isLoading: summaryLoading } = useCaseSummary(caseId)
+const { data: officersResult } = useCaseOfficers(caseId)
+const { data: recentActivity } = useCaseTimeline({
+  caseId,
+  filters: { pageSize: 5 },
+  enabled: true,
+})
 ```
 
-Scoring rules:
-- 1 point: 8+ characters
-- 1 point: contains uppercase
-- 1 point: contains digit
-- 1 point: contains special character (`!@#$%^&*()_+-=[]{}|;':\",./<>?`)
+### 12.2.1 Section: Case Metadata Card
 
-Score → Strength mapping: `0-1: weak`, `2: fair`, `3: strong`, `4: veryStrong`
+Renders `<MetadataCard>` with these items:
+- Case Number (monospace)
+- Status (StatusBadge)
+- Crime Type
+- Department
+- Lead Officer (linked)
+- Location (or "—" if null)
+- Incident Date (formatted)
+- Reported Date (formatted)
+- Closed Date (formatted, or "—" if open)
+- Last Activity (relative time)
 
-**Strength bar visual:**
-- 4 equal segments in a row
-- `weak`: first segment `var(--color-destructive)`, rest muted
-- `fair`: first two segments `var(--color-warning)`, rest muted
-- `strong`: first three segments `var(--color-success)`, last muted
-- `veryStrong`: all four segments `var(--color-success)`
-- Segments transition colour smoothly (150ms) as the user types
+Loading: render `<MetadataCard>` skeleton (six rows of skeleton text).
 
-**Requirements checklist:**
-- Each requirement shows a `CheckCircle` (green) or `XCircle` (muted/red) Lucide icon
-- Icons animate from `XCircle` to `CheckCircle` as requirements are met (150ms fade swap)
+### 12.2.2 Section: Description
 
-### 4.5.4 Success State
-
-After successful reset, show the same two-state pattern as forgot password:
-- Large success icon
-- "Password updated" heading
-- Description with a "Back to Sign In" button
-- Auto-redirect to `/login` after 3 seconds (with a visible countdown: "Redirecting in 3s...")
-
-### 4.5.5 Invalid Token State
-
-If the token is invalid or expired (API returns an error), show:
 ```
-┌─────────────────────────────────────────────────────┐
-│  🛡  CCMS                                            │
-├─────────────────────────────────────────────────────┤
-│                                                      │
-│  🔗  Link Expired                                    │  ← AlertTriangle icon, warning colour, 48px
-│                                                      │
-│  This reset link is invalid or has expired.          │
-│  Reset links are valid for 60 minutes.               │
-│                                                      │
-│  [      Request a New Link          ]                │  ← Links to /forgot-password
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ Description                                                  │  ← SectionHeader
+│─────────────────────────────────────────────────────────────│
+│ [whitespace-preserved plain text, max 6 lines with          │
+│  "Show more" toggle if longer]                              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## 4.6 Logout Confirmation Dialog
+If description is longer than 300 characters, truncate and render a "Show more" toggle. **Never use `dangerouslySetInnerHTML`**. Render as `<pre>` with `white-space: pre-wrap` or a `<p>` with `whitespace-pre-wrap` className.
 
-The logout action in the TopBar dropdown does not immediately log the user out. It opens a `ConfirmDialog`. 
+### 12.2.3 Section: Summary Panels Row
 
-**Implementation:**
-1. TopBar "Sign Out" item calls `uiStore.openModal('logout-confirm')`
-2. Register `LogoutConfirmModal` in `ModalRenderer` registry under `'logout-confirm'`
-3. `LogoutConfirmModal` renders a `ConfirmDialog` with the logout confirmation text from `auth.json`
-4. On confirm: call `useLogout().mutate()`
-5. On cancel: call `uiStore.closeModal()`
+Three cards in a 3-column responsive grid (single column on mobile):
 
-The dialog must respect the `useTranslations('auth')` hook for all text.
+```
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│ 🗂  14           │  │ 👤  3            │  │ ⚖️  2            │
+│ Evidence Items   │  │ Arrests          │  │ Charges          │
+│ View all →       │  │ View all →       │  │ View all →       │
+└──────────────────┘  └──────────────────┘  └──────────────────┘
+```
+
+Each card's number is the large `3xl` font size. "View all →" is a link to the respective tab. Loading: number renders as a skeleton pulse.
+
+### 12.2.4 Section: Assigned Officers
+
+Compact list using `CaseMember[]` data from `useCaseOfficers`. Each row:
+```
+[Avatar initials]  Insp. Dawit Bekele (BD-00142)    WRITE access    Assigned 12 Jun 2026
+```
+
+Avatar is a small circle with initials (first + last name initial). Role badge uses the role constant. `accessLevel` shown as a small chip (`READ`/`WRITE`/`ADMIN`).
+
+Empty state: `<EmptyState>` with "No officers assigned."
+
+### 12.2.5 Section: Recent Activity
+
+Renders the last 5 timeline entries using `<Timeline>` + `<TimelineEntry>` + `<TimelineConnector>` shared components. Show only: event icon, event label, actor name, relative timestamp.
+
+Footer: `<Link>` to the timeline tab: "View full timeline →"
+
+Empty state: muted text "No activity recorded yet."
 
 ---
 
-# 5. Shared Components — i18n Integration
+# 13. UI Implementation — Case Timeline Tab
 
-All shared components created in Phase 1 that render user-visible text must be updated to accept their text via props (as React nodes or strings) rather than hardcoding English. The text is passed from the consuming page/layout which uses `getTranslations`.
+## 13.1 Route: `src/app/(dashboard)/cases/[caseId]/timeline/page.tsx`
 
-This approach is better for shared components than calling `useTranslations` inside them, because:
-1. Shared components do not know which namespace their text lives in
-2. Passing text as props makes components fully reusable and testable
-3. Server and client components can both pass translated text
+Server Component rendering `<CaseTimelineTab caseId={params.caseId} />`.
 
-**Pattern:**
+## 13.2 CaseTimelineTab (`src/features/cases/components/CaseTimelineTab.tsx`)
+
+Client Component. Manages filter state and the add-note form.
+
+### 13.2.1 Polling behaviour
 
 ```typescript
-// Before (hardcoded):
-function ForbiddenState() {
-  return <div><h2>Access Denied</h2></div>
-}
+const [isVisible, setIsVisible] = useState(true)
 
-// After (translated text via props):
-interface ForbiddenStateProps {
-  title?: string
-  description?: string
-  action?: React.ReactNode
-}
-function ForbiddenState({ title, description, action }: ForbiddenStateProps) {
-  return <div><h2>{title}</h2><p>{description}</p>{action}</div>
-}
+// Pause polling when the tab is not the active browser tab
+useEffect(() => {
+  const handler = () => setIsVisible(!document.hidden)
+  document.addEventListener('visibilitychange', handler)
+  return () => document.removeEventListener('visibilitychange', handler)
+}, [])
 
-// Usage in a page:
-const t = await getTranslations('errors')
-<ForbiddenState
-  title={t('pages.403.title')}
-  description={t('pages.403.description')}
-/>
+const { data, isLoading, isFetching } = useCaseTimeline({
+  caseId,
+  filters: timelineFilters,
+  enabled: isVisible,
+})
 ```
 
-Apply this pattern to: `ForbiddenState`, `NotFoundState`, `ErrorState`, `EmptyState`, `TableEmptyState`, `FormActions` (button labels), `ConfirmDialog` (all text props).
+A subtle "live" indicator — a pulsing green dot — appears in the PageHeader when `isVisible && !isFetching`. When `isFetching` (background refresh), it spins. This communicates to investigators that the feed is live.
+
+### 13.2.2 Filter bar
+
+```
+[🔍 Officer search ──────] [Event Type ▾] [📅 Date from] → [📅 Date to]  [Clear All]
+```
+
+Filter state is local `useState` (NOT URL) for the timeline — timeline is a real-time view and filter state does not need to be preserved in the URL.
+
+### 13.2.3 Add case note — inline form
+
+Positioned at the very TOP of the timeline (newest-first), above the first entry:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [📝 Add a note to this case...                          ] [+] │
+└──────────────────────────────────────────────────────────────┘
+```
+
+The textarea auto-expands as the user types (1–4 lines). On submit:
+- Calls `useAddCaseNote(caseId).mutate(content)`
+- Clears the textarea on success
+- Shows a spinner in the submit button while `isPending`
+- Never shows a toast on success — the new note appears in the timeline immediately after invalidation
+
+Field validation: minimum 1 character, maximum 1000 characters. Character count displayed below the textarea when it has content (`{count}/1000`).
+
+### 13.2.4 Timeline entries — full visual specification
+
+```
+  ● ─────────────────────────────────────────────────────────── 🔒
+  │
+  │ [🔑] Status Changed                          [MEDIUM SEVERITY 🔴]
+  │      Insp. Dawit Bekele (BD-00142)  ·  Bole Division
+  │      2026-06-14 09:23:11 UTC  ·  7 minutes ago
+  │
+  │      Case status changed from OPEN to UNDER_INVESTIGATION
+  │
+  │      ┌── Before ──────────────────┐  ┌── After ───────────────────┐
+  │      │  status: "OPEN"            │  │  status: "UNDER_INVESTIGA- │
+  │      │                            │  │  TION"                     │
+  │      └────────────────────────────┘  └────────────────────────────┘
+  │
+  ● ─────────────────────────────────────────────────────────── 🔒
+  │
+  │ [📋] Note Added
+  │      ...
+```
+
+**Connector line:** The vertical line between entries uses `TimelineConnector`. When a gap > 24 hours exists between consecutive entries: amber dashed line + `"Custody Gap Detected"` amber badge.
+
+**Diff viewer:** Only renders for entries where `diff !== null`. Side-by-side panels. Monospace font. If a field value is long, it truncates with a "Show full" toggle. The before panel has a very subtle `rgba(239, 68, 68, 0.08)` background; the after panel has `rgba(34, 197, 94, 0.08)`.
+
+**Security badge:** Renders for entries where `securitySeverity !== null`. Badge variant:
+- `LOW` → muted
+- `MEDIUM` → warning
+- `HIGH` / `CRITICAL` → destructive, slightly larger badge
+
+**Immutability indicator:** Padlock `<Lock>` icon at the far right of each entry. Always rendered. Tooltip: `t('timeline.immutableTooltip')`.
+
+**Actor linking:** For ADMIN+ role officers, actor name is a `<Link>` to `/personnel/officers/[officer.id]`. For lower roles: plain text.
+
+### 13.2.5 Print timeline
+
+```typescript
+function handlePrint() {
+  window.print()
+}
+```
+
+The CSS print stylesheet (injected via a `<style>` tag or a dedicated `print.css` imported only in this component) hides all navigation chrome, the filter bar, and the add-note form. Renders the timeline in black-and-white with the CCMS letterhead at the top:
+
+```
+CCMS — Criminal Case Management System
+Case Timeline: CASE-2026-00142
+Generated: 14 June 2026 09:30 UTC
+[Officer name who generated the report]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[entries...]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Authorised personnel only. All access is logged.
+```
 
 ---
 
-# 6. Updated Middleware
+# 14. UI Implementation — Status Transition
 
-## 6.1 Combined Locale + Auth Middleware
+## 14.1 StatusTransitionModal (`src/features/cases/components/StatusTransitionModal.tsx`)
 
-`src/middleware.ts` must now handle two responsibilities in one pass:
+Register in `ModalRenderer` registry under key `'case-status-transition'`. Receives `caseId` from `uiStore.activeModal.props`.
+
+This component renders as a `<SlideOverDrawer>` (width 480px).
+
+### 14.1.1 Drawer content structure
+
+```
+Status Transition Drawer
+────────────────────────────────────────────────────────────
+Current status:   [🔵 Under Investigation]
+
+Available transitions:
+  ○  Referred to Court      → Select
+  ○  Closed                 → Select   [requires Investigator+]
+
+  Reason for change (required for archival):
+  [                                                          ]
+
+────────────────────────────────────────────────────────────
+                                    [Cancel] [Change Status]
+```
+
+**Available transitions:** Computed from `CASE_STATUS_TRANSITIONS[currentStatus]`. For each candidate status, check if the current officer has the `STATUS_TRANSITION_MIN_ROLE`. Inaccessible transitions render as grey, non-clickable rows with a `<Tooltip>` naming the required role.
+
+**Radio-style selection:** The user clicks a transition row to select it. The selected row highlights with `var(--color-primary)` left border and a subtle background fill.
+
+**Reason field:** Conditionally required. Renders when archival is selected. A `<Textarea>` of 3 rows. Zod validation fires on "Change Status" click.
+
+**Loading:** The "Change Status" button shows a spinner while `useTransitionCaseStatus.isPending`. Both buttons disabled during loading.
+
+---
+
+# 15. Skeleton Pages for Remaining Case Tabs
+
+Each of these pages must render inside the case detail layout with the correct chrome. They are Server Components.
+
+## 15.1 Pattern for skeleton tab pages
 
 ```typescript
-import { NextRequest, NextResponse } from 'next/server'
-import { defaultLocale, locales, type Locale } from '@config/i18n'
+// src/app/(dashboard)/cases/[caseId]/evidence/page.tsx
+import { getTranslations } from 'next-intl/server'
 
-const PUBLIC_ROUTES = ['/login', '/forgot-password', '/reset-password']
-const ADMIN_ROUTES = ['/admin']
-const API_ROUTES = ['/api/locale']
-
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-
-  // Skip static files, API locale route
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api') ||
-    pathname.includes('.') // static files
-  ) {
-    return NextResponse.next()
-  }
-
-  // Step 1: Locale detection
-  const response = NextResponse.next()
-  const localeCookie = request.cookies.get('ccms_locale')?.value
-  const locale: Locale =
-    localeCookie && locales.includes(localeCookie as Locale)
-      ? (localeCookie as Locale)
-      : detectLocaleFromHeader(request) ?? defaultLocale
-
-  if (!localeCookie) {
-    response.cookies.set('ccms_locale', locale, {
-      httpOnly: false,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 365,
-    })
-  }
-
-  // Step 2: Auth check
-  const sessionCookie = request.cookies.get('ccms_session')?.value
-  const isPublicRoute = PUBLIC_ROUTES.some((r) => pathname.startsWith(r))
-
-  if (!sessionCookie && !isPublicRoute) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(loginUrl)
-  }
-
-  if (sessionCookie && isPublicRoute) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
-
-  // Step 3: Admin route check (basic role extraction — NOT cryptographic verification)
-  // TODO: Replace with full JWT verification using jose library when edge-compatible
-  // JWT verification is implemented (deferred: requires careful key management setup).
-  // Current implementation reads a plain role claim cookie set by the auth service.
-  const roleCookie = request.cookies.get('ccms_role')?.value
-  const isAdminRoute = ADMIN_ROUTES.some((r) => pathname.startsWith(r))
-
-  if (isAdminRoute && roleCookie !== 'admin' && roleCookie !== 'superadmin') {
-    return NextResponse.redirect(new URL('/403', request.url))
-  }
-
-  return response
+export default async function CaseEvidencePage() {
+  const t = await getTranslations('cases')
+  return (
+    <div className="flex items-center justify-center h-64 text-[var(--color-foreground-muted)]">
+      <p>{t('skeletonTabs.evidence')}</p>
+    </div>
+  )
 }
+```
 
-function detectLocaleFromHeader(request: NextRequest): Locale | null {
-  const acceptLanguage = request.headers.get('accept-language') ?? ''
-  if (acceptLanguage.includes('am')) return 'am'
-  return null
+Apply this pattern to: `evidence/page.tsx`, `arrests/page.tsx`, `interrogations/page.tsx`, `legal/page.tsx`, `officers/page.tsx`, `reports/page.tsx`, `permissions/page.tsx`.
+
+Also update the main route `new/page.tsx` — this was already scaffolded in Phase 1 but must now render the `<CreateCaseWizard>`.
+
+---
+
+# 16. Missing Routes from Phase 1
+
+Create these pages now. They were defined in `routes.ts` but not created.
+
+## 16.1 `src/app/(errors)/403/page.tsx`
+
+Full `ForbiddenState` page (not a skeleton):
+
+```typescript
+import { getTranslations } from 'next-intl/server'
+import { ForbiddenState } from '@shared/components/feedback/ForbiddenState'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = { title: 'Access Denied' }
+
+export default async function ForbiddenPage() {
+  const t = await getTranslations('errors')
+  return (
+    <div className="flex min-h-screen items-center justify-center p-8">
+      <ForbiddenState
+        title={t('pages.403.title')}
+        description={t('pages.403.description')}
+        action={
+          <Button asChild>
+            <Link href="/dashboard">{t('pages.403.action')}</Link>
+          </Button>
+        }
+      />
+    </div>
+  )
 }
+```
 
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|public/).*)'],
+## 16.2 Admin skeleton pages
+
+**`src/app/(dashboard)/admin/locations/page.tsx`:**
+```typescript
+// PageHeader with title from navigation.json, empty DataTable skeleton
+// Role guard: RoleGuard requiring ADMIN+
+```
+
+**`src/app/(dashboard)/admin/crime-types/page.tsx`:** Same pattern.
+
+**`src/app/(dashboard)/admin/health/page.tsx`:** Same pattern. Title: "System Health".
+
+## 16.3 Settings skeleton pages
+
+**`src/app/(dashboard)/settings/profile/page.tsx`:** PageHeader with "My Profile" title, FormSection skeleton card with three skeleton field rows.
+
+**`src/app/(dashboard)/settings/password/page.tsx`:** PageHeader with "Change Password" title, FormSection skeleton.
+
+---
+
+# 17. Modal Registry Update
+
+Register the new cases modal in `ModalRenderer`:
+
+```typescript
+// src/shared/components/modals/ModalRenderer.tsx
+import { StatusTransitionModal } from '@features/cases/components/StatusTransitionModal'
+
+const MODAL_REGISTRY: Record<string, React.ComponentType<Record<string, unknown>>> = {
+  'idle-warning': IdleWarningModal,
+  'logout-confirm': LogoutConfirmModal,
+  'case-status-transition': StatusTransitionModal,  // NEW
 }
 ```
 
 ---
 
-# 7. Testing Requirements
+# 18. Shared Types Update
 
-## 7.1 Auth Hook Tests
+## 18.1 `src/shared/types/api.types.ts`
 
-Create `src/features/auth/hooks/useLogin.test.ts`. Test:
-- Successful login calls `authStore.setSession` and navigates to `/dashboard`
-- 401 response does not add a toast (form handles inline display)
-- 429 response adds a toast with rate-limit message
-- Network error adds a network error toast
+Add `PaginatedResponse<T>` if not already defined:
 
-Create `src/features/auth/hooks/useLogout.test.ts`. Test:
-- Successful logout clears session and navigates to `/login`
-- Failed logout still clears local session and redirects
+```typescript
+export interface PaginatedResponse<T> {
+  data: T[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+```
 
-## 7.2 Auth Schema Tests
+---
 
-Create `src/features/auth/schemas/login.schema.test.ts`. Test:
-- Valid badge number and password pass
-- Empty badge number fails with required error
-- Password shorter than 8 chars fails
-- Invalid email format in forgot-password schema fails
+# 19. i18n Completeness
 
-Create `src/features/auth/schemas/reset-password.schema.test.ts`. Test:
-- Mismatched passwords fail the `.refine()` check
-- Password missing uppercase fails
-- Password missing special character fails
-- Valid strong password passes
+Run the completeness test after creating all message files:
 
-## 7.3 i18n Tests
+```bash
+pnpm test tests/integration/i18n-completeness.test.ts
+```
 
-Create `src/config/i18n.test.ts`. Test:
-- Both `locales` entries are valid strings
-- `defaultLocale` is included in `locales`
-- `localeNames` has an entry for every locale
+All keys in `en/cases.json` must be present in `am/cases.json`. Fix any mismatches before proceeding.
 
-Create `tests/integration/i18n-completeness.test.ts`. This test dynamically reads all `en/*.json` and `am/*.json` files and asserts that:
-- Every key present in `en/` exists in `am/` (no missing translations)
-- No `am/` file has keys absent from `en/` (no orphaned translations)
+---
 
-This test is the automated safety net against translation drift.
+# 20. Testing Requirements
 
-## 7.4 Password Strength Tests
+## 20.1 Schema Tests (`src/features/cases/schemas/create-case.schema.test.ts`)
 
-Create `src/features/auth/utils/password-strength.test.ts`. Test every scoring combination with example passwords.
+- Valid step 1 data passes
+- Title shorter than 5 chars fails
+- Missing incident date fails
+- Valid step 2 data passes
+- Missing crimeTypeId fails
+- Valid step 3 data passes
+- Missing leadOfficerId fails
 
-## 7.5 Component Tests
+## 20.2 Schema Tests (`src/features/cases/schemas/status-transition.schema.test.ts`)
 
-Create `src/features/auth/components/LoginForm.test.tsx`. Test:
-- Form renders with correct ARIA labels
-- Badge number field has `autocomplete="username"`
-- Password field has `autocomplete="current-password"`
-- Submit button is disabled when form is invalid
-- Error banner appears when `mutation.error` is set
-- Password reveal toggle changes input type between `password` and `text`
+- `OPEN → UNDER_INVESTIGATION` without reason passes
+- `CLOSED → ARCHIVED` without reason fails (reason required)
+- `CLOSED → ARCHIVED` with reason passes
 
-## 7.6 E2E Tests
+## 20.3 Type Tests (`src/features/cases/types/case.types.test.ts`)
 
-Update `tests/e2e/auth.spec.ts`:
+- `CASE_STATUS_TRANSITIONS.ARCHIVED` returns an empty array (no further transitions)
+- `CASE_STATUS_TRANSITIONS.OPEN` contains `UNDER_INVESTIGATION` and `CLOSED`
+
+## 20.4 Hook Tests
+
+**`useCases.test.ts`:** With mocked service, verify:
+- Query is called with correct filter params
+- `placeholderData` is used (previous data visible during refetch)
+
+**`useAddCaseNote.test.ts`:** With mocked service, verify:
+- On success, `caseKeys.timeline(caseId)` is invalidated
+- No toast on success
+
+**`useTransitionCaseStatus.test.ts`:** With mocked service, verify:
+- On success, `closeModal` is called
+- `caseKeys.detail(caseId)` and `caseKeys.lists()` are invalidated
+
+## 20.5 Component Tests
+
+**`CasesListView.test.tsx`:**
+- Renders the DataTable with mocked case data
+- Clicking a filter chip removes it from the URL state
+- "New Case" button is not rendered when officer lacks `cases:write`
+
+**`CreateCaseWizard.test.tsx`:**
+- Step indicator shows step 1 as active initially
+- Clicking "Next" without filling required fields shows validation errors
+- Clicking "Next" with valid step 1 data advances to step 2
+- "Back" from step 2 returns to step 1 without losing step 2 data
+
+**`CaseDetailLayout.test.tsx` (header card):**
+- Status badge renders as `<button>` for officers with `cases:write`
+- Status badge renders as `<span>` for read-only officers
+- Tabs for inaccessible roles are not navigable
+
+**`StatusTransitionModal.test.tsx`:**
+- Available transitions computed correctly from `CASE_STATUS_TRANSITIONS`
+- Reason field appears only when archival is the selected transition
+- "Change Status" button disabled when reason is empty and archival is selected
+
+## 20.6 E2E Tests (`tests/e2e/cases.spec.ts`)
 
 ```typescript
 import { test, expect } from '@playwright/test'
+import { stubAuthSession } from './helpers/auth.helper'
 
-test.describe('Login flow', () => {
-  test('redirects to /login from /', async ({ page }) => {
-    await page.goto('/')
-    await expect(page).toHaveURL('/login')
+test.describe('Cases module', () => {
+  test.beforeEach(async ({ page }) => {
+    await stubAuthSession(page, { role: 'INVESTIGATOR' })
   })
 
-  test('login page renders in English by default', async ({ page }) => {
-    await page.goto('/login')
-    await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
-  })
-
-  test('switching to Amharic updates login heading', async ({ page }) => {
-    await page.goto('/login')
-    await page.getByRole('button', { name: /EN/i }).click()
-    await page.getByText('አማርኛ').click()
-    await expect(page.getByRole('heading', { name: 'እንኳን ደህና መጡ' })).toBeVisible()
-  })
-
-  test('shows inline error on invalid credentials', async ({ page }) => {
-    // Mock API 401 response via route intercept
-    await page.route('**/api/v1/auth/login', (route) =>
-      route.fulfill({ status: 401, json: { message: 'Invalid credentials' } }),
+  test('navigating to /cases renders the case list', async ({ page }) => {
+    await page.route('**/api/v1/cases*', (route) =>
+      route.fulfill({
+        status: 200,
+        json: {
+          data: [
+            {
+              id: 'case-001',
+              caseNumber: 'CASE-2026-00001',
+              title: 'Test Case',
+              status: 'OPEN',
+              crimeType: { id: 'ct-1', name: 'Robbery', code: 'ROB' },
+              department: { id: 'dept-1', name: 'Bole Division' },
+              leadOfficer: { id: 'off-1', badgeNumber: 'BD-001', firstName: 'Dawit', lastName: 'Bekele' },
+              incidentDate: '2026-06-01T00:00:00Z',
+              reportedDate: '2026-06-02T00:00:00Z',
+              evidenceCount: 5,
+              arrestCount: 1,
+              lastActivityAt: '2026-06-14T09:00:00Z',
+            },
+          ],
+          total: 1, page: 1, pageSize: 25, totalPages: 1,
+        },
+      }),
     )
-    await page.goto('/login')
-    await page.getByLabel('Badge Number').fill('BD-99999')
-    await page.getByLabel('Password').fill('wrongpassword')
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page.getByRole('alert')).toBeVisible()
+    await page.goto('/cases')
+    await expect(page.getByText('CASE-2026-00001')).toBeVisible()
+    await expect(page.getByText('Test Case')).toBeVisible()
   })
 
-  test('forgot password shows success state after submission', async ({ page }) => {
-    await page.route('**/api/v1/auth/forgot-password', (route) =>
-      route.fulfill({ status: 200, json: { message: 'ok' } }),
-    )
-    await page.goto('/forgot-password')
-    await page.getByLabel('Email Address').fill('officer@ccms.gov.et')
-    await page.getByRole('button', { name: 'Send Reset Link' }).click()
-    await expect(page.getByText('Reset link sent')).toBeVisible()
+  test('clicking a case row navigates to case detail', async ({ page }) => {
+    // ... stub cases list + case detail API
+    await page.goto('/cases')
+    await page.getByText('CASE-2026-00001').click()
+    await expect(page).toHaveURL(/\/cases\/case-001/)
+  })
+
+  test('case detail tab for restricted role is disabled', async ({ page }) => {
+    // stub case detail; officer role is INVESTIGATOR (no ADMIN)
+    await page.goto('/cases/case-001')
+    const permissionsTab = page.getByRole('link', { name: /Permissions/i })
+    await expect(permissionsTab).not.toBeVisible() // rendered as span, not link
+    const permissionsSpan = page.getByText(/Permissions/i)
+    await expect(permissionsSpan).toHaveCSS('cursor', 'not-allowed')
+  })
+
+  test('timeline tab polls every 30 seconds', async ({ page }) => {
+    let callCount = 0
+    await page.route('**/api/v1/cases/case-001/timeline*', (route) => {
+      callCount++
+      route.fulfill({ status: 200, json: { data: [], total: 0, page: 1, pageSize: 50 } })
+    })
+    await page.goto('/cases/case-001/timeline')
+    await page.waitForTimeout(35_000) // wait for one poll cycle
+    expect(callCount).toBeGreaterThanOrEqual(2)
   })
 })
 ```
 
 ---
 
-# 8. New Files to Create
+# 21. Step-by-Step Execution Order
 
-The following files must be created (in addition to updating files from Phase 1):
+Execute in this exact order. `pnpm type-check` after each step that creates new TypeScript files.
 
-## 8.1 i18n Infrastructure
+**Step 1 — Create case types**
+Create `src/features/cases/types/case.types.ts` and `src/features/cases/types/index.ts`.
+Run `pnpm type-check`. Verify zero errors.
 
-- `src/config/i18n.ts`
-- `src/i18n/request.ts`
-- `src/app/api/locale/route.ts`
-- `src/shared/components/i18n/LocaleToggle.tsx`
-- `src/shared/components/i18n/index.ts`
-- All `messages/en/*.json` files (15 files)
-- All `messages/am/*.json` files (15 files)
+**Step 2 — Create case schemas**
+Create all four schema files: `create-case.schema.ts`, `case-filters.schema.ts`, `add-note.schema.ts`, `status-transition.schema.ts`, `case-api.schema.ts`.
+Run `pnpm type-check`. Verify zero errors.
 
-## 8.2 Auth Feature — New Files
+**Step 3 — Update shared types**
+Add `PaginatedResponse<T>` to `src/shared/types/api.types.ts` if missing.
+Add it to the barrel `src/shared/types/index.ts`.
 
-- `src/features/auth/schemas/auth-session.schema.ts`
-- `src/features/auth/schemas/login.schema.ts` *(update stub)*
-- `src/features/auth/schemas/forgot-password.schema.ts` *(update stub)*
-- `src/features/auth/schemas/reset-password.schema.ts` *(update stub)*
-- `src/features/auth/hooks/useLogin.ts` *(full implementation)*
-- `src/features/auth/hooks/useLogout.ts` *(full implementation)*
-- `src/features/auth/hooks/useSession.ts` *(full implementation)*
-- `src/features/auth/hooks/useForgotPassword.ts` *(new)*
-- `src/features/auth/hooks/useResetPassword.ts` *(new)*
-- `src/features/auth/hooks/useIdleTimeout.ts` *(new)*
-- `src/features/auth/utils/password-strength.ts` *(new)*
-- `src/features/auth/components/LoginForm.tsx` *(new — Client Component)*
-- `src/features/auth/components/ForgotPasswordForm.tsx` *(new)*
-- `src/features/auth/components/ResetPasswordForm.tsx` *(new)*
-- `src/features/auth/components/IdleWarningModal.tsx` *(new)*
-- `src/features/auth/components/LogoutConfirmModal.tsx` *(new)*
-- `src/features/auth/components/PasswordStrengthIndicator.tsx` *(new)*
-- `src/features/auth/components/LocaleAwareAuthShell.tsx` *(if AuthShell needs client-side locale info)*
+**Step 4 — Implement cases service**
+Replace stubs in `src/services/domain/cases.service.ts` with real Axios calls.
+Run `pnpm type-check`. Verify zero errors.
 
-## 8.3 Updated Files
+**Step 5 — Update caseKeys factory**
+Confirm `src/services/query/keys/caseKeys.ts` has all sub-resource keys.
 
-- `src/shared/layouts/AuthShell.tsx` — full redesign
-- `src/shared/layouts/TopBar.tsx` — add `LocaleToggle` + logout confirm flow
-- `src/shared/providers/AuthProvider.tsx` — full implementation
-- `src/services/api/client.ts` — real token refresh interceptor
-- `src/services/domain/auth.service.ts` — real API calls
-- `src/services/query/keys/authKeys.ts` — add `session` key
-- `src/middleware.ts` — locale + auth combined
-- `src/app/layout.tsx` — Noto Sans Ethiopic font + locale on `<html lang>`
-- `src/shared/components/modals/ModalRenderer.tsx` — register `idle-warning` + `logout-confirm`
-- `next.config.ts` — next-intl plugin
-- All `src/app/(dashboard)/*/page.tsx` skeleton files — migrate to i18n strings
-- `src/app/(auth)/login/page.tsx` — full implementation
-- `src/app/(auth)/forgot-password/page.tsx` — full implementation
-- `src/app/(auth)/reset-password/page.tsx` — full implementation
+**Step 6 — Create all React Query hooks**
+Create all 11 hook files in `src/features/cases/hooks/`.
+Create `src/features/cases/hooks/index.ts` barrel.
+Run `pnpm type-check`. Verify zero errors.
 
----
+**Step 7 — Create cases i18n messages**
+Fully populate `messages/en/cases.json` and `messages/am/cases.json`.
+Run `pnpm i18n:types` to regenerate TypeScript message types.
+Run `pnpm test tests/integration/i18n-completeness.test.ts` — must pass.
 
-# 9. Step-by-Step Execution Order
+**Step 8 — Cases list page**
+Create `src/features/cases/components/case-columns.tsx`.
+Create `src/features/cases/components/CasesListView.tsx`.
+Update `src/app/(dashboard)/cases/page.tsx` to render `CasesListView`.
+Run `pnpm dev` and navigate to `/cases`. Verify the page renders with table skeleton.
 
-Execute in precisely this order. Do not skip steps.
+**Step 9 — Case creation wizard**
+Create `src/features/cases/components/CreateCaseWizard.tsx`.
+Update `src/app/(dashboard)/cases/new/page.tsx` to render `CreateCaseWizard`.
+Verify the three-step wizard renders and validates correctly.
 
-**Step 1 — Install next-intl**
+**Step 10 — Case detail layout — header card**
+Create `src/features/cases/components/CaseHeaderCard.tsx`.
+Create `src/features/cases/components/CaseTabNav.tsx`.
+Create `src/features/cases/components/CaseDetailLayout.tsx`.
+Update `src/app/(dashboard)/cases/[caseId]/layout.tsx`.
+Run `pnpm dev` and navigate to a case URL. Verify the header and tabs render.
+
+**Step 11 — Case overview tab**
+Create `src/features/cases/components/CaseOverviewTab.tsx`.
+Update `src/app/(dashboard)/cases/[caseId]/page.tsx`.
+Verify all five sections render with correct loading skeletons.
+
+**Step 12 — Case timeline tab**
+Create `src/features/cases/components/CaseTimelineTab.tsx`.
+Create `src/features/cases/components/AddCaseNoteForm.tsx`.
+Update `src/app/(dashboard)/cases/[caseId]/timeline/page.tsx`.
+Verify timeline renders, add-note form works, and the 30s poll indicator appears.
+
+**Step 13 — Status transition modal**
+Create `src/features/cases/components/StatusTransitionModal.tsx`.
+Register in `ModalRenderer`.
+Verify clicking the status badge in the header opens the drawer and the transition form works.
+
+**Step 14 — Skeleton tab pages**
+Create all seven remaining tab skeleton pages (evidence, arrests, interrogations, legal, officers, reports, permissions).
+Verify they render without errors inside the case detail layout.
+
+**Step 15 — Missing routes**
+Create `/403`, admin pages, and settings pages.
+Verify `/403` renders correctly and includes a link to `/dashboard`.
+
+**Step 16 — Write all tests**
+Write all unit, component, and E2E tests from Section 20.
+Run `pnpm test` — all must pass.
+Run `pnpm test:e2e` — skeleton E2E tests must pass.
+
+**Step 17 — Barrel exports**
+Create `src/features/cases/index.ts` exporting all public APIs.
+Ensure `src/features/cases/components/index.ts`, `hooks/index.ts`, `schemas/index.ts`, `types/index.ts` are all complete.
+
+**Step 18 — Final verification**
 ```bash
-pnpm add next-intl
-```
-Verify installation: `pnpm why next-intl` shows it is in `dependencies`.
-
-**Step 2 — Create i18n Config**
-Create `src/config/i18n.ts`. Create `src/i18n/request.ts`.
-
-**Step 3 — Create All Message Files**
-Create `messages/en/` and `messages/am/` directories. Create all 15 JSON files in each. Start with `common.json`, `auth.json`, `navigation.json`, and `errors.json` as fully populated files. Create the remaining 11 namespace files as skeletons with at minimum the page title, heading, and skeleton loading text keys.
-
-**Step 4 — Update next.config.ts**
-Add `createNextIntlPlugin` wrapper. Verify `pnpm build` does not break.
-
-**Step 5 — Update Root Layout**
-Add Noto Sans Ethiopic font. Add `lang={locale}` to `<html>`. Add both font variables to the className.
-
-**Step 6 — Update Middleware**
-Add locale detection logic to the existing auth middleware. Test that navigating to `/login` still works and the `ccms_locale` cookie is set.
-
-**Step 7 — Create Locale API Route**
-Create `src/app/api/locale/route.ts`. Test with a manual POST request that the cookie is set correctly.
-
-**Step 8 — Create LocaleToggle Component**
-Implement and render it in AuthShell temporarily to verify locale switching works end-to-end before building the full auth UI.
-
-**Step 9 — Generate TypeScript Message Types**
-```bash
-pnpm i18n:types
-```
-Verify no TypeScript errors from message key access.
-
-**Step 10 — Migrate Phase 1 Skeleton Pages**
-Update all `(dashboard)` page.tsx files to use `getTranslations`. Verify `pnpm type-check` passes.
-
-**Step 11 — Implement Auth Service**
-Replace all stubs in `auth.service.ts` with real Axios calls. Implement `auth-session.schema.ts`.
-
-**Step 12 — Implement Auth Hooks**
-Implement all five hooks (`useLogin`, `useLogout`, `useSession`, `useForgotPassword`, `useResetPassword`). Run `pnpm type-check` after each.
-
-**Step 13 — Implement useIdleTimeout**
-Create the hook and mount it in `AuthProvider`. Test by temporarily setting a 10-second timeout in dev.
-
-**Step 14 — Implement Token Refresh**
-Update Axios interceptor with the real refresh logic and request queue.
-
-**Step 15 — Rebuild AuthShell**
-Implement the new visual design. Add LocaleToggle. Add classification footer.
-
-**Step 16 — Build LoginForm**
-Implement the full login form component. Wire to `useLogin`. Add all animations. Test field validation, API errors, rate-limit countdown.
-
-**Step 17 — Build ForgotPasswordForm**
-Implement both states (form + success). Wire to `useForgotPassword`.
-
-**Step 18 — Build ResetPasswordForm**
-Implement with token extraction from searchParams. Add PasswordStrengthIndicator. Wire to `useResetPassword`. Build success and invalid-token states.
-
-**Step 19 — Build LogoutConfirmModal + IdleWarningModal**
-Register both in ModalRenderer. Wire TopBar logout action to open the confirm modal.
-
-**Step 20 — Auth Tests**
-Write all unit and component tests from Section 7. Run `pnpm test` and confirm all pass.
-
-**Step 21 — i18n Completeness Test**
-Implement and run `tests/integration/i18n-completeness.test.ts`. Fix any missing keys.
-
-**Step 22 — E2E Auth Tests**
-Update `tests/e2e/auth.spec.ts` with the full test suite from Section 7.6.
-
-**Step 23 — Final Verification**
-Run all four commands:
-```bash
-pnpm dev          # Dev server starts, routes render, locale switching works
-pnpm lint         # Zero errors, zero warnings
 pnpm type-check   # Zero errors
+pnpm lint         # Zero warnings
+pnpm test         # All tests pass
 pnpm build        # Production build succeeds
 ```
 
 ---
 
-# 10. Final Verification Checklist
+# 22. Visual Design Standards for This Phase
 
-## 10.1 i18n
+## 22.1 Case list — density and information hierarchy
 
-- [ ] Visiting `/login` shows English by default
-- [ ] Clicking the locale toggle and selecting Amharic reloads the page in Amharic
-- [ ] `ccms_locale=am` cookie is set after switching to Amharic
-- [ ] Refreshing the page after switching preserves the Amharic locale
-- [ ] All text on the login, forgot-password, and reset-password pages is localised
-- [ ] Amharic text renders correctly using Noto Sans Ethiopic (no tofu boxes)
-- [ ] `<html lang="am">` is set when the locale is Amharic
-- [ ] All Phase 1 skeleton pages render their titles from i18n message files
+The cases list is an operational tool used by investigators who may be scanning dozens of cases rapidly. Design principles:
+
+- **Row height**: 52px standard. Compact mode: 40px (toggle in table header).
+- **Case number column**: Render in `font-mono`, `text-sm`, `text-[var(--color-primary)]`. It is always the primary navigation anchor — make it visually distinct.
+- **Status badge alignment**: All status badges in a column must align to a fixed width (140px). This allows rapid visual scanning.
+- **Last Activity column**: Use relative time ("2h ago") in the cell, absolute timestamp in a `<Tooltip>`. This prioritises quick comprehension over precision.
+- **Row hover**: `background: var(--color-card-hover)`, `cursor: pointer`. The entire row is a click target.
+- **Zebra striping**: Optional. If enabled, alternate rows use `rgba(255,255,255,0.02)`. Do not use high-contrast zebra striping — it impedes fast scanning.
+- **No horizontal scrollbar**: Design columns to fit within `1400px` max-width. Prioritise essential columns; secondary columns are hidden on tablet.
+
+## 22.2 Case detail header — visual weight
+
+The case header must visually communicate that this is the command centre for an investigation:
+
+- **Case number**: 14px, monospace, `var(--color-foreground-muted)`. Not prominent — it's a reference identifier.
+- **Title (h1)**: 20px, semibold, `var(--color-foreground)`. This is the most prominent element.
+- **Status badge**: Slightly larger than standard status badges in the list — 14px text, 8px vertical padding, 14px horizontal padding. Interactive cursor.
+- **Chip row** (department, crime type, lead officer): Icon + label in muted colour. Chips separated by `·` centre dot. On mobile, wrap to two lines.
+- **Header card background**: `var(--color-card)`, `border-b: 1px solid var(--color-border)`. No shadow — the card floats on the page background naturally.
+- **Sticky behaviour**: The case header card is NOT sticky. Only the tab navigation bar is sticky (`position: sticky; top: 0; z-index: 10; background: var(--color-card)`). This preserves screen real estate on scroll.
+
+## 22.3 Timeline — readability and trust
+
+The timeline is a legal document as much as it is a UI. It must feel immutable and trustworthy:
+
+- **Entry spacing**: 24px between entries. The connecting line is continuous between entries with no gap.
+- **Event type icons**: Use semantically correct Lucide icons per event type. Be specific: `Shield` for security events, `Upload` for evidence adds, `UserPlus` for officer assignment, `Gavel` for legal actions, `FileText` for notes, `ArrowRightLeft` for status changes, `Search` for case updates.
+- **Timestamps**: ISO 8601 in monospace. Relative time on hover. This signals precision and immutability.
+- **Diff viewer**: Use a `border: 1px solid var(--color-border)` card with two columns. Before: red tint. After: green tint. Labels "Before" and "After" in `xs` muted uppercase.
+- **Padlock icon**: Always top-right of every entry, `var(--color-muted)`, `h-3 w-3`. Small and consistent — it reads as a watermark rather than a button.
+- **Live indicator**: A pulsing `●` (filled circle, 8px, `var(--color-success)`) next to the page title when polling is active. Stops pulsing when the browser tab is hidden. Returns to pulsing when active. Respect `prefers-reduced-motion` — static dot when reduced motion is preferred.
+
+## 22.4 Create case wizard — guidance and trust
+
+The wizard must make a complex operation feel guided and safe:
+
+- **Step indicator line**: `2px`, `var(--color-border)` by default; `var(--color-primary)` for completed connections.
+- **Form cards**: Each step is wrapped in a `<FormSection>` card. The current step card has a `border: 1px solid var(--color-primary)` with opacity 0.3.
+- **Back button**: Render as an outline/ghost button, not a destructive colour. It is safe and reversible.
+- **Next/Submit button**: Full-width at the bottom of each step card. Not a floating fixed footer.
+- **Transition animation between steps**: 150ms fade-out + 150ms fade-in. The step content slides slightly left (outgoing) and right (incoming). `translateX(8px)`. Respect `prefers-reduced-motion`.
+
+---
+
+# 23. Anti-Patterns Specific to This Phase
+
+In addition to all Phase 1 and Phase 2 anti-patterns, the following are prohibited in Phase 3:
+
+**Data violations:**
+- Storing `Case[]` or any case detail data in any Zustand store — all case data lives exclusively in React Query cache
+- Client-side filtering of server-fetched case data — all filters translate to API query parameters
+- Displaying more than 100 rows in the DOM without virtual scrolling activating
+
+**State violations:**
+- Storing filter state in React component state (`useState`) — all list filters go in URL via `nuqs`
+- Storing timeline filter state in URL — timeline filters are local component state (real-time view, not shareable)
+- Passing case detail props through multiple component levels — use the React Query hook directly in the consuming component
+
+**UI violations:**
+- Hiding (not rendering) disabled tabs — they must render as non-interactive `<span>` elements, not be removed from the DOM
+- Rendering case note content via `dangerouslySetInnerHTML` — always plain text
+- Using raw case ID (UUID) in breadcrumbs — always resolve to the case title from cache
+- Starting the 30s timeline poll on page load instead of only when the timeline tab is active
+- Opening the status transition drawer without verifying the officer has write access
+
+**Form violations:**
+- Using a single large form for the multi-step wizard — each step must be a separate `useForm` instance
+- Allowing the Create Case form to submit when on Step 1 or Step 2 — only Step 3 has a Submit action
+- Not implementing the dirty-state guard on the Create Case wizard
+
+**Testing violations:**
+- Skipping the i18n completeness test — every key in `en/cases.json` must be present in `am/cases.json`
+- Mocking `useCase` with hardcoded English strings — tests must be locale-agnostic
+
+---
+
+# 24. Final Verification Checklist
+
+## 24.1 Cases List
+
+- [ ] `/cases` loads and displays the DataTable with mocked or real data
+- [ ] Typing in the search box updates the URL `search` param and refetches
+- [ ] Selecting a status filter adds it as a chip and updates the URL `status` param
+- [ ] Clicking a chip removes that filter and resets page to 1
+- [ ] Clicking a table row navigates to `/cases/[id]`
+- [ ] The "New Case" button is visible for INVESTIGATOR+ and hidden for lower roles
+- [ ] Loading skeleton renders on first load; existing data remains visible on background refetch
+- [ ] Sorting by a column header updates the URL `sortField` and `sortDirection` params
+- [ ] Pagination controls work: prev/next, page-size selector updates `pageSize` param
+- [ ] The total record count displays correctly in the page header
+
+## 24.2 Case Creation
+
+- [ ] `/cases/new` renders the three-step wizard
+- [ ] Step 1 shows correct validation errors on empty submit
+- [ ] "Next" on valid Step 1 data advances to Step 2 and preserves Step 1 values on "Back"
+- [ ] "Next" on valid Step 2 data advances to Step 3
+- [ ] "Submit" on valid Step 3 calls the `createCase` API and navigates to the new case
+- [ ] Attempting to navigate away with a dirty form triggers a confirmation dialog
+- [ ] The `PermissionGuard` prevents access to `/cases/new` for officers without `cases:write`
+
+## 24.3 Case Detail Layout
+
+- [ ] `/cases/[caseId]` renders the header card with all correct fields
+- [ ] Case number is in monospace font
+- [ ] The status badge is interactive (renders as `<button>`) for INVESTIGATOR+ officers
+- [ ] Clicking the status badge opens the status transition drawer
+- [ ] All nine tabs render in the tab navigation bar
+- [ ] Tabs the officer cannot access are disabled (not hidden) with a lock icon and tooltip
+- [ ] The tab navigation bar is sticky on scroll
+- [ ] The header card renders a skeleton while `useCase` is loading
+
+## 24.4 Case Overview Tab
+
+- [ ] All five sections render: metadata card, description, summary panels, officers, recent activity
+- [ ] Summary panel counts match the case data
+- [ ] Summary panel links navigate to the correct tabs
+- [ ] "View full timeline" link navigates to `/cases/[caseId]/timeline`
+- [ ] Loading skeletons render correctly for each section
+
+## 24.5 Case Timeline Tab
+
+- [ ] Timeline entries render with correct icons, timestamps, and actor names
+- [ ] The 30-second polling indicator (green dot) is visible
+- [ ] Polling pauses when the browser tab is backgrounded
+- [ ] Filter bar: actor search, event type filter, and date range filters work
+- [ ] Add note: typing in the form and submitting creates a new entry without a toast
+- [ ] Diff viewer renders for CASE_UPDATED events with before/after panels
+- [ ] Security badge renders for security events in the correct colour
+- [ ] Padlock icon appears on every entry
+- [ ] "Print Timeline" button triggers the print dialog with correct CSS
+
+## 24.6 Status Transition
+
+- [ ] Opening the drawer from the status badge shows the current status highlighted
+- [ ] Available transitions are computed correctly from `CASE_STATUS_TRANSITIONS`
+- [ ] Inaccessible transitions render as disabled with a tooltip
+- [ ] Selecting "Archived" makes the reason field appear and required
+- [ ] Confirming a transition updates the status badge immediately (cache update)
+- [ ] The drawer closes on success and a success toast appears
+
+## 24.7 Missing Routes
+
+- [ ] `/403` renders `ForbiddenState` with a link to `/dashboard`
+- [ ] `/admin/locations`, `/admin/crime-types`, `/admin/health` all render skeleton pages
+- [ ] `/settings/profile` and `/settings/password` render skeleton pages
+
+## 24.8 i18n
+
+- [ ] All cases UI text is retrieved from `messages/en/cases.json` or `messages/am/cases.json`
+- [ ] Switching to Amharic updates all text on the cases list, detail, timeline, and creation pages
 - [ ] The i18n completeness test passes with zero missing keys
-- [ ] `pnpm type-check` catches an invalid translation key (verify type safety is working)
+- [ ] No hardcoded English or Amharic strings in any `.tsx` file
 
-## 10.2 Auth — Functional
+## 24.9 Tooling
 
-- [ ] Submitting valid credentials calls POST `/api/v1/auth/login` and redirects to `/dashboard`
-- [ ] Submitting invalid credentials shows the inline error banner (not a toast)
-- [ ] After 5 failed attempts, the 429 error shows with a countdown timer
-- [ ] "Forgot password?" link navigates to `/forgot-password`
-- [ ] Submitting an email on forgot-password shows the success state
-- [ ] Visiting `/reset-password` without a token shows the invalid token state
-- [ ] Visiting `/reset-password?token=xxx` shows the reset form
-- [ ] Password strength bar updates in real-time as the user types
-- [ ] All four password requirements animate from ✗ to ✓ as they are met
-- [ ] Mismatched confirm password shows a validation error
-- [ ] Successful password reset shows the success state and redirects to `/login` after 3s
-- [ ] Clicking "Sign Out" in the TopBar opens the logout confirmation dialog
-- [ ] Confirming logout calls the logout API, clears the session, and redirects to `/login`
-- [ ] Cancelling logout closes the dialog and preserves the session
-- [ ] After 13 minutes of inactivity, the idle warning dialog appears (with 2-minute countdown)
-- [ ] Clicking "Stay Signed In" in the idle dialog resets the idle timer
-- [ ] After the full 15-minute idle period, the user is automatically logged out
-
-## 10.3 Auth — Visual
-
-- [ ] The auth card has the radial-gradient background on the page
-- [ ] The CCMS logotype is visible with the shield icon and full system name
-- [ ] The classification footer is fixed at the bottom of the viewport
-- [ ] The locale toggle is visible in the top-right corner of the auth card
-- [ ] The login form card entrance animation plays on page load (unless reduced motion is active)
-- [ ] Error shake animation plays on API error (unless reduced motion is active)
-- [ ] The submit button shows a spinner and "Signing in..." text while the mutation is pending
-- [ ] The password field has a working show/hide toggle with the eye icon
-- [ ] Badge number input auto-uppercases the entered value
-- [ ] All focus states use the `var(--color-focus-ring)` outline
-- [ ] The form is fully usable on a 375px mobile viewport with no horizontal overflow
-
-## 10.4 Auth — Accessibility
-
-- [ ] Tab order on the login form: Badge Number → Password → Reveal toggle → Remember me → Forgot password → Submit
-- [ ] API error banner has `role="alert"` and is announced by screen readers
-- [ ] Field validation errors have `aria-live="assertive"`
-- [ ] Password reveal button has a descriptive `aria-label` that updates on toggle
-- [ ] The rate-limit countdown timer is accessible (`aria-live="polite"`)
-- [ ] The idle warning modal traps focus correctly
-- [ ] All auth pages have a single `<h1>` (no heading hierarchy violations)
-
-## 10.5 Build & Tooling
-
-- [ ] `pnpm dev` — no errors, locale switching works
-- [ ] `pnpm lint` — zero errors
-- [ ] `pnpm type-check` — zero errors
-- [ ] `pnpm test` — all auth tests pass, i18n completeness test passes
-- [ ] `pnpm build` — production build succeeds with no type errors
+- [ ] `pnpm type-check` exits with zero errors
+- [ ] `pnpm lint` exits with zero warnings
+- [ ] `pnpm test` passes all cases-module tests
+- [ ] `pnpm build` completes the production build without errors
 
 ---
 
-# 11. Anti-Patterns Specific to This Phase
-
-In addition to the anti-patterns from Phase 1, the following are prohibited in Phase 2:
-
-**i18n violations:**
-- Hardcoding any user-visible English or Amharic string in a `.tsx` or `.ts` file instead of using a message file
-- Calling `useTranslations` in a shared component (pass text as props instead)
-- Creating a new namespace that is not listed in the namespace list (add to the list first)
-- Forgetting to add a key to both `en/` and `am/` simultaneously — treat them as a pair
-
-**Auth violations:**
-- Calling `useLogin` or `useLogout` from a Server Component (these are Client Component hooks)
-- Reading the `authStore` on the server (it is client-only Zustand state)
-- Showing a toast for a 401 error on the login form (the form handles inline display)
-- Navigating after logout using `window.location.href` instead of `router.push` + `router.refresh`
-- Allowing the reset password form to submit when the two passwords do not match (Zod must catch this)
-- Implementing logout by clearing the cookie on the client (the server must clear the httpOnly cookie via the logout API)
-
-**Font violations:**
-- Not testing Amharic text rendering in the actual browser (always visually verify Ethiopic glyphs render correctly)
-- Loading Noto Sans Ethiopic for Latin content (the CSS font-stack handles this automatically)
-
----
-
-*End of CCMS Phase 2 Instruction — Authentication Module & Internationalisation*
+*End of CCMS Phase 3 Instruction — Cases Module*
 *Prepared for AI Agent execution — 2026 production-grade engineering standards*
 *Package manager: pnpm throughout*
+*Next phase: Phase 4 will implement the Dashboard and required reference data queries*

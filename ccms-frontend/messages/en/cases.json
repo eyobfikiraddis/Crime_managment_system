@@ -2,53 +2,188 @@
   "pageTitle": "Cases",
   "list": {
     "heading": "All Cases",
-    "skeleton": "Loading cases...",
-    "searchPlaceholder": "Search cases..."
+    "entityCount": "{count} case(s)",
+    "newCase": "New Case",
+    "searchPlaceholder": "Search by case number, title...",
+    "filterStatus": "Status",
+    "filterCrimeType": "Crime Type",
+    "filterDepartment": "Department",
+    "filterDateRange": "Date Range",
+    "noResults": "No cases found.",
+    "noResultsDescription": "Try adjusting your search or filter criteria.",
+    "loading": "Loading cases...",
+    "columns": {
+      "caseNumber": "Case No.",
+      "title": "Title",
+      "status": "Status",
+      "crimeType": "Crime Type",
+      "department": "Department",
+      "leadOfficer": "Lead Officer",
+      "reportedDate": "Reported",
+      "lastActivity": "Last Activity",
+      "actions": "Actions"
+    },
+    "rowActions": {
+      "view": "View Case",
+      "edit": "Edit Case",
+      "transition": "Change Status",
+      "delete": "Delete Case"
+    }
   },
-  "newCase": {
-    "heading": "New Case",
-    "skeleton": "Preparing case form..."
+  "create": {
+    "pageTitle": "New Case",
+    "heading": "Create New Case",
+    "successMessage": "Case {caseNumber} created successfully.",
+    "errorMessage": "Failed to create the case. Please check the form and try again.",
+    "steps": {
+      "basicInfo": "Basic Information",
+      "crimeDetails": "Crime Details",
+      "assignment": "Assignment"
+    },
+    "step1": {
+      "heading": "Basic Information",
+      "titleLabel": "Case Title",
+      "titlePlaceholder": "e.g. Robbery at Bole Road Market — 12 June 2026",
+      "descriptionLabel": "Case Description",
+      "descriptionPlaceholder": "Describe the incident in detail...",
+      "incidentDateLabel": "Incident Date",
+      "locationLabel": "Location (optional)",
+      "locationPlaceholder": "Search locations..."
+    },
+    "step2": {
+      "heading": "Crime Details",
+      "crimeTypeLabel": "Crime Type",
+      "crimeTypePlaceholder": "Select a crime type...",
+      "departmentLabel": "Responsible Department",
+      "departmentPlaceholder": "Select a department..."
+    },
+    "step3": {
+      "heading": "Assignment",
+      "leadOfficerLabel": "Lead Investigator",
+      "leadOfficerPlaceholder": "Search officers...",
+      "additionalOfficersLabel": "Additional Officers (optional)",
+      "additionalOfficersPlaceholder": "Search officers..."
+    }
   },
   "detail": {
-    "heading": "Case Details",
-    "skeleton": "Loading case details..."
-  },
-  "sections": {
-    "arrests": {
-      "heading": "Arrests",
-      "skeleton": "Loading arrests..."
+    "loading": "Loading case...",
+    "notFound": "Case not found.",
+    "headerCard": {
+      "caseNumberLabel": "Case Number",
+      "departmentLabel": "Department",
+      "crimeTypeLabel": "Crime Type",
+      "leadOfficerLabel": "Lead Officer",
+      "incidentDateLabel": "Incident Date",
+      "reportedDateLabel": "Date Reported",
+      "closedDateLabel": "Date Closed"
     },
-    "evidence": {
-      "heading": "Evidence",
-      "skeleton": "Loading evidence..."
+    "actions": {
+      "edit": "Edit Case",
+      "managePermissions": "Manage Permissions",
+      "delete": "Delete Case",
+      "deleteConfirmTitle": "Delete this case?",
+      "deleteConfirmDescription": "This will permanently delete case {caseNumber} and all associated data. This action cannot be undone.",
+      "deleteConfirmPhrase": "delete {caseNumber}"
     },
-    "evidenceDetail": {
-      "heading": "Evidence Details",
-      "skeleton": "Loading evidence details..."
-    },
-    "legal": {
-      "heading": "Legal",
-      "skeleton": "Loading legal summary..."
-    },
-    "officers": {
-      "heading": "Assigned Officers",
-      "skeleton": "Loading officers..."
-    },
-    "interrogations": {
-      "heading": "Interrogations",
-      "skeleton": "Loading interrogations..."
-    },
-    "reports": {
-      "heading": "Reports",
-      "skeleton": "Loading reports..."
-    },
-    "permissions": {
-      "heading": "Permissions",
-      "skeleton": "Loading permissions..."
-    },
-    "timeline": {
-      "heading": "Timeline",
-      "skeleton": "Loading timeline..."
+    "tabs": {
+      "overview": "Overview",
+      "evidence": "Evidence",
+      "arrests": "Arrests",
+      "interrogations": "Interrogations",
+      "legal": "Legal",
+      "officers": "Officers",
+      "timeline": "Timeline",
+      "reports": "Reports",
+      "permissions": "Permissions",
+      "lockedTooltip": "Requires {minRole} role or higher"
     }
+  },
+  "overview": {
+    "metadataCard": "Case Details",
+    "descriptionCard": "Description",
+    "summaryPanels": {
+      "evidence": "Evidence Items",
+      "arrests": "Arrests",
+      "charges": "Charges",
+      "officers": "Assigned Officers",
+      "viewAll": "View all"
+    },
+    "officersSection": "Assigned Officers",
+    "officersSectionEmpty": "No officers assigned to this case.",
+    "recentActivity": "Recent Activity",
+    "recentActivityEmpty": "No activity recorded yet.",
+    "viewAllActivity": "View full timeline"
+  },
+  "timeline": {
+    "pageTitle": "Case Timeline",
+    "loading": "Loading timeline...",
+    "empty": "No events recorded yet.",
+    "filterActor": "Search by officer...",
+    "filterEventType": "Event Type",
+    "filterDateRange": "Date Range",
+    "addNote": "Add Note",
+    "notePlaceholder": "Add a note to this case...",
+    "noteSubmit": "Add Note",
+    "noteError": "Failed to add note. Please try again.",
+    "printButton": "Print Timeline",
+    "immutableTooltip": "This audit record cannot be modified or deleted.",
+    "custodyGap": "Custody Gap Detected",
+    "securityBadge": {
+      "LOW": "Low Severity",
+      "MEDIUM": "Medium Severity",
+      "HIGH": "High Severity",
+      "CRITICAL": "Critical Severity"
+    },
+    "eventTypes": {
+      "CASE_CREATED": "Case Created",
+      "CASE_UPDATED": "Case Updated",
+      "STATUS_CHANGED": "Status Changed",
+      "EVIDENCE_ADDED": "Evidence Added",
+      "EVIDENCE_UPDATED": "Evidence Updated",
+      "OFFICER_ASSIGNED": "Officer Assigned",
+      "OFFICER_REMOVED": "Officer Removed",
+      "ARREST_RECORDED": "Arrest Recorded",
+      "INTERROGATION_RECORDED": "Interrogation Recorded",
+      "LEGAL_ACTION": "Legal Action",
+      "NOTE_ADDED": "Note Added",
+      "PERMISSION_CHANGED": "Permission Changed",
+      "LOGIN_FAILURE": "Login Failure"
+    }
+  },
+  "status": {
+    "OPEN": "Open",
+    "UNDER_INVESTIGATION": "Under Investigation",
+    "REFERRED_TO_COURT": "Referred to Court",
+    "CLOSED": "Closed",
+    "ARCHIVED": "Archived",
+    "transitionDrawerTitle": "Change Case Status",
+    "transitionDrawerDescription": "Select the new status for this case. Some transitions may require a reason.",
+    "currentStatus": "Current status",
+    "availableTransitions": "Available transitions",
+    "noTransitionsAvailable": "No status transitions available for your role.",
+    "reasonLabel": "Reason for change",
+    "reasonPlaceholder": "Describe why the status is changing...",
+    "reasonRequired": "A reason is required for this transition.",
+    "transitionButton": "Confirm Transition",
+    "transitionSuccess": "Case status updated successfully.",
+    "lockedTransitionTooltip": "Requires {minRole} role",
+    "confirmButton": "Change Status",
+    "cancelButton": "Cancel"
+  },
+  "update": {
+    "successMessage": "Case updated successfully.",
+    "errorMessage": "Failed to update the case."
+  },
+  "delete": {
+    "successMessage": "Case deleted successfully."
+  },
+  "skeletonTabs": {
+    "evidence": "Evidence — Coming in Phase 5",
+    "arrests": "Arrests — Coming in Phase 6",
+    "interrogations": "Interrogations — Coming in Phase 6",
+    "legal": "Legal — Coming in Phase 7",
+    "officers": "Officers — Coming in Phase 8",
+    "reports": "Reports — Coming in Phase 10",
+    "permissions": "Permissions — Coming in Phase 8"
   }
 }

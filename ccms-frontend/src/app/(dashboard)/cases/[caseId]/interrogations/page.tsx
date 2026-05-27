@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
+import { EmptyState } from '@/shared/components/display/EmptyState'
+import { Info } from 'lucide-react'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('cases')
@@ -7,19 +9,20 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 type PageProps = {
-  params: { caseId: string }
-  searchParams: Record<string, string | string[] | undefined>
+  params: Promise<{ caseId: string }> | { caseId: string }
 }
 
-export default async function CaseInterrogationsPage({ params, searchParams }: PageProps) {
+export default async function CaseInterrogationsPage({ params }: PageProps) {
   void params
-  void searchParams
-
   const t = await getTranslations('cases')
 
   return (
-    <div>
-      <h1>{t('sections.interrogations.heading')}</h1>
+    <div className="py-6">
+      <EmptyState
+        title={t('skeletonTabs.interrogations')}
+        description="This module is scheduled for development in Phase 6."
+        icon={Info}
+      />
     </div>
   )
 }

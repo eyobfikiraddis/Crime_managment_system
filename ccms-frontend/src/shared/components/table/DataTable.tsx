@@ -39,6 +39,7 @@ interface DataTableProps<TData> {
   emptyTitle?: string
   emptyMessage?: string
   tableId?: string
+  onRowClick?: (row: TData) => void
 }
 
 export function DataTable<TData>({
@@ -53,6 +54,7 @@ export function DataTable<TData>({
   onRowSelectionChange,
   emptyTitle,
   emptyMessage,
+  onRowClick,
 }: DataTableProps<TData>) {
   const [internalSorting, setInternalSorting] = useState<SortingState>([])
   const [internalPagination, setInternalPagination] = useState<PaginationState>({
@@ -143,7 +145,22 @@ export function DataTable<TData>({
           ) : null}
           {visibleRows.map(({ row }) =>
             row ? (
-              <TableRow key={row.id}>
+              <TableRow 
+                key={row.id}
+                onClick={(e) => {
+                  const target = e.target as HTMLElement
+                  if (
+                    target.closest('button') || 
+                    target.closest('a') || 
+                    target.closest('[role="menuitem"]') || 
+                    target.closest('input')
+                  ) {
+                    return
+                  }
+                  onRowClick?.(row.original)
+                }}
+                className={onRowClick ? 'cursor-pointer hover:bg-muted/50' : undefined}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -2,53 +2,188 @@
   "pageTitle": "ጉዳዮች",
   "list": {
     "heading": "ሁሉም ጉዳዮች",
-    "skeleton": "ጉዳዮች በመጫን ላይ...",
-    "searchPlaceholder": "ጉዳዮችን ፈልግ..."
+    "entityCount": "{count} ጉዳይ",
+    "newCase": "አዲስ ጉዳይ",
+    "searchPlaceholder": "በጉዳይ ቁጥር ወይም ርዕስ ፈልግ...",
+    "filterStatus": "ሁኔታ",
+    "filterCrimeType": "የወንጀል ዓይነት",
+    "filterDepartment": "ክፍል",
+    "filterDateRange": "የቀን ክልል",
+    "noResults": "ምንም ጉዳይ አልተገኘም።",
+    "noResultsDescription": "ፍለጋ ወይም ማጣሪያ ሁኔታዎን ያስተካክሉ።",
+    "loading": "ጉዳዮችን እየጫነ ነው...",
+    "columns": {
+      "caseNumber": "ጉዳይ ቁ.",
+      "title": "ርዕስ",
+      "status": "ሁኔታ",
+      "crimeType": "የወንጀል ዓይነት",
+      "department": "ክፍል",
+      "leadOfficer": "ዋና መኮንን",
+      "reportedDate": "ዘግቧል",
+      "lastActivity": "የኋለኛ እንቅስቃሴ",
+      "actions": "ድርጊቶች"
+    },
+    "rowActions": {
+      "view": "ጉዳይ ተመልከት",
+      "edit": "ጉዳይ አርትዕ",
+      "transition": "ሁኔታ ቀይር",
+      "delete": "ጉዳይ ሰርዝ"
+    }
   },
-  "newCase": {
-    "heading": "አዲስ ጉዳይ",
-    "skeleton": "የጉዳይ ቅጽ በመዘጋጀት ላይ..."
+  "create": {
+    "pageTitle": "አዲስ ጉዳይ",
+    "heading": "አዲስ ጉዳይ ፍጠር",
+    "successMessage": "ጉዳይ {caseNumber} በተሳካ ሁኔታ ተፈጥሯል።",
+    "errorMessage": "ጉዳዩን ለመፍጠር አልተሳካም። ቅጹን ያረጋግጡ።",
+    "steps": {
+      "basicInfo": "መሠረታዊ መረጃ",
+      "crimeDetails": "የወንጀል ዝርዝሮች",
+      "assignment": "ምደባ"
+    },
+    "step1": {
+      "heading": "መሠረታዊ መረጃ",
+      "titleLabel": "የጉዳይ ርዕስ",
+      "titlePlaceholder": "ለምሳሌ ዝርፊያ በቦሌ መንገድ ገበያ — ሰኔ 12 ቀን 2026",
+      "descriptionLabel": "የጉዳዩ መግለጫ",
+      "descriptionPlaceholder": "ክስተቱን በዝርዝር ያብራሩ...",
+      "incidentDateLabel": "የወንጀሉ ቀን",
+      "locationLabel": "ቦታ (አማራጭ)",
+      "locationPlaceholder": "ቦታ ፈልግ..."
+    },
+    "step2": {
+      "heading": "የወንጀል ዝርዝሮች",
+      "crimeTypeLabel": "የወንጀል ዓይነት",
+      "crimeTypePlaceholder": "የወንጀል ዓይነት ምረጥ...",
+      "departmentLabel": "ኃላፊ ክፍል",
+      "departmentPlaceholder": "ክፍል ምረጥ..."
+    },
+    "step3": {
+      "heading": "ምደባ",
+      "leadOfficerLabel": "ዋና መርማሪ",
+      "leadOfficerPlaceholder": "መኮንን ፈልግ...",
+      "additionalOfficersLabel": "ተጨማሪ መኮንኖች (አማራጭ)",
+      "additionalOfficersPlaceholder": "መኮንን ፈልግ..."
+    }
   },
   "detail": {
-    "heading": "የጉዳይ ዝርዝር",
-    "skeleton": "የጉዳይ ዝርዝር በመጫን ላይ..."
-  },
-  "sections": {
-    "arrests": {
-      "heading": "እስሮች",
-      "skeleton": "እስሮች በመጫን ላይ..."
+    "loading": "ጉዳይ እየጫነ ነው...",
+    "notFound": "ጉዳይ አልተገኘም።",
+    "headerCard": {
+      "caseNumberLabel": "የጉዳይ ቁጥር",
+      "departmentLabel": "ክፍል",
+      "crimeTypeLabel": "የወንጀል ዓይነት",
+      "leadOfficerLabel": "ዋና መኮንን",
+      "incidentDateLabel": "የወንጀሉ ቀን",
+      "reportedDateLabel": "ዘግቦ የቀረበ ቀን",
+      "closedDateLabel": "የተዘጋ ቀን"
     },
-    "evidence": {
-      "heading": "ማስረጃ",
-      "skeleton": "ማስረጃ በመጫን ላይ..."
+    "actions": {
+      "edit": "ጉዳይ አርትዕ",
+      "managePermissions": "ፈቃዶች አስተዳድር",
+      "delete": "ጉዳይ ሰርዝ",
+      "deleteConfirmTitle": "ይህን ጉዳይ ሰርዝ?",
+      "deleteConfirmDescription": "ጉዳይ {caseNumber} እና ሁሉም ተዛማጅ ውሂብ ይሰርዘዋል። ይህ ድርጊት ሊቀለበስ አይችልም።",
+      "deleteConfirmPhrase": "{caseNumber} ሰርዝ"
     },
-    "evidenceDetail": {
-      "heading": "የማስረጃ ዝርዝር",
-      "skeleton": "የማስረጃ ዝርዝር በመጫን ላይ..."
-    },
-    "legal": {
-      "heading": "ህጋዊ",
-      "skeleton": "ህጋዊ መረጃ በመጫን ላይ..."
-    },
-    "officers": {
-      "heading": "ተመድበው ያሉ መኮንኖች",
-      "skeleton": "መኮንኖች በመጫን ላይ..."
-    },
-    "interrogations": {
-      "heading": "ምርመራዎች",
-      "skeleton": "ምርመራዎች በመጫን ላይ..."
-    },
-    "reports": {
-      "heading": "ሪፖርቶች",
-      "skeleton": "ሪፖርቶች በመጫን ላይ..."
-    },
-    "permissions": {
-      "heading": "ፈቃዶች",
-      "skeleton": "ፈቃዶች በመጫን ላይ..."
-    },
-    "timeline": {
-      "heading": "ጊዜ ሰሌዳ",
-      "skeleton": "ጊዜ ሰሌዳ በመጫን ላይ..."
+    "tabs": {
+      "overview": "አጠቃላይ እይታ",
+      "evidence": "ማስረጃ",
+      "arrests": "እስሮች",
+      "interrogations": "ምርመራዎች",
+      "legal": "ህጋዊ",
+      "officers": "መኮንኖች",
+      "timeline": "ጊዜ ሰሌዳ",
+      "reports": "ሪፖርቶች",
+      "permissions": "ፈቃዶች",
+      "lockedTooltip": "{minRole} ሚና ወይም ከዛ በላይ ያስፈልጋል"
     }
+  },
+  "overview": {
+    "metadataCard": "የጉዳይ ዝርዝሮች",
+    "descriptionCard": "መግለጫ",
+    "summaryPanels": {
+      "evidence": "የማስረጃ ንጥሎች",
+      "arrests": "እስሮች",
+      "charges": "ክሶች",
+      "officers": "የተመደቡ መኮንኖች",
+      "viewAll": "ሁሉ ተመልከት"
+    },
+    "officersSection": "የተመደቡ መኮንኖች",
+    "officersSectionEmpty": "ለዚህ ጉዳይ ምንም መኮንን አልተመደበም።",
+    "recentActivity": "የቅርብ ጊዜ እንቅስቃሴ",
+    "recentActivityEmpty": "እስካሁን ምንም እንቅስቃሴ አልተመዘገበም።",
+    "viewAllActivity": "ሙሉ ጊዜ ሰሌዳ ተመልከት"
+  },
+  "timeline": {
+    "pageTitle": "የጉዳይ ጊዜ ሰሌዳ",
+    "loading": "ጊዜ ሰሌዳ እየጫነ ነው...",
+    "empty": "እስካሁን ምንም ክስተት አልተመዘገበም።",
+    "filterActor": "በመኮንን ፈልግ...",
+    "filterEventType": "የክስተት ዓይነት",
+    "filterDateRange": "የቀን ክልል",
+    "addNote": "ማስታወሻ ጨምር",
+    "notePlaceholder": "ለዚህ ጉዳይ ማስታወሻ ጨምር...",
+    "noteSubmit": "ማስታወሻ ጨምር",
+    "noteError": "ማስታወሻ ለመጨመር አልተሳካም። እንደገና ይሞክሩ።",
+    "printButton": "ጊዜ ሰሌዳ አትም",
+    "immutableTooltip": "ይህ የኦዲት መዝገብ ሊቀየር ወይም ሊሰረዝ አይችልም።",
+    "custodyGap": "የእስር ጊዜ ክፍተት ታይቷል",
+    "securityBadge": {
+      "LOW": "ዝቅተኛ ክብደት",
+      "MEDIUM": "መካከለኛ ክብደት",
+      "HIGH": "ከፍተኛ ክብደት",
+      "CRITICAL": "ወሳኝ ክብደት"
+    },
+    "eventTypes": {
+      "CASE_CREATED": "ጉዳይ ተፈጥሯል",
+      "CASE_UPDATED": "ጉዳይ ተዘምኗል",
+      "STATUS_CHANGED": "ሁኔታ ተቀይሯል",
+      "EVIDENCE_ADDED": "ማስረጃ ተጨምሯል",
+      "EVIDENCE_UPDATED": "ማስረጃ ተዘምኗል",
+      "OFFICER_ASSIGNED": "መኮንን ተመድቧል",
+      "OFFICER_REMOVED": "መኮንን ተወግዷል",
+      "ARREST_RECORDED": "እስር ተመዝግቧል",
+      "INTERROGATION_RECORDED": "ምርመራ ተመዝግቧል",
+      "LEGAL_ACTION": "ህጋዊ ድርጊት",
+      "NOTE_ADDED": "ማስታወሻ ተጨምሯል",
+      "PERMISSION_CHANGED": "ፈቃድ ተቀይሯል",
+      "LOGIN_FAILURE": "ግባ ስህተት"
+    }
+  },
+  "status": {
+    "OPEN": "ክፍት",
+    "UNDER_INVESTIGATION": "በምርመራ ላይ",
+    "REFERRED_TO_COURT": "ለፍርድ ቤት ቀርቧል",
+    "CLOSED": "ዝግ",
+    "ARCHIVED": "ማህደር",
+    "transitionDrawerTitle": "የጉዳይ ሁኔታ ቀይር",
+    "transitionDrawerDescription": "ለዚህ ጉዳይ አዲስ ሁኔታ ምረጥ።",
+    "currentStatus": "አሁን ያለ ሁኔታ",
+    "availableTransitions": "የሚቻሉ ሽግግሮች",
+    "noTransitionsAvailable": "ለሚናዎ ምንም ሁኔታ ሽግግር አይቻልም።",
+    "reasonLabel": "የለውጥ ምክንያት",
+    "reasonPlaceholder": "ሁኔታው ለምን እንደሚቀየር ያብራሩ...",
+    "reasonRequired": "ለዚህ ሽግግር ምክንያት ያስፈልጋል።",
+    "transitionButton": "ሽግግር አረጋግጥ",
+    "transitionSuccess": "የጉዳይ ሁኔታ በተሳካ ሁኔታ ተዘምኗል።",
+    "lockedTransitionTooltip": "{minRole} ሚና ያስፈልጋል",
+    "confirmButton": "ሁኔታ ቀይር",
+    "cancelButton": "ሰርዝ"
+  },
+  "update": {
+    "successMessage": "ጉዳይ በተሳካ ሁኔታ ተዘምኗል።",
+    "errorMessage": "ጉዳዩን ለማዘመን አልተሳካም።"
+  },
+  "delete": {
+    "successMessage": "ጉዳይ በተሳካ ሁኔታ ተሰርዟል።"
+  },
+  "skeletonTabs": {
+    "evidence": "ማስረጃ — በ Phase 5 ይቀርባል",
+    "arrests": "እስሮች — በ Phase 6 ይቀርባል",
+    "interrogations": "ምርመራዎች — በ Phase 6 ይቀርባል",
+    "legal": "ህጋዊ — በ Phase 7 ይቀርባል",
+    "officers": "መኮንኖች — በ Phase 8 ይቀርባል",
+    "reports": "ሪፖርቶች — በ Phase 10 ይቀርባል",
+    "permissions": "ፈቃዶች — በ Phase 8 ይቀርባል"
   }
 }

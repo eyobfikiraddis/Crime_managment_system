@@ -22,11 +22,11 @@ interface SearchableSelectOption {
 
 interface SearchableSelectProps {
   options: SearchableSelectOption[]
-  value?: string
+  value?: string | undefined
   onChange: (value: string) => void
-  onSearch?: (query: string) => void
-  isLoading?: boolean
-  placeholder?: string
+  onSearch?: ((query: string) => void) | undefined
+  isLoading?: boolean | undefined
+  placeholder?: string | undefined
 }
 
 export function SearchableSelect({

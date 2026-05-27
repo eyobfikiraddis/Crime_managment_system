@@ -8,11 +8,11 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 interface DatePickerProps {
-  value?: Date
+  value?: Date | undefined
   onChange: (date: Date | undefined) => void
-  minDate?: Date
-  maxDate?: Date
-  placeholder?: string
+  minDate?: Date | undefined
+  maxDate?: Date | undefined
+  placeholder?: string | undefined
 }
 
 export function DatePicker({
