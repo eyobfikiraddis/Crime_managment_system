@@ -8,6 +8,12 @@
       "search": "Search by person name...",
       "detentionStatus": "Detention Status",
       "dateRange": "Date Range",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "rangeSeparator": "to",
+      "activeLabel": "Active filters:",
+      "searchChip": "Search: \"{value}\"",
+      "dateChip": "Date: {from} to {to}",
       "clearAll": "Clear all filters"
     },
     "loading": "Loading arrests...",
@@ -61,6 +67,7 @@
     "chargesAtArrestLabel": "Charges at Time of Arrest",
     "chargesAtArrestPlaceholder": "Enter a charge and press Enter...",
     "chargesAtArrestHint": "List the charges known at the time of arrest. These may differ from formal charges filed later.",
+    "chargesMaxReached": "Maximum charges reached.",
     "chargesMin": "At least one charge is required.",
     "bailStatusLabel": "Bail Status",
     "bailAmountLabel": "Bail Amount (ETB)",
@@ -116,6 +123,7 @@
     "confirmTitle": "Delete arrest record?",
     "confirmDescription": "This will permanently delete arrest record {arrestNumber}. This action cannot be undone and will be logged in the case audit trail.",
     "confirmPhrase": "delete {arrestNumber}",
-    "successMessage": "Arrest record deleted successfully."
+    "successMessage": "Arrest record deleted successfully.",
+    "errorMessage": "Failed to delete arrest record. Please try again."
   }
 }

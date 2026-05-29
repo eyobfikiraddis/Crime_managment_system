@@ -43,13 +43,11 @@ const BAIL_STATUS_VARIANTS: Record<BailStatus, BadgeVariant> = {
 }
 
 function formatBailAmount(amount: number, locale: string): string {
-  return (
-    new Intl.NumberFormat(locale === 'am' ? 'am-ET' : 'en-ET', {
-      style: 'decimal',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount) + ' ETB'
-  )
+  return new Intl.NumberFormat(locale === 'am' ? 'am-ET' : 'en-ET', {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
 }
 
 export function ArrestDetailDrawer({
@@ -87,7 +85,7 @@ export function ArrestDetailDrawer({
       open={open}
       onOpenChange={onOpenChange}
       title={t('detail.drawerTitle')}
-      description={data?.arrestNumber}
+      description={data?.arrestNumber ?? ''}
       footer={
         <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
           <PermissionGuard permission={Permission.ARRESTS_DELETE}>

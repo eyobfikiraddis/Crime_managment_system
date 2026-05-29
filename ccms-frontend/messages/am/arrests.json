@@ -8,6 +8,12 @@
       "search": "በሰው ስም ፈልግ...",
       "detentionStatus": "የቁርኝቶ ሁኔታ",
       "dateRange": "የቀን ክልል",
+      "fromDate": "ከዚህ ቀን",
+      "toDate": "እስከዚህ ቀን",
+      "rangeSeparator": "እስከ",
+      "activeLabel": "ንቁ ማጣሪያዎች:",
+      "searchChip": "ፍለጋ: \"{value}\"",
+      "dateChip": "ቀን: {from} እስከ {to}",
       "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
     },
     "loading": "ቁርኝቶቾ እየጫነ ነው...",
@@ -61,6 +67,7 @@
     "chargesAtArrestLabel": "በቁርኝቶ ጊዜ ክሶች",
     "chargesAtArrestPlaceholder": "ክስ ያስገቡ እና Enter ይጫኑ...",
     "chargesAtArrestHint": "በቁርኝቶ ጊዜ የታወቁ ክሶችን ይዘርዝሩ። እነዚህ ከኋላ ከሚቀርቡ ይለያዩ ይሆናሉ።",
+    "chargesMaxReached": "ከፍተኛው የክስ መጠን ተሞልቷል።",
     "chargesMin": "ቢያንስ አንድ ክስ ያስፈልጋል።",
     "bailStatusLabel": "የዋስትና ሁኔታ",
     "bailAmountLabel": "የዋስትና መጠን (ብር)",
@@ -116,6 +123,7 @@
     "confirmTitle": "የቁርኝቶ መዝገብ ሰርዝ?",
     "confirmDescription": "ቁርኝቶ ቁጥር {arrestNumber} ቋሚ ሆኖ ይሰረዛል። ይህ ድርጊት ሊቀለበስ አይችልም።",
     "confirmPhrase": "{arrestNumber} ሰርዝ",
-    "successMessage": "የቁርኝቶ መዝገብ በተሳካ ሁኔታ ተሰርዟል።"
+    "successMessage": "የቁርኝቶ መዝገብ በተሳካ ሁኔታ ተሰርዟል።",
+    "errorMessage": "የቁርኝቶ መዝገብ ለመሰረዝ አልተሳካም። እንደገና ይሞክሩ።"
   }
 }

@@ -20,6 +20,15 @@ export const createInterrogationSchema = z.object({
     .min(10, { message: 'Summary must be at least 10 characters.' })
     .max(5000),
   recordingReference: z.string().max(200).optional(),
-})
+}).refine(
+  (data) => {
+    if (!data.legalRepresentativePresent) return true
+    return Boolean(data.legalRepresentativeName?.trim())
+  },
+  {
+    message: 'Legal representative name is required when present.',
+    path: ['legalRepresentativeName'],
+  },
+)
 
-export type CreateInterrogationValues = z.infer<typeof createInterrogationSchema>
+export type CreateInterrogationValues = z.input<typeof createInterrogationSchema>

@@ -25,6 +25,9 @@ export const interrogationListItemSchema = z.object({
   location: z.string(),
   durationMinutes: z.number().nullable(),
   legalRepresentativePresent: z.boolean(),
+  legalRepresentativeName: z.string().nullable().optional(),
+  summary: z.string().optional(),
+  recordingReference: z.string().nullable().optional(),
   createdAt: z.string(),
 })
 

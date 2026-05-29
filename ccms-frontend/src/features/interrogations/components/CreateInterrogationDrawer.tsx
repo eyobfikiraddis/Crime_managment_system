@@ -101,7 +101,7 @@ export function CreateInterrogationDrawer({
 
   const personOptions = useMemo(() => {
     return (
-      persons?.map((person: { id: string; firstName: string; lastName: string; roleOnCase?: string }) => {
+      persons?.map((person) => {
         const role = person.roleOnCase as RoleOnCase | undefined
         const roleLabel = role ? ` — ${t(`roleOnCase.${role}`)}` : ''
         return {
@@ -125,6 +125,9 @@ export function CreateInterrogationDrawer({
     await interrogationMutation.mutateAsync({
       ...values,
       durationMinutes: values.durationMinutes ?? null,
+      legalRepresentativeName: values.legalRepresentativePresent
+        ? values.legalRepresentativeName
+        : undefined,
     })
     onOpenChange(false)
     form.reset()

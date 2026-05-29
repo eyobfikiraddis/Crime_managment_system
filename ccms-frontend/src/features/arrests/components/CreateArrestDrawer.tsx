@@ -302,7 +302,9 @@ export function CreateArrestDrawer({ caseId, open, onOpenChange }: CreateArrestD
                   />
                 </div>
                 {charges.length >= MAX_CHARGES ? (
-                  <p className="text-xs text-foreground-muted">Maximum charges reached.</p>
+                  <p className="text-xs text-foreground-muted">
+                    {t('create.chargesMaxReached')}
+                  </p>
                 ) : null}
               </div>
               <p className="text-xs text-foreground-muted">{t('create.chargesAtArrestHint')}</p>

@@ -7,6 +7,12 @@
     "filters": {
       "search": "Search by subject name...",
       "dateRange": "Date Range",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "rangeSeparator": "to",
+      "activeLabel": "Active filters:",
+      "searchChip": "Search: \"{value}\"",
+      "dateChip": "Date: {from} to {to}",
       "clearAll": "Clear all filters"
     },
     "loading": "Loading interrogation records...",

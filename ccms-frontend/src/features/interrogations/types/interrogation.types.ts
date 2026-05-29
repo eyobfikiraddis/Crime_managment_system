@@ -25,6 +25,9 @@ export interface InterrogationListItem {
   location: string
   durationMinutes: number | null
   legalRepresentativePresent: boolean
+  legalRepresentativeName?: string | null | undefined
+  summary?: string | undefined
+  recordingReference?: string | null | undefined
   createdAt: string
 }
 

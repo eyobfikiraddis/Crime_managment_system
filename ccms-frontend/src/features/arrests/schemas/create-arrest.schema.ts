@@ -41,4 +41,4 @@ export const createArrestSchema = z
     },
   )
 
-export type CreateArrestValues = z.infer<typeof createArrestSchema>
+export type CreateArrestValues = z.input<typeof createArrestSchema>

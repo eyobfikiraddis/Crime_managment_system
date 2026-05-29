@@ -7,6 +7,12 @@
     "filters": {
       "search": "በተጠያቂ ስም ፈልግ...",
       "dateRange": "የቀን ክልል",
+      "fromDate": "ከዚህ ቀን",
+      "toDate": "እስከዚህ ቀን",
+      "rangeSeparator": "እስከ",
+      "activeLabel": "ንቁ ማጣሪያዎች:",
+      "searchChip": "ፍለጋ: \"{value}\"",
+      "dateChip": "ቀን: {from} እስከ {to}",
       "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
     },
     "loading": "የምርምራ መዝገቦች እየጫነ ነው...",

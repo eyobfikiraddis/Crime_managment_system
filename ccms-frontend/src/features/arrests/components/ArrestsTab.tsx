@@ -151,6 +151,9 @@ export function ArrestsTab({ caseId }: ArrestsTabProps) {
 
   const isInitialLoading = isLoading && !data
   const hasResults = (data?.data.length ?? 0) > 0
+  const emptyStateDescription = hasManagePermission
+    ? { description: t('tab.emptyDescription') }
+    : {}
 
   const handleRowClick = (row: ArrestListItem) => {
     setSelectedArrestId(row.id)
@@ -215,9 +218,11 @@ export function ArrestsTab({ caseId }: ArrestsTabProps) {
                   void setFilters({ dateFrom: date ? date.toISOString().slice(0, 10) : null, page: 1 })
                 })
               }
-              placeholder="From Date"
+              placeholder={t('tab.filters.fromDate')}
             />
-            <span className="text-foreground-muted text-xs">to</span>
+            <span className="text-foreground-muted text-xs">
+              {t('tab.filters.rangeSeparator')}
+            </span>
             <DatePicker
               value={filters.dateTo ? new Date(filters.dateTo) : undefined}
               onChange={(date) =>
@@ -225,7 +230,7 @@ export function ArrestsTab({ caseId }: ArrestsTabProps) {
                   void setFilters({ dateTo: date ? date.toISOString().slice(0, 10) : null, page: 1 })
                 })
               }
-              placeholder="To Date"
+              placeholder={t('tab.filters.toDate')}
             />
           </div>
 
@@ -243,11 +248,11 @@ export function ArrestsTab({ caseId }: ArrestsTabProps) {
 
         {hasActiveFilters && (
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-foreground-muted">Active Filters:</span>
+            <span className="text-foreground-muted">{t('tab.filters.activeLabel')}</span>
 
             {filters.search && (
               <Badge variant="secondary" className="gap-1 pr-1 font-normal">
-                Search: "{filters.search}"
+                {t('tab.filters.searchChip', { value: filters.search })}
                 <X
                   className="size-3 cursor-pointer hover:text-foreground"
                   onClick={() => {
@@ -270,7 +275,10 @@ export function ArrestsTab({ caseId }: ArrestsTabProps) {
 
             {(filters.dateFrom || filters.dateTo) && (
               <Badge variant="secondary" className="gap-1 pr-1 font-normal">
-                Date: {filters.dateFrom || '*'} to {filters.dateTo || '*'}
+                {t('tab.filters.dateChip', {
+                  from: filters.dateFrom || '*',
+                  to: filters.dateTo || '*',
+                })}
                 <X
                   className="size-3 cursor-pointer hover:text-foreground"
                   onClick={() => void setFilters({ dateFrom: null, dateTo: null, page: 1 })}
@@ -306,7 +314,7 @@ export function ArrestsTab({ caseId }: ArrestsTabProps) {
             <EmptyState
               icon={UserX}
               title={t('tab.empty')}
-              description={hasManagePermission ? t('tab.emptyDescription') : undefined}
+              {...emptyStateDescription}
               action={
                 <PermissionGuard permission={Permission.ARRESTS_MANAGE}>
                   <Button onClick={() => setCreateOpen(true)}>
