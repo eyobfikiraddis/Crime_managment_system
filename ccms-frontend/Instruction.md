@@ -1,4 +1,4 @@
-# CCMS Frontend — Phase 4: Evidence Module
+# CCMS Frontend — Phase 5: Arrests & Interrogations Module
 ## Execution Specification for AI Agent
 ### Year: 2026 | Runtime: Modern 2026 Ecosystem | Package Manager: pnpm | Target: Production-Grade Enterprise Frontend
 
@@ -8,34 +8,35 @@
 
 ## 1.1 Current Project State
 
-Phases 1 through 3 are complete. The following is fully operational:
+Phases 1 through 4 are complete. The following is fully operational:
 
 - **Foundation & Infrastructure**: Project scaffold, design tokens, Tailwind v4, all three Zustand stores, Axios client with 401 refresh queue, React Query with all 12 key factories, App Shell (Sidebar, TopBar, Breadcrumb), middleware, all shared components, i18n (EN + AM)
 - **Auth Module**: Login, logout, forgot-password, reset-password, idle session timeout, silent token refresh
-- **Cases Module**: Cases list (filters, sorting, pagination, DataTable), multi-step case creation wizard, case detail layout (header card, interactive status badge, nine-tab navigation), case overview tab (metadata, summary panels, officers, recent activity), case timeline tab (30s polling, add-note, diff viewer, print), status transition drawer
-- **Route coverage**: All dashboard skeleton routes render; `/403`, admin skeleton pages, and settings skeleton pages created
-- **i18n completeness test**: Passes for `common`, `auth`, `navigation`, `errors`, `accessibility`, `cases` namespaces
+- **Cases Module**: Cases list, multi-step case creation wizard, case detail layout (header card, interactive status badge, nine-tab navigation), case overview tab, case timeline tab (30s polling, add-note, diff viewer, print), status transition drawer
+- **Evidence Module**: Evidence tab (DataTable + gallery toggle), evidence upload drawer (Cloudinary three-step flow), evidence detail drawer with chain of custody timeline (gap detection, immutability indicators), lightbox viewer (keyboard navigation, touch swipe, zoom, metadata panel), record custody event drawer, evidence detail page sub-route
+- **Route coverage**: All dashboard skeleton routes render; `/403`, admin skeleton pages, settings skeleton pages, and all nine case tab skeletons created
+- **i18n completeness**: Passes for `common`, `auth`, `navigation`, `errors`, `accessibility`, `cases`, and `evidence` namespaces
 
-## 1.2 Phase 4 Objective
+## 1.2 Phase 5 Objective
 
-Phase 4 delivers the **Evidence module** — the most technically complex feature in the CCMS. Evidence management sits at the intersection of file handling, chain-of-custody law, and forensic integrity. Every engineering and UX decision must reflect the weight of that context.
+Phase 5 delivers two tightly scoped investigative modules — **Arrests** and **Interrogations** — that live inside the case detail view. Both are accessed exclusively through the case detail tab navigation established in Phase 3.
 
-Evidence in CCMS is managed **within the context of a case**. There is no top-level `/evidence` route. All evidence UI lives inside `/cases/[caseId]/evidence/` — the tab skeleton placed in Phase 3 is replaced by the full implementation in this phase.
+These modules are simpler in technical complexity than evidence (no file uploads, no chain-of-custody law), but they are operationally critical. Arrest records are legal documents. Interrogation logs are court-admissible records. Every field, every label, and every interaction must reflect the weight of that context.
 
-**Phase 4 delivers four tightly integrated sub-systems:**
+**Phase 5 delivers four sub-systems:**
 
-1. **Evidence Tab** — Replaces the Phase 3 skeleton at `/cases/[caseId]/evidence`. Full DataTable with gallery toggle, filter bar, row actions, and context-sensitive empty state.
-2. **Evidence Upload Flow** — A `SlideOverDrawer` containing a two-section form: metadata fields and a `FileUploadZone` wired to Cloudinary via the backend signature endpoint. Handles progress, retries, and failure gracefully.
-3. **Evidence Detail Drawer** — An inline slide-over showing full evidence metadata, the chain of custody timeline, and forensic fields. Opens without navigating away from the list.
-4. **Lightbox Viewer** — Full-screen image viewer for photo evidence with keyboard navigation, zoom, and metadata slide-in panel.
+1. **Arrests Tab** — Replaces the Phase 3 skeleton at `/cases/[caseId]/arrests`. Full DataTable with filter bar, row actions, and status badges for detention and bail.
+2. **Create Arrest Drawer** — A `SlideOverDrawer` with a structured form for recording a new arrest linked to a case suspect.
+3. **Arrest Detail & Update Drawers** — Inline detail view plus a separate update drawer for changing detention or bail status.
+4. **Interrogations Tab** — Replaces the Phase 3 skeleton at `/cases/[caseId]/interrogations`. DataTable/list of interrogation records with create form.
+5. **Create & Detail Interrogation Drawers** — Form for logging a new interrogation session and a read-only detail view.
 
 **Also in scope:**
 
-- Evidence types, Zod schemas, service implementation, and all React Query hooks
-- Full population of `messages/en/evidence.json` and `messages/am/evidence.json` (replacing the Phase 2 skeleton)
-- Cloudinary upload integration via backend-signed upload (server provides upload signature; file goes directly to Cloudinary CDN; Cloudinary URL returned to backend for record creation)
-- Chain of custody gap detection: amber dashed connector + warning badge when > 24 hours elapse between sequential custody events with no recorded transfer
-- Evidence `evidenceId` detail route: `/cases/[caseId]/evidence/[evidenceId]/page.tsx` — renders a full-page detail view for non-image evidence that benefits from a dedicated page (e.g., forensic reports, weapons)
+- `arrests` and `interrogations` feature modules: full type definitions, Zod schemas, service implementations, React Query hooks
+- Full population of `messages/en/arrests.json`, `messages/am/arrests.json`, `messages/en/interrogations.json`, and `messages/am/interrogations.json`
+- `arrestKeys` and `interrogationKeys` query key factories
+- Case overview tab count cards for Arrests and Interrogations — already rendered as links in Phase 3; the queries they depend on (`caseKeys.arrests(caseId)` and `caseKeys.interrogations(caseId)`) must be invalidated after mutations in this phase so count cards update automatically
 
 ## 1.3 Package Manager
 
@@ -43,151 +44,242 @@ All commands use **pnpm**. No npm or yarn.
 
 ## 1.4 What Must Be Completed
 
-**Evidence service (`src/services/domain/evidence.service.ts`):**
+**Arrests service (`src/services/domain/arrests.service.ts`):**
 - Replace all stubs with real Axios calls
-- All endpoints listed in Appendix C of the blueprint (`/api/v1/evidence` + photos — 16 endpoints)
-- Cloudinary signature endpoint call
+- All 5 endpoints from Appendix C of the blueprint (`/api/v1/arrests` + `/api/v1/cases/{id}/arrests`)
 - Response validation via Zod
 
-**Evidence types and schemas:**
-- All TypeScript types: `Evidence`, `EvidenceListItem`, `EvidenceType`, `CustodyEvent`, `CustodyChain`, `PhotoEvidence`, `ForensicReport`, `EvidenceFilters`, `UploadEvidencePayload`
-- All Zod schemas: evidence metadata form, upload validation, custody event schema, API response schemas
-- Evidence type enum and variant mapping
+**Arrests types and schemas:**
+- All TypeScript types: `Arrest`, `ArrestListItem`, `DetentionStatus`, `BailStatus`, `ArrestFilters`, `CreateArrestPayload`, `UpdateArrestPayload`
+- All Zod schemas: create form, update form, API response schemas, filter schema
 
-**Evidence query hooks:**
-- `useEvidenceList(caseId, filters)` — list with filter params
-- `useEvidence(evidenceId)` — single evidence detail
-- `useCustodyChain(evidenceId)` — full chain of custody for one evidence item
-- `useUploadEvidence(caseId)` — create mutation with Cloudinary upload orchestration
-- `useUpdateEvidence(evidenceId)` — update mutation
-- `useDeleteEvidence(evidenceId)` — deletion mutation with `DestructiveConfirmDialog`
-- `useRecordCustodyEvent(evidenceId)` — custody transfer mutation
+**Arrests query hooks:**
+- `useArrestList(caseId, filters)` — paginated list with filter params
+- `useArrest(arrestId)` — single arrest detail
+- `useCreateArrest(caseId)` — create mutation
+- `useUpdateArrest(arrestId, caseId)` — update mutation (detention/bail status changes)
+- `useDeleteArrest(arrestId, caseId)` — deletion mutation with `DestructiveConfirmDialog`
 
-**Evidence i18n messages:**
-- Fully populate `messages/en/evidence.json` and `messages/am/evidence.json`
+**Interrogations service (`src/services/domain/interrogations.service.ts`):**
+- Replace all stubs with real Axios calls
+- All 2 endpoints: `GET /api/v1/cases/{id}/interrogations` and `POST /api/v1/cases/{id}/interrogations`
+- Response validation via Zod
 
-**Evidence tab (`/cases/[caseId]/evidence/page.tsx`):**
-- Replace Phase 3 skeleton with full implementation
-- `PageHeader`: "Evidence" title + evidence count + "Add Evidence" button (permission guarded)
-- Filter bar: evidence type filter, collected-by officer search, date range, search by description
-- Active filter chips
-- DataTable view (default): all columns, sortable, kebab row actions
-- Gallery view toggle: masonry grid of evidence cards for photo evidence
+**Interrogations types and schemas:**
+- All TypeScript types: `Interrogation`, `InterrogationListItem`, `InterrogationFilters`, `CreateInterrogationPayload`
+- All Zod schemas: create form, API response schemas, filter schema
+
+**Interrogations query hooks:**
+- `useInterrogationList(caseId, filters)` — paginated list
+- `useCreateInterrogation(caseId)` — create mutation
+
+**Case-level person query for form selects:**
+- Both create forms require searching persons linked to the current case
+- Add `getCasePersons(caseId, params)` to `cases.service.ts` (uses existing `caseKeys` factory)
+- This call hits `GET /api/v1/cases/{caseId}/persons` (part of the 39 case endpoints)
+- The arrests form filters by `role=SUSPECT`; the interrogations form has no role filter
+
+**Arrests i18n messages:**
+- Fully populate `messages/en/arrests.json` and `messages/am/arrests.json`
+
+**Interrogations i18n messages:**
+- Fully populate `messages/en/interrogations.json` and `messages/am/interrogations.json`
+
+**Arrests tab (`/cases/[caseId]/arrests/page.tsx`):**
+- Replace Phase 3 skeleton
+- `PageHeader`: "Arrests" title + count + "Record Arrest" button (investigator+)
+- Filter bar: detention status filter, search by person name, date range
+- DataTable: all columns, sortable, kebab row actions
 - Loading, empty, and error states
 
-**Evidence upload drawer:**
-- `SlideOverDrawer` triggered by "Add Evidence" button
-- Section 1: Metadata (description, evidence type, collected-by officer, collected-at date, storage location, notes)
-- Section 2: Media upload (conditional — only for evidence types that support files)
-- Full Cloudinary upload flow: signature → upload with progress → record creation
-- Retry on failure without losing metadata
+**Create Arrest Drawer:**
+- `SlideOverDrawer` (480px) with arrested person select, arresting officer select, arrest date/time, location, warrant number, charges at time of arrest, notes
+- Bail status defaults to `NOT_SET`; bail amount field shown conditionally when `GRANTED` or `POSTED`
 
-**Evidence detail drawer:**
-- Opens when clicking any non-photo evidence item; photo evidence opens the Lightbox
-- Full metadata card
-- Chain of custody timeline with gap detection
-- Forensic report section (forensic role only)
-- Vehicle/weapon additional fields section (conditional by evidence type)
+**Arrest Detail Drawer:**
+- Full metadata card showing all arrest fields
+- "Update Detention Status" action button → opens `UpdateArrestDrawer`
+- "Delete Arrest" destructive action → `DestructiveConfirmDialog`
 
-**Evidence detail page (`/cases/[caseId]/evidence/[evidenceId]/page.tsx`):**
-- Full-page detail view (Server Component rendering a Client Component)
-- Used for evidence types that warrant a dedicated page
+**Update Arrest Drawer:**
+- Dedicated `SlideOverDrawer` for modifying detention status and bail information only
+- Uses `useUpdateArrest` mutation
 
-**Lightbox viewer:**
-- Full-screen overlay for photo evidence
-- Left/right navigation between photos in the case
-- Keyboard: `←`/`→` navigate, `Esc` closes, `+`/`-` or scroll-wheel zooms
-- Metadata panel: slides in from the right on button click
-- Download button (permission guarded)
-- Touch swipe support (mobile)
+**Interrogations tab (`/cases/[caseId]/interrogations/page.tsx`):**
+- Replace Phase 3 skeleton
+- `PageHeader`: "Interrogations" title + count + "Add Interrogation" button (investigator+)
+- Filter bar: search by subject name, date range
+- DataTable: all columns, row click opens detail drawer
+- Loading, empty, and error states
+
+**Create Interrogation Drawer:**
+- `SlideOverDrawer` (480px) with subject (person) select, conducting officer, date/time, location, duration, legal representative fields, summary, recording reference
+- Legal representative name field shown conditionally when `legalRepresentativePresent === true`
+
+**Interrogation Detail Drawer:**
+- Read-only. All fields displayed.
+- No edit or delete actions (interrogation records are immutable once created)
+- Padlock icon in the drawer header to indicate immutability
 
 ## 1.5 What Must NOT Be Implemented
 
-- Evidence editing (full edit form) — add to backlog for Phase 5 hardening
-- Bulk evidence operations (bulk delete, bulk custody transfer) — Phase 11
-- Forensic report creation UI — Phase 11
+- Interrogation editing or deletion — these records are immutable
+- Bulk arrest operations — deferred to Phase 11
+- Standalone `/arrests` top-level list page — deferred (arrests always accessed via case context in this phase)
+- Court appearance scheduling from the arrest record — belongs to Phase 6 (Legal module)
+- Printing / PDF export of arrest records — Phase 11
 - MSW mocking — still deferred
-- Chain of custody PDF export — Phase 11
 
 ## 1.6 Handoff Standard
 
-When Phase 4 finishes:
-- Navigating to `/cases/[caseId]/evidence` shows the full evidence list (DataTable + gallery toggle)
-- "Add Evidence" opens the upload drawer; completing it creates the evidence record and optionally uploads a file to Cloudinary
-- Clicking an evidence row opens the detail drawer with chain of custody timeline
-- Clicking a photo evidence card opens the Lightbox with keyboard and touch navigation
+When Phase 5 finishes:
+- Navigating to `/cases/[caseId]/arrests` shows the full arrests DataTable (not the Phase 3 skeleton)
+- "Record Arrest" opens the create drawer; completing it adds the arrest record and refreshes the list
+- Clicking an arrest row opens the detail drawer; "Update Detention Status" opens the update drawer
+- Navigating to `/cases/[caseId]/interrogations` shows the full interrogations DataTable
+- "Add Interrogation" opens the create drawer; completing it adds the interrogation record and refreshes the list
+- Clicking an interrogation row opens the read-only detail drawer
+- Case overview tab arrest and interrogation count cards reflect the updated totals after mutations
 - `pnpm type-check` — zero errors
 - `pnpm lint` — zero warnings
-- `pnpm test` — all evidence tests pass
-- i18n completeness test passes for the `evidence` namespace
+- `pnpm test` — all arrests and interrogations tests pass
+- i18n completeness test passes for the `arrests` and `interrogations` namespaces
 
 ---
 
 # 2. Dependencies
 
 No new packages are required. All dependencies are already installed:
-- `axios` — HTTP calls including Cloudinary direct upload with `onUploadProgress`
-- `@tanstack/react-query` — all query/mutation hooks
-- `zod` — response and form validation
-- `react-hook-form` + `@hookform/resolvers` — upload form
-- `lucide-react` — all icons
 
-Verify `date-fns` is installed (used for custody gap detection):
 ```bash
+# Verify core dependencies are present
+pnpm why @tanstack/react-query
+pnpm why react-hook-form
+pnpm why zod
+pnpm why nuqs
 pnpm why date-fns
+pnpm why lucide-react
+```
+
+If any of the above are missing, install them:
+```bash
+pnpm add @tanstack/react-query react-hook-form @hookform/resolvers zod nuqs date-fns lucide-react
 ```
 
 ---
 
-# 3. Type Definitions
+# 3. File & Directory Structure
 
-## 3.1 `src/features/evidence/types/evidence.types.ts`
+Create the following new directories and files. All stubs already generated in Phase 3 are replaced.
+
+```
+src/
+├── features/
+│   ├── arrests/
+│   │   ├── components/
+│   │   │   ├── ArrestsTab.tsx                # Main tab — filter bar + table + drawers
+│   │   │   ├── CreateArrestDrawer.tsx         # SlideOverDrawer — new arrest form
+│   │   │   ├── ArrestDetailDrawer.tsx         # SlideOverDrawer — read + actions
+│   │   │   └── UpdateArrestDrawer.tsx         # SlideOverDrawer — detention/bail update
+│   │   ├── hooks/
+│   │   │   ├── useArrestList.ts
+│   │   │   ├── useArrest.ts
+│   │   │   ├── useCreateArrest.ts
+│   │   │   ├── useUpdateArrest.ts
+│   │   │   ├── useDeleteArrest.ts
+│   │   │   └── index.ts
+│   │   ├── schemas/
+│   │   │   ├── create-arrest.schema.ts
+│   │   │   ├── update-arrest.schema.ts
+│   │   │   ├── arrest-api.schema.ts
+│   │   │   └── arrest-filters.schema.ts
+│   │   ├── types/
+│   │   │   ├── arrest.types.ts
+│   │   │   └── index.ts
+│   │   └── index.ts                          # Public barrel export
+│   │
+│   └── interrogations/
+│       ├── components/
+│       │   ├── InterrogationsTab.tsx          # Main tab — filter bar + table + drawers
+│       │   ├── CreateInterrogationDrawer.tsx  # SlideOverDrawer — new interrogation form
+│       │   └── InterrogationDetailDrawer.tsx  # SlideOverDrawer — read-only detail
+│       ├── hooks/
+│       │   ├── useInterrogationList.ts
+│       │   ├── useCreateInterrogation.ts
+│       │   └── index.ts
+│       ├── schemas/
+│       │   ├── create-interrogation.schema.ts
+│       │   ├── interrogation-api.schema.ts
+│       │   └── interrogation-filters.schema.ts
+│       ├── types/
+│       │   ├── interrogation.types.ts
+│       │   └── index.ts
+│       └── index.ts
+│
+├── services/
+│   └── query/
+│       └── keys/
+│           ├── arrestKeys.ts                  # New — query key factory
+│           └── interrogationKeys.ts           # New — query key factory
+│
+└── app/
+    └── (dashboard)/
+        └── cases/
+            └── [caseId]/
+                ├── arrests/
+                │   └── page.tsx               # Replaces Phase 3 skeleton
+                └── interrogations/
+                    └── page.tsx               # Replaces Phase 3 skeleton
+
+messages/
+├── en/
+│   ├── arrests.json                           # Full EN population
+│   └── interrogations.json                    # Full EN population
+└── am/
+    ├── arrests.json                           # Full AM population
+    └── interrogations.json                    # Full AM population
+```
+
+---
+
+# 4. TypeScript Types — Arrests
+
+## 4.1 `src/features/arrests/types/arrest.types.ts`
 
 ```typescript
-// ─── Evidence Type enum ────────────────────────────────────────────────────
-export const EvidenceType = {
-  DIGITAL: 'DIGITAL',                  // Screenshots, files, logs
-  CRIME_SCENE_PHOTO: 'CRIME_SCENE_PHOTO',
-  PHYSICAL: 'PHYSICAL',                // Physical objects
-  DOCUMENT: 'DOCUMENT',               // Papers, records
-  BIOLOGICAL: 'BIOLOGICAL',           // DNA, blood, hair
-  FORENSIC_REPORT: 'FORENSIC_REPORT', // Lab reports
-  WEAPON: 'WEAPON',
-  VEHICLE: 'VEHICLE',
-  WITNESS_STATEMENT: 'WITNESS_STATEMENT',
-  AUDIO: 'AUDIO',
-  VIDEO: 'VIDEO',
-  OTHER: 'OTHER',
+// ─── Detention Status enum ──────────────────────────────────────────────────
+export const DetentionStatus = {
+  IN_CUSTODY:          'IN_CUSTODY',
+  RELEASED_ON_BAIL:    'RELEASED_ON_BAIL',
+  RELEASED:            'RELEASED',
+  TRANSFERRED:         'TRANSFERRED',
 } as const
-export type EvidenceType = (typeof EvidenceType)[keyof typeof EvidenceType]
+export type DetentionStatus = (typeof DetentionStatus)[keyof typeof DetentionStatus]
 
-// Evidence types that support file/media uploads
-export const MEDIA_EVIDENCE_TYPES: EvidenceType[] = [
-  EvidenceType.CRIME_SCENE_PHOTO,
-  EvidenceType.DIGITAL,
-  EvidenceType.DOCUMENT,
-  EvidenceType.AUDIO,
-  EvidenceType.VIDEO,
+// ─── Bail Status enum ───────────────────────────────────────────────────────
+export const BailStatus = {
+  NOT_SET:  'NOT_SET',
+  DENIED:   'DENIED',
+  GRANTED:  'GRANTED',
+  POSTED:   'POSTED',
+} as const
+export type BailStatus = (typeof BailStatus)[keyof typeof BailStatus]
+
+// Bail statuses that require the bail amount field to be shown
+export const BAIL_STATUSES_WITH_AMOUNT: BailStatus[] = [
+  BailStatus.GRANTED,
+  BailStatus.POSTED,
 ]
 
-// Evidence types that display in the gallery view
-export const GALLERY_EVIDENCE_TYPES: EvidenceType[] = [
-  EvidenceType.CRIME_SCENE_PHOTO,
-]
+// ─── Shared reference shapes ────────────────────────────────────────────────
+export interface PersonRef {
+  id: string
+  firstName: string
+  lastName: string
+  nationalId: string   // Masked to last 4 digits below dept head
+}
 
-// ─── Custody event ─────────────────────────────────────────────────────────
-export const CustodyEventType = {
-  COLLECTED: 'COLLECTED',
-  TRANSFERRED: 'TRANSFERRED',
-  EXAMINED: 'EXAMINED',
-  STORED: 'STORED',
-  PRESENTED_IN_COURT: 'PRESENTED_IN_COURT',
-  RETURNED: 'RETURNED',
-  DESTROYED: 'DESTROYED',
-} as const
-export type CustodyEventType = (typeof CustodyEventType)[keyof typeof CustodyEventType]
-
-export interface CustodyOfficer {
+export interface OfficerRef {
   id: string
   badgeNumber: string
   firstName: string
@@ -195,208 +287,233 @@ export interface CustodyOfficer {
   departmentName: string
 }
 
-export interface CustodyEvent {
+// ─── Core arrest entity ──────────────────────────────────────────────────────
+export interface ArrestListItem {
   id: string
-  eventType: CustodyEventType
-  fromOfficer: CustodyOfficer | null   // null on initial collection
-  toOfficer: CustodyOfficer
-  location: string
-  reason: string | null
-  notes: string | null
-  timestamp: string                    // ISO 8601
-  isImmutable: true                    // Always true — emphasise in UI
-}
-
-// A gap is detected when two consecutive events are more than 24 hours apart
-export interface CustodyGap {
-  afterEventId: string
-  gapHours: number
-}
-
-export interface CustodyChain {
-  events: CustodyEvent[]
-  gaps: CustodyGap[]                   // Computed server-side or client-side
-  isIntact: boolean                    // true if no gaps
-}
-
-// ─── Forensic report ───────────────────────────────────────────────────────
-export interface ForensicReport {
-  id: string
-  reportNumber: string
-  submittedBy: CustodyOfficer
-  labName: string
-  findings: string
-  conclusion: string
-  submittedAt: string
-}
-
-// ─── Vehicle / weapon extras ───────────────────────────────────────────────
-export interface VehicleDetails {
-  make: string
-  model: string
-  year: number | null
-  licensePlate: string
-  color: string
-  vin: string | null
-}
-
-export interface WeaponDetails {
-  weaponType: string
-  make: string
-  model: string
-  serialNumber: string | null
-  caliber: string | null
-}
-
-// ─── Core evidence entity ──────────────────────────────────────────────────
-export interface EvidenceListItem {
-  id: string
-  evidenceNumber: string               // e.g. "EVD-2026-00042"
+  arrestNumber: string              // e.g. "ARR-2026-00018"
   caseId: string
-  evidenceType: EvidenceType
-  description: string
-  collectedBy: CustodyOfficer
-  collectedAt: string                  // ISO 8601
-  storageLocation: string
-  custodyStatus: CustodyEventType      // Most recent custody event type
-  hasMedia: boolean
-  mediaUrl: string | null              // Cloudinary URL (null if no file)
-  thumbnailUrl: string | null          // Cloudinary thumbnail transformation URL
+  arrestedPerson: PersonRef
+  arrestingOfficer: OfficerRef
+  arrestDate: string                // ISO 8601
+  location: string
+  detentionStatus: DetentionStatus
+  bailStatus: BailStatus
+  bailAmount: number | null         // In ETB; null unless bailStatus is GRANTED/POSTED
+  warrantNumber: string | null
   createdAt: string
+  updatedAt: string
 }
 
-export interface Evidence extends EvidenceListItem {
+export interface Arrest extends ArrestListItem {
+  chargesAtArrest: string[]         // Freetext charge descriptions at time of arrest
   notes: string | null
-  custodyChain: CustodyChain
-  forensicReport: ForensicReport | null
-  vehicleDetails: VehicleDetails | null
-  weaponDetails: WeaponDetails | null
+  courtAppearanceDate: string | null  // ISO 8601 date; populated by legal module later
 }
 
-// ─── Filters ───────────────────────────────────────────────────────────────
-export interface EvidenceFilters {
-  search?: string
-  evidenceType?: EvidenceType[]
-  collectedById?: string
+// ─── Filters ─────────────────────────────────────────────────────────────────
+export interface ArrestFilters {
+  search?: string                    // Search by arrested person name
+  detentionStatus?: DetentionStatus[]
   dateFrom?: string
   dateTo?: string
   page?: number
   pageSize?: number
-  sortField?: 'evidenceNumber' | 'collectedAt' | 'evidenceType' | 'custodyStatus'
+  sortField?: 'arrestDate' | 'arrestNumber' | 'detentionStatus'
   sortDirection?: 'asc' | 'desc'
 }
 
-// ─── Upload ────────────────────────────────────────────────────────────────
-export interface CloudinarySignature {
-  signature: string
-  timestamp: number
-  cloudName: string
-  apiKey: string
-  uploadPreset: string
-  folder: string
-}
-
-export interface UploadEvidencePayload {
-  description: string
-  evidenceType: EvidenceType
-  collectedById: string
-  collectedAt: string
-  storageLocation: string
-  notes?: string
-  cloudinaryUrl?: string              // Populated after successful Cloudinary upload
-  cloudinaryPublicId?: string
-}
-
-export interface RecordCustodyEventPayload {
-  eventType: CustodyEventType
-  toOfficerId: string
+// ─── Payloads ─────────────────────────────────────────────────────────────────
+export interface CreateArrestPayload {
+  arrestedPersonId: string
+  arrestingOfficerId: string
+  arrestDate: string                 // ISO 8601
   location: string
-  reason?: string
+  warrantNumber?: string
+  chargesAtArrest: string[]
+  bailStatus?: BailStatus            // Defaults to NOT_SET
+  notes?: string
+}
+
+export interface UpdateArrestPayload {
+  detentionStatus?: DetentionStatus
+  bailStatus?: BailStatus
+  bailAmount?: number | null
   notes?: string
 }
 ```
 
-## 3.2 Barrel (`src/features/evidence/types/index.ts`)
+## 4.2 `src/features/arrests/types/index.ts`
 
-Re-export all types.
+Re-export all types and constants:
+
+```typescript
+export * from './arrest.types'
+```
 
 ---
 
-# 4. Zod Schemas
+# 5. TypeScript Types — Interrogations
 
-## 4.1 `src/features/evidence/schemas/upload-evidence.schema.ts`
+## 5.1 `src/features/interrogations/types/interrogation.types.ts`
+
+```typescript
+import type { OfficerRef } from '@features/arrests/types/arrest.types'
+
+// Re-export PersonRef for use in this module
+export type { PersonRef } from '@features/arrests/types/arrest.types'
+
+// ─── Core interrogation entity ───────────────────────────────────────────────
+export interface InterrogationListItem {
+  id: string
+  interrogationNumber: string          // e.g. "INT-2026-00007"
+  caseId: string
+  subject: {
+    id: string
+    firstName: string
+    lastName: string
+    roleOnCase: 'SUSPECT' | 'VICTIM' | 'WITNESS'
+  }
+  conductingOfficer: OfficerRef
+  interrogationDate: string            // ISO 8601
+  location: string
+  durationMinutes: number | null
+  legalRepresentativePresent: boolean
+  createdAt: string
+}
+
+export interface Interrogation extends InterrogationListItem {
+  legalRepresentativeName: string | null
+  summary: string
+  recordingReference: string | null
+}
+
+// ─── Filters ─────────────────────────────────────────────────────────────────
+export interface InterrogationFilters {
+  search?: string                      // Search by subject name
+  dateFrom?: string
+  dateTo?: string
+  page?: number
+  pageSize?: number
+  sortField?: 'interrogationDate' | 'interrogationNumber'
+  sortDirection?: 'asc' | 'desc'
+}
+
+// ─── Payload ─────────────────────────────────────────────────────────────────
+export interface CreateInterrogationPayload {
+  subjectId: string
+  conductingOfficerId: string
+  interrogationDate: string            // ISO 8601
+  location: string
+  durationMinutes?: number
+  legalRepresentativePresent: boolean
+  legalRepresentativeName?: string
+  summary: string
+  recordingReference?: string
+}
+```
+
+## 5.2 `src/features/interrogations/types/index.ts`
+
+```typescript
+export * from './interrogation.types'
+```
+
+---
+
+# 6. Zod Schemas — Arrests
+
+## 6.1 `src/features/arrests/schemas/create-arrest.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { EvidenceType } from '../types/evidence.types'
+import { BailStatus } from '../types/arrest.types'
 
-// Step 1 of the upload flow — metadata
-export const evidenceMetadataSchema = z.object({
-  description: z
+export const createArrestSchema = z.object({
+  arrestedPersonId: z
     .string()
-    .min(5, { message: 'Description must be at least 5 characters.' })
-    .max(1000),
-  evidenceType: z.nativeEnum(EvidenceType, {
-    required_error: 'Evidence type is required.',
-  }),
-  collectedById: z.string().min(1, { message: 'Collected-by officer is required.' }),
-  collectedAt: z.string().min(1, { message: 'Collection date is required.' }),
-  storageLocation: z
+    .min(1, { message: 'Arrested person is required.' }),
+  arrestingOfficerId: z
     .string()
-    .min(2, { message: 'Storage location is required.' })
-    .max(200),
+    .min(1, { message: 'Arresting officer is required.' }),
+  arrestDate: z
+    .string()
+    .min(1, { message: 'Arrest date and time is required.' }),
+  location: z
+    .string()
+    .min(2, { message: 'Arrest location is required.' })
+    .max(300),
+  warrantNumber: z.string().max(100).optional(),
+  chargesAtArrest: z
+    .array(z.string().min(1))
+    .min(1, { message: 'At least one charge must be listed.' })
+    .max(20),
+  bailStatus: z.nativeEnum(BailStatus).optional().default(BailStatus.NOT_SET),
+  bailAmount: z.number().positive().nullable().optional(),
   notes: z.string().max(2000).optional(),
-})
+}).refine(
+  (data) => {
+    // Bail amount is required when bail is GRANTED or POSTED
+    if (
+      (data.bailStatus === BailStatus.GRANTED || data.bailStatus === BailStatus.POSTED) &&
+      (data.bailAmount === null || data.bailAmount === undefined)
+    ) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Bail amount is required when bail is granted or posted.',
+    path: ['bailAmount'],
+  },
+)
 
-export type EvidenceMetadataValues = z.infer<typeof evidenceMetadataSchema>
-
-// Client-side file validation (used before upload, not submitted to API)
-export const evidenceFileSchema = z.object({
-  file: z
-    .instanceof(File)
-    .refine(
-      (f) => f.size <= 50 * 1024 * 1024,
-      { message: 'File must be no larger than 50 MB.' },
-    )
-    .refine(
-      (f) =>
-        [
-          'image/jpeg', 'image/png', 'image/webp', 'image/tiff',
-          'application/pdf',
-          'audio/mpeg', 'audio/wav',
-          'video/mp4', 'video/quicktime',
-        ].includes(f.type),
-      { message: 'File type not supported.' },
-    ),
-})
+export type CreateArrestValues = z.infer<typeof createArrestSchema>
 ```
 
-## 4.2 `src/features/evidence/schemas/custody-event.schema.ts`
+## 6.2 `src/features/arrests/schemas/update-arrest.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { CustodyEventType } from '../types/evidence.types'
+import { DetentionStatus, BailStatus } from '../types/arrest.types'
 
-export const recordCustodyEventSchema = z.object({
-  eventType: z.nativeEnum(CustodyEventType, {
-    required_error: 'Event type is required.',
-  }),
-  toOfficerId: z.string().min(1, { message: 'Receiving officer is required.' }),
-  location: z.string().min(2, { message: 'Location is required.' }).max(200),
-  reason: z.string().max(500).optional(),
-  notes: z.string().max(1000).optional(),
-})
+export const updateArrestSchema = z.object({
+  detentionStatus: z.nativeEnum(DetentionStatus).optional(),
+  bailStatus: z.nativeEnum(BailStatus).optional(),
+  bailAmount: z.number().positive().nullable().optional(),
+  notes: z.string().max(2000).optional(),
+}).refine(
+  (data) => {
+    if (
+      (data.bailStatus === BailStatus.GRANTED || data.bailStatus === BailStatus.POSTED) &&
+      (data.bailAmount === null || data.bailAmount === undefined)
+    ) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Bail amount is required when bail is granted or posted.',
+    path: ['bailAmount'],
+  },
+)
 
-export type RecordCustodyEventValues = z.infer<typeof recordCustodyEventSchema>
+export type UpdateArrestValues = z.infer<typeof updateArrestSchema>
 ```
 
-## 4.3 `src/features/evidence/schemas/evidence-api.schema.ts`
+## 6.3 `src/features/arrests/schemas/arrest-api.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { EvidenceType, CustodyEventType } from '../types/evidence.types'
+import { DetentionStatus, BailStatus } from '../types/arrest.types'
 
-const custodyOfficerSchema = z.object({
+const personRefSchema = z.object({
+  id: z.string().uuid(),
+  firstName: z.string(),
+  lastName: z.string(),
+  nationalId: z.string(),
+})
+
+const officerRefSchema = z.object({
   id: z.string().uuid(),
   badgeNumber: z.string(),
   firstName: z.string(),
@@ -404,235 +521,229 @@ const custodyOfficerSchema = z.object({
   departmentName: z.string(),
 })
 
-const custodyEventSchema = z.object({
+export const arrestListItemSchema = z.object({
   id: z.string().uuid(),
-  eventType: z.nativeEnum(CustodyEventType),
-  fromOfficer: custodyOfficerSchema.nullable(),
-  toOfficer: custodyOfficerSchema,
-  location: z.string(),
-  reason: z.string().nullable(),
-  notes: z.string().nullable(),
-  timestamp: z.string(),
-  isImmutable: z.literal(true),
-})
-
-export const evidenceListItemSchema = z.object({
-  id: z.string().uuid(),
-  evidenceNumber: z.string(),
+  arrestNumber: z.string(),
   caseId: z.string().uuid(),
-  evidenceType: z.nativeEnum(EvidenceType),
-  description: z.string(),
-  collectedBy: custodyOfficerSchema,
-  collectedAt: z.string(),
-  storageLocation: z.string(),
-  custodyStatus: z.nativeEnum(CustodyEventType),
-  hasMedia: z.boolean(),
-  mediaUrl: z.string().nullable(),
-  thumbnailUrl: z.string().nullable(),
+  arrestedPerson: personRefSchema,
+  arrestingOfficer: officerRefSchema,
+  arrestDate: z.string(),
+  location: z.string(),
+  detentionStatus: z.nativeEnum(DetentionStatus),
+  bailStatus: z.nativeEnum(BailStatus),
+  bailAmount: z.number().nullable(),
+  warrantNumber: z.string().nullable(),
   createdAt: z.string(),
+  updatedAt: z.string(),
 })
 
-export const evidenceDetailSchema = evidenceListItemSchema.extend({
+export const arrestDetailSchema = arrestListItemSchema.extend({
+  chargesAtArrest: z.array(z.string()),
   notes: z.string().nullable(),
-  custodyChain: z.object({
-    events: z.array(custodyEventSchema),
-    gaps: z.array(
-      z.object({ afterEventId: z.string(), gapHours: z.number() }),
-    ),
-    isIntact: z.boolean(),
-  }),
-  forensicReport: z
-    .object({
-      id: z.string().uuid(),
-      reportNumber: z.string(),
-      submittedBy: custodyOfficerSchema,
-      labName: z.string(),
-      findings: z.string(),
-      conclusion: z.string(),
-      submittedAt: z.string(),
-    })
-    .nullable(),
-  vehicleDetails: z
-    .object({
-      make: z.string(), model: z.string(), year: z.number().nullable(),
-      licensePlate: z.string(), color: z.string(), vin: z.string().nullable(),
-    })
-    .nullable(),
-  weaponDetails: z
-    .object({
-      weaponType: z.string(), make: z.string(), model: z.string(),
-      serialNumber: z.string().nullable(), caliber: z.string().nullable(),
-    })
-    .nullable(),
+  courtAppearanceDate: z.string().nullable(),
 })
 
-export const paginatedEvidenceSchema = z.object({
-  data: z.array(evidenceListItemSchema),
+export const paginatedArrestsSchema = z.object({
+  data: z.array(arrestListItemSchema),
   total: z.number(),
   page: z.number(),
   pageSize: z.number(),
   totalPages: z.number(),
 })
-
-export const cloudinarySignatureSchema = z.object({
-  signature: z.string(),
-  timestamp: z.number(),
-  cloudName: z.string(),
-  apiKey: z.string(),
-  uploadPreset: z.string(),
-  folder: z.string(),
-})
 ```
 
-## 4.4 `src/features/evidence/schemas/evidence-filters.schema.ts`
+## 6.4 `src/features/arrests/schemas/arrest-filters.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { EvidenceType } from '../types/evidence.types'
+import { DetentionStatus } from '../types/arrest.types'
 
-export const evidenceFiltersSchema = z.object({
+export const arrestFiltersSchema = z.object({
   search: z.string().optional(),
-  evidenceType: z.array(z.nativeEnum(EvidenceType)).optional(),
-  collectedById: z.string().optional(),
+  detentionStatus: z.array(z.nativeEnum(DetentionStatus)).optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
   page: z.coerce.number().min(1).optional().default(1),
   pageSize: z.coerce.number().min(10).max(100).optional().default(25),
   sortField: z
-    .enum(['evidenceNumber', 'collectedAt', 'evidenceType', 'custodyStatus'])
+    .enum(['arrestDate', 'arrestNumber', 'detentionStatus'])
     .optional()
-    .default('collectedAt'),
+    .default('arrestDate'),
   sortDirection: z.enum(['asc', 'desc']).optional().default('desc'),
 })
 ```
 
 ---
 
-# 5. Evidence Service Implementation
+# 7. Zod Schemas — Interrogations
 
-## 5.1 `src/services/domain/evidence.service.ts`
+## 7.1 `src/features/interrogations/schemas/create-interrogation.schema.ts`
 
-Replace all stubs. Every response is validated with the corresponding Zod schema before being returned.
+```typescript
+import { z } from 'zod'
+
+export const createInterrogationSchema = z.object({
+  subjectId: z
+    .string()
+    .min(1, { message: 'Subject is required.' }),
+  conductingOfficerId: z
+    .string()
+    .min(1, { message: 'Conducting officer is required.' }),
+  interrogationDate: z
+    .string()
+    .min(1, { message: 'Date and time is required.' }),
+  location: z
+    .string()
+    .min(2, { message: 'Location is required.' })
+    .max(300),
+  durationMinutes: z.number().int().positive().max(1440).nullable().optional(),
+  legalRepresentativePresent: z.boolean().default(false),
+  legalRepresentativeName: z.string().max(200).optional(),
+  summary: z
+    .string()
+    .min(10, { message: 'Summary must be at least 10 characters.' })
+    .max(5000),
+  recordingReference: z.string().max(200).optional(),
+})
+
+export type CreateInterrogationValues = z.infer<typeof createInterrogationSchema>
+```
+
+## 7.2 `src/features/interrogations/schemas/interrogation-api.schema.ts`
+
+```typescript
+import { z } from 'zod'
+
+const officerRefSchema = z.object({
+  id: z.string().uuid(),
+  badgeNumber: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  departmentName: z.string(),
+})
+
+const subjectSchema = z.object({
+  id: z.string().uuid(),
+  firstName: z.string(),
+  lastName: z.string(),
+  roleOnCase: z.enum(['SUSPECT', 'VICTIM', 'WITNESS']),
+})
+
+export const interrogationListItemSchema = z.object({
+  id: z.string().uuid(),
+  interrogationNumber: z.string(),
+  caseId: z.string().uuid(),
+  subject: subjectSchema,
+  conductingOfficer: officerRefSchema,
+  interrogationDate: z.string(),
+  location: z.string(),
+  durationMinutes: z.number().nullable(),
+  legalRepresentativePresent: z.boolean(),
+  createdAt: z.string(),
+})
+
+export const interrogationDetailSchema = interrogationListItemSchema.extend({
+  legalRepresentativeName: z.string().nullable(),
+  summary: z.string(),
+  recordingReference: z.string().nullable(),
+})
+
+export const paginatedInterrogationsSchema = z.object({
+  data: z.array(interrogationListItemSchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+  totalPages: z.number(),
+})
+```
+
+## 7.3 `src/features/interrogations/schemas/interrogation-filters.schema.ts`
+
+```typescript
+import { z } from 'zod'
+
+export const interrogationFiltersSchema = z.object({
+  search: z.string().optional(),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+  page: z.coerce.number().min(1).optional().default(1),
+  pageSize: z.coerce.number().min(10).max(100).optional().default(25),
+  sortField: z
+    .enum(['interrogationDate', 'interrogationNumber'])
+    .optional()
+    .default('interrogationDate'),
+  sortDirection: z.enum(['asc', 'desc']).optional().default('desc'),
+})
+```
+
+---
+
+# 8. Service Implementations
+
+## 8.1 `src/services/domain/arrests.service.ts`
+
+Replace all stubs. Every response is validated with the corresponding Zod schema.
 
 ```typescript
 import { apiClient } from '@services/api/client'
-import axios from 'axios'
 import {
-  paginatedEvidenceSchema,
-  evidenceDetailSchema,
-  cloudinarySignatureSchema,
-} from '@features/evidence/schemas/evidence-api.schema'
+  paginatedArrestsSchema,
+  arrestDetailSchema,
+} from '@features/arrests/schemas/arrest-api.schema'
 import type {
-  EvidenceListItem,
-  Evidence,
-  EvidenceFilters,
-  UploadEvidencePayload,
-  RecordCustodyEventPayload,
-  CloudinarySignature,
-} from '@features/evidence/types/evidence.types'
+  ArrestListItem,
+  Arrest,
+  ArrestFilters,
+  CreateArrestPayload,
+  UpdateArrestPayload,
+} from '@features/arrests/types/arrest.types'
 import type { PaginatedResponse } from '@shared/types/api.types'
 
-// ─── List ──────────────────────────────────────────────────────────────────
-export async function getCaseEvidence(
+// ─── List arrests for a case ──────────────────────────────────────────────────
+export async function getCaseArrests(
   caseId: string,
-  filters: EvidenceFilters,
-): Promise<PaginatedResponse<EvidenceListItem>> {
-  const params = buildEvidenceParams(filters)
-  const raw = await apiClient.get(`/api/v1/cases/${caseId}/evidence?${params}`)
-  return paginatedEvidenceSchema.parse(raw)
+  filters: ArrestFilters,
+): Promise<PaginatedResponse<ArrestListItem>> {
+  const params = buildArrestParams(filters)
+  const raw = await apiClient.get(`/api/v1/cases/${caseId}/arrests?${params}`)
+  return paginatedArrestsSchema.parse(raw)
 }
 
-// ─── Detail ────────────────────────────────────────────────────────────────
-export async function getEvidence(evidenceId: string): Promise<Evidence> {
-  const raw = await apiClient.get(`/api/v1/evidence/${evidenceId}`)
-  return evidenceDetailSchema.parse(raw)
+// ─── Detail ───────────────────────────────────────────────────────────────────
+export async function getArrest(arrestId: string): Promise<Arrest> {
+  const raw = await apiClient.get(`/api/v1/arrests/${arrestId}`)
+  return arrestDetailSchema.parse(raw)
 }
 
-// ─── Cloudinary upload — three-step orchestration ─────────────────────────
-
-// Step 1: Get a signed upload signature from the backend
-export async function getCloudinarySignature(
+// ─── Create ───────────────────────────────────────────────────────────────────
+export async function createArrest(
   caseId: string,
-): Promise<CloudinarySignature> {
-  const raw = await apiClient.post(`/api/v1/cases/${caseId}/evidence/upload-signature`)
-  return cloudinarySignatureSchema.parse(raw)
+  payload: CreateArrestPayload,
+): Promise<Arrest> {
+  const raw = await apiClient.post(`/api/v1/cases/${caseId}/arrests`, payload)
+  return arrestDetailSchema.parse(raw)
 }
 
-// Step 2: Upload the file directly to Cloudinary
-// onProgress receives a 0–100 number
-export async function uploadFileToCloudinary(
-  file: File,
-  signature: CloudinarySignature,
-  onProgress: (percent: number) => void,
-): Promise<{ secureUrl: string; publicId: string }> {
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('signature', signature.signature)
-  formData.append('timestamp', String(signature.timestamp))
-  formData.append('api_key', signature.apiKey)
-  formData.append('upload_preset', signature.uploadPreset)
-  formData.append('folder', signature.folder)
-
-  // Direct call to Cloudinary — NOT via apiClient (different base URL)
-  const response = await axios.post(
-    `https://api.cloudinary.com/v1_1/${signature.cloudName}/auto/upload`,
-    formData,
-    {
-      onUploadProgress: (evt) => {
-        if (evt.total) {
-          onProgress(Math.round((evt.loaded * 100) / evt.total))
-        }
-      },
-    },
-  )
-
-  return {
-    secureUrl: response.data.secure_url as string,
-    publicId: response.data.public_id as string,
-  }
+// ─── Update ───────────────────────────────────────────────────────────────────
+export async function updateArrest(
+  arrestId: string,
+  payload: UpdateArrestPayload,
+): Promise<Arrest> {
+  const raw = await apiClient.patch(`/api/v1/arrests/${arrestId}`, payload)
+  return arrestDetailSchema.parse(raw)
 }
 
-// Step 3: Create the evidence record on the backend (includes Cloudinary URL)
-export async function createEvidence(
-  caseId: string,
-  payload: UploadEvidencePayload,
-): Promise<Evidence> {
-  const raw = await apiClient.post(`/api/v1/cases/${caseId}/evidence`, payload)
-  return evidenceDetailSchema.parse(raw)
+// ─── Delete ───────────────────────────────────────────────────────────────────
+export async function deleteArrest(arrestId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/arrests/${arrestId}`)
 }
 
-// ─── Update ────────────────────────────────────────────────────────────────
-export async function updateEvidence(
-  evidenceId: string,
-  payload: Partial<UploadEvidencePayload>,
-): Promise<Evidence> {
-  const raw = await apiClient.patch(`/api/v1/evidence/${evidenceId}`, payload)
-  return evidenceDetailSchema.parse(raw)
-}
-
-// ─── Delete ────────────────────────────────────────────────────────────────
-export async function deleteEvidence(evidenceId: string): Promise<void> {
-  await apiClient.delete(`/api/v1/evidence/${evidenceId}`)
-}
-
-// ─── Custody ───────────────────────────────────────────────────────────────
-export async function recordCustodyEvent(
-  evidenceId: string,
-  payload: RecordCustodyEventPayload,
-): Promise<Evidence> {
-  const raw = await apiClient.post(
-    `/api/v1/evidence/${evidenceId}/custody-events`,
-    payload,
-  )
-  return evidenceDetailSchema.parse(raw)
-}
-
-// ─── Helpers ───────────────────────────────────────────────────────────────
-function buildEvidenceParams(filters: EvidenceFilters): string {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function buildArrestParams(filters: ArrestFilters): string {
   const p = new URLSearchParams()
   if (filters.search) p.set('search', filters.search)
-  if (filters.evidenceType?.length) p.set('evidenceType', filters.evidenceType.join(','))
-  if (filters.collectedById) p.set('collectedById', filters.collectedById)
+  if (filters.detentionStatus?.length)
+    p.set('detentionStatus', filters.detentionStatus.join(','))
   if (filters.dateFrom) p.set('dateFrom', filters.dateFrom)
   if (filters.dateTo) p.set('dateTo', filters.dateTo)
   p.set('page', String(filters.page ?? 1))
@@ -643,49 +754,154 @@ function buildEvidenceParams(filters: EvidenceFilters): string {
 }
 ```
 
----
-
-# 6. Query Key Factory Update
-
-## 6.1 `src/services/query/keys/evidenceKeys.ts`
+## 8.2 `src/services/domain/interrogations.service.ts`
 
 ```typescript
-export const evidenceKeys = {
-  all: ['evidence'] as const,
+import { apiClient } from '@services/api/client'
+import {
+  paginatedInterrogationsSchema,
+  interrogationDetailSchema,
+} from '@features/interrogations/schemas/interrogation-api.schema'
+import type {
+  InterrogationListItem,
+  Interrogation,
+  InterrogationFilters,
+  CreateInterrogationPayload,
+} from '@features/interrogations/types/interrogation.types'
+import type { PaginatedResponse } from '@shared/types/api.types'
 
-  // All evidence for a case
-  caseEvidence: (caseId: string) => [...evidenceKeys.all, 'case', caseId] as const,
-  caseEvidenceList: (caseId: string, filters: Record<string, unknown>) =>
-    [...evidenceKeys.caseEvidence(caseId), 'list', filters] as const,
+// ─── List ─────────────────────────────────────────────────────────────────────
+export async function getCaseInterrogations(
+  caseId: string,
+  filters: InterrogationFilters,
+): Promise<PaginatedResponse<InterrogationListItem>> {
+  const params = buildInterrogationParams(filters)
+  const raw = await apiClient.get(`/api/v1/cases/${caseId}/interrogations?${params}`)
+  return paginatedInterrogationsSchema.parse(raw)
+}
 
-  // Single evidence item
-  details: () => [...evidenceKeys.all, 'detail'] as const,
-  detail: (evidenceId: string) => [...evidenceKeys.details(), evidenceId] as const,
+// ─── Create ───────────────────────────────────────────────────────────────────
+export async function createInterrogation(
+  caseId: string,
+  payload: CreateInterrogationPayload,
+): Promise<Interrogation> {
+  const raw = await apiClient.post(`/api/v1/cases/${caseId}/interrogations`, payload)
+  return interrogationDetailSchema.parse(raw)
+}
 
-  // Custody chain
-  custodyChain: (evidenceId: string) =>
-    [...evidenceKeys.detail(evidenceId), 'custody'] as const,
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function buildInterrogationParams(filters: InterrogationFilters): string {
+  const p = new URLSearchParams()
+  if (filters.search) p.set('search', filters.search)
+  if (filters.dateFrom) p.set('dateFrom', filters.dateFrom)
+  if (filters.dateTo) p.set('dateTo', filters.dateTo)
+  p.set('page', String(filters.page ?? 1))
+  p.set('pageSize', String(filters.pageSize ?? 25))
+  if (filters.sortField) p.set('sortField', filters.sortField)
+  if (filters.sortDirection) p.set('sortDirection', filters.sortDirection)
+  return p.toString()
+}
+```
+
+## 8.3 `src/services/domain/cases.service.ts` — Addition: `getCasePersons`
+
+Add the following function to the existing cases service. Do not remove any existing functions.
+
+```typescript
+import type { PersonRef } from '@features/arrests/types/arrest.types'
+
+// ─── Persons linked to a case (for SearchableSelect in arrest/interrogation forms) ─
+export async function getCasePersons(
+  caseId: string,
+  params: { role?: 'SUSPECT' | 'VICTIM' | 'WITNESS'; search?: string },
+): Promise<PersonRef[]> {
+  const p = new URLSearchParams()
+  if (params.role) p.set('role', params.role)
+  if (params.search) p.set('search', params.search)
+  // Returns a flat list — no pagination (cases rarely have more than 50 linked persons)
+  const raw = await apiClient.get(`/api/v1/cases/${caseId}/persons?${p.toString()}`)
+  // Validate as an array of PersonRef
+  const personRefSchema = z.object({
+    id: z.string().uuid(),
+    firstName: z.string(),
+    lastName: z.string(),
+    nationalId: z.string(),
+  })
+  return z.array(personRefSchema).parse(raw)
 }
 ```
 
 ---
 
-# 7. React Query Hooks
+# 9. Query Key Factories
 
-Create all hooks in `src/features/evidence/hooks/`.
+## 9.1 `src/services/query/keys/arrestKeys.ts`
 
-## 7.1 `useEvidenceList.ts`
+```typescript
+import type { ArrestFilters } from '@features/arrests/types/arrest.types'
+
+export const arrestKeys = {
+  all: ['arrests'] as const,
+
+  // All arrests for a case
+  caseArrests: (caseId: string) =>
+    [...arrestKeys.all, 'case', caseId] as const,
+  caseArrestList: (caseId: string, filters: Record<string, unknown>) =>
+    [...arrestKeys.caseArrests(caseId), 'list', filters] as const,
+
+  // Single arrest detail
+  details: () => [...arrestKeys.all, 'detail'] as const,
+  detail: (arrestId: string) =>
+    [...arrestKeys.details(), arrestId] as const,
+}
+```
+
+## 9.2 `src/services/query/keys/interrogationKeys.ts`
+
+```typescript
+export const interrogationKeys = {
+  all: ['interrogations'] as const,
+
+  // All interrogations for a case
+  caseInterrogations: (caseId: string) =>
+    [...interrogationKeys.all, 'case', caseId] as const,
+  caseInterrogationList: (caseId: string, filters: Record<string, unknown>) =>
+    [...interrogationKeys.caseInterrogations(caseId), 'list', filters] as const,
+}
+```
+
+## 9.3 Verify `caseKeys` sub-resources
+
+Ensure `src/services/query/keys/caseKeys.ts` contains the following sub-resource keys. If they do not exist, add them now:
+
+```typescript
+// Inside caseKeys — add if missing:
+arrests: (caseId: string) =>
+  [...caseKeys.detail(caseId), 'arrests'] as const,
+interrogations: (caseId: string) =>
+  [...caseKeys.detail(caseId), 'interrogations'] as const,
+```
+
+These are the keys invalidated after mutations so the case overview tab count cards update.
+
+---
+
+# 10. React Query Hooks — Arrests
+
+Create all hooks in `src/features/arrests/hooks/`.
+
+## 10.1 `useArrestList.ts`
 
 ```typescript
 import { useQuery } from '@tanstack/react-query'
-import { getCaseEvidence } from '@services/domain/evidence.service'
-import { evidenceKeys } from '@services/query/keys/evidenceKeys'
-import type { EvidenceFilters } from '../types/evidence.types'
+import { getCaseArrests } from '@services/domain/arrests.service'
+import { arrestKeys } from '@services/query/keys/arrestKeys'
+import type { ArrestFilters } from '../types/arrest.types'
 
-export function useEvidenceList(caseId: string, filters: EvidenceFilters) {
+export function useArrestList(caseId: string, filters: ArrestFilters) {
   return useQuery({
-    queryKey: evidenceKeys.caseEvidenceList(caseId, filters as Record<string, unknown>),
-    queryFn: () => getCaseEvidence(caseId, filters),
+    queryKey: arrestKeys.caseArrestList(caseId, filters as Record<string, unknown>),
+    queryFn: () => getCaseArrests(caseId, filters),
     staleTime: 2 * 60 * 1000,
     placeholderData: (prev) => prev,
     enabled: Boolean(caseId),
@@ -693,146 +909,109 @@ export function useEvidenceList(caseId: string, filters: EvidenceFilters) {
 }
 ```
 
-## 7.2 `useEvidence.ts`
+## 10.2 `useArrest.ts`
 
 ```typescript
 import { useQuery } from '@tanstack/react-query'
-import { getEvidence } from '@services/domain/evidence.service'
-import { evidenceKeys } from '@services/query/keys/evidenceKeys'
+import { getArrest } from '@services/domain/arrests.service'
+import { arrestKeys } from '@services/query/keys/arrestKeys'
 
-export function useEvidence(evidenceId: string) {
+export function useArrest(arrestId: string) {
   return useQuery({
-    queryKey: evidenceKeys.detail(evidenceId),
-    queryFn: () => getEvidence(evidenceId),
+    queryKey: arrestKeys.detail(arrestId),
+    queryFn: () => getArrest(arrestId),
     staleTime: 2 * 60 * 1000,
-    enabled: Boolean(evidenceId),
+    enabled: Boolean(arrestId),
   })
 }
 ```
 
-## 7.3 `useUploadEvidence.ts`
-
-This hook orchestrates the three-step Cloudinary upload flow. It maintains internal upload state that the UI consumes for the progress bar.
-
-```typescript
-'use client'
-import { useState, useCallback } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import {
-  getCloudinarySignature,
-  uploadFileToCloudinary,
-  createEvidence,
-} from '@services/domain/evidence.service'
-import { evidenceKeys } from '@services/query/keys/evidenceKeys'
-import { caseKeys } from '@services/query/keys/caseKeys'
-import { useNotificationStore } from '@shared/stores/notification.store'
-import { ApiError } from '@services/api/errors'
-import type { EvidenceMetadataValues } from '../schemas/upload-evidence.schema'
-import type { MEDIA_EVIDENCE_TYPES } from '../types/evidence.types'
-
-type UploadPhase =
-  | 'idle'
-  | 'signing'         // Fetching Cloudinary signature
-  | 'uploading'       // Sending file to Cloudinary
-  | 'recording'       // POSTing metadata to backend
-  | 'success'
-  | 'error'
-
-interface UploadState {
-  phase: UploadPhase
-  progress: number    // 0–100, only relevant during 'uploading'
-  error: string | null
-}
-
-export function useUploadEvidence(caseId: string) {
-  const queryClient = useQueryClient()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('evidence')
-
-  const [uploadState, setUploadState] = useState<UploadState>({
-    phase: 'idle',
-    progress: 0,
-    error: null,
-  })
-
-  const reset = useCallback(() => {
-    setUploadState({ phase: 'idle', progress: 0, error: null })
-  }, [])
-
-  const upload = useCallback(
-    async (metadata: EvidenceMetadataValues, file: File | null) => {
-      setUploadState({ phase: 'idle', progress: 0, error: null })
-
-      let cloudinaryUrl: string | undefined
-      let cloudinaryPublicId: string | undefined
-
-      try {
-        // ── Step 1: Get signature (if file provided) ───────────────────────
-        if (file) {
-          setUploadState({ phase: 'signing', progress: 0, error: null })
-          const sig = await getCloudinarySignature(caseId)
-
-          // ── Step 2: Upload to Cloudinary ───────────────────────────────
-          setUploadState({ phase: 'uploading', progress: 0, error: null })
-          const result = await uploadFileToCloudinary(file, sig, (percent) => {
-            setUploadState({ phase: 'uploading', progress: percent, error: null })
-          })
-          cloudinaryUrl = result.secureUrl
-          cloudinaryPublicId = result.publicId
-        }
-
-        // ── Step 3: Create record on backend ───────────────────────────────
-        setUploadState({ phase: 'recording', progress: 100, error: null })
-        await createEvidence(caseId, {
-          ...metadata,
-          cloudinaryUrl,
-          cloudinaryPublicId,
-        })
-
-        setUploadState({ phase: 'success', progress: 100, error: null })
-
-        // Invalidate both the evidence list and the case summary
-        void queryClient.invalidateQueries({ queryKey: evidenceKeys.caseEvidence(caseId) })
-        void queryClient.invalidateQueries({ queryKey: caseKeys.summary(caseId) })
-
-        addToast({ message: t('upload.successMessage'), variant: 'success' })
-      } catch (err: unknown) {
-        const message =
-          err instanceof ApiError
-            ? err.message
-            : t('upload.errorMessage')
-
-        setUploadState({ phase: 'error', progress: 0, error: message })
-        // Do NOT close the drawer on error — user must be able to retry
-      }
-    },
-    [caseId, queryClient, addToast, t],
-  )
-
-  return { upload, uploadState, reset, isPending: uploadState.phase !== 'idle' && uploadState.phase !== 'success' && uploadState.phase !== 'error' }
-}
-```
-
-## 7.4 `useDeleteEvidence.ts`
+## 10.3 `useCreateArrest.ts`
 
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { deleteEvidence } from '@services/domain/evidence.service'
-import { evidenceKeys } from '@services/query/keys/evidenceKeys'
+import { createArrest } from '@services/domain/arrests.service'
+import { arrestKeys } from '@services/query/keys/arrestKeys'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { CreateArrestPayload } from '../types/arrest.types'
+
+export function useCreateArrest(caseId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('arrests')
+
+  return useMutation({
+    mutationFn: (payload: CreateArrestPayload) => createArrest(caseId, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: arrestKeys.caseArrests(caseId) })
+      void queryClient.invalidateQueries({ queryKey: caseKeys.arrests(caseId) })
+      void queryClient.invalidateQueries({ queryKey: caseKeys.summary(caseId) })
+      addToast({ message: t('create.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('create.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 10.4 `useUpdateArrest.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { updateArrest } from '@services/domain/arrests.service'
+import { arrestKeys } from '@services/query/keys/arrestKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { UpdateArrestPayload } from '../types/arrest.types'
+
+export function useUpdateArrest(arrestId: string, caseId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('arrests')
+
+  return useMutation({
+    mutationFn: (payload: UpdateArrestPayload) => updateArrest(arrestId, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: arrestKeys.detail(arrestId) })
+      void queryClient.invalidateQueries({ queryKey: arrestKeys.caseArrests(caseId) })
+      addToast({ message: t('update.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('update.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 10.5 `useDeleteArrest.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { deleteArrest } from '@services/domain/arrests.service'
+import { arrestKeys } from '@services/query/keys/arrestKeys'
 import { caseKeys } from '@services/query/keys/caseKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
 
-export function useDeleteEvidence(caseId: string) {
+export function useDeleteArrest(caseId: string) {
   const queryClient = useQueryClient()
   const { addToast } = useNotificationStore()
-  const t = useTranslations('evidence')
+  const t = useTranslations('arrests')
 
   return useMutation({
-    mutationFn: (evidenceId: string) => deleteEvidence(evidenceId),
+    mutationFn: (arrestId: string) => deleteArrest(arrestId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: evidenceKeys.caseEvidence(caseId) })
+      void queryClient.invalidateQueries({ queryKey: arrestKeys.caseArrests(caseId) })
+      void queryClient.invalidateQueries({ queryKey: caseKeys.arrests(caseId) })
       void queryClient.invalidateQueries({ queryKey: caseKeys.summary(caseId) })
       addToast({ message: t('delete.successMessage'), variant: 'success' })
     },
@@ -840,1324 +1019,1426 @@ export function useDeleteEvidence(caseId: string) {
 }
 ```
 
-## 7.5 `useRecordCustodyEvent.ts`
-
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import { recordCustodyEvent } from '@services/domain/evidence.service'
-import { evidenceKeys } from '@services/query/keys/evidenceKeys'
-import { useNotificationStore } from '@shared/stores/notification.store'
-import type { RecordCustodyEventPayload } from '../types/evidence.types'
-
-export function useRecordCustodyEvent(evidenceId: string) {
-  const queryClient = useQueryClient()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('evidence')
-
-  return useMutation({
-    mutationFn: (payload: RecordCustodyEventPayload) =>
-      recordCustodyEvent(evidenceId, payload),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(evidenceKeys.detail(evidenceId), updated)
-      void queryClient.invalidateQueries({
-        queryKey: evidenceKeys.custodyChain(evidenceId),
-      })
-      addToast({ message: t('custody.eventRecordedMessage'), variant: 'success' })
-    },
-  })
-}
-```
-
-## 7.6 Hook barrel (`src/features/evidence/hooks/index.ts`)
+## 10.6 `src/features/arrests/hooks/index.ts`
 
 Export all hooks.
 
 ---
 
-# 8. Internationalisation — Evidence Messages
+# 11. React Query Hooks — Interrogations
 
-## 8.1 `messages/en/evidence.json` — Full population
+Create all hooks in `src/features/interrogations/hooks/`.
+
+## 11.1 `useInterrogationList.ts`
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getCaseInterrogations } from '@services/domain/interrogations.service'
+import { interrogationKeys } from '@services/query/keys/interrogationKeys'
+import type { InterrogationFilters } from '../types/interrogation.types'
+
+export function useInterrogationList(caseId: string, filters: InterrogationFilters) {
+  return useQuery({
+    queryKey: interrogationKeys.caseInterrogationList(
+      caseId,
+      filters as Record<string, unknown>,
+    ),
+    queryFn: () => getCaseInterrogations(caseId, filters),
+    staleTime: 2 * 60 * 1000,
+    placeholderData: (prev) => prev,
+    enabled: Boolean(caseId),
+  })
+}
+```
+
+## 11.2 `useCreateInterrogation.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { createInterrogation } from '@services/domain/interrogations.service'
+import { interrogationKeys } from '@services/query/keys/interrogationKeys'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { CreateInterrogationPayload } from '../types/interrogation.types'
+
+export function useCreateInterrogation(caseId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('interrogations')
+
+  return useMutation({
+    mutationFn: (payload: CreateInterrogationPayload) =>
+      createInterrogation(caseId, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: interrogationKeys.caseInterrogations(caseId),
+      })
+      void queryClient.invalidateQueries({ queryKey: caseKeys.interrogations(caseId) })
+      void queryClient.invalidateQueries({ queryKey: caseKeys.summary(caseId) })
+      addToast({ message: t('create.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('create.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 11.3 `src/features/interrogations/hooks/index.ts`
+
+Export all hooks.
+
+---
+
+# 12. i18n Messages — Arrests
+
+## 12.1 `messages/en/arrests.json` — Full Population
 
 ```json
 {
-  "pageTitle": "Evidence",
+  "pageTitle": "Arrests",
   "tab": {
-    "heading": "Evidence",
-    "entityCount": "{count} item(s)",
-    "addEvidence": "Add Evidence",
-    "viewToggle": {
-      "table": "Table view",
-      "gallery": "Gallery view"
-    },
+    "heading": "Arrests",
+    "entityCount": "{count} arrest(s)",
+    "recordArrest": "Record Arrest",
     "filters": {
-      "search": "Search by description...",
-      "type": "Evidence Type",
-      "collectedBy": "Collected By",
+      "search": "Search by person name...",
+      "detentionStatus": "Detention Status",
       "dateRange": "Date Range",
       "clearAll": "Clear all filters"
     },
-    "loading": "Loading evidence...",
-    "empty": "No evidence recorded for this case.",
-    "emptyDescription": "Add the first evidence item using the button above.",
-    "emptyFiltered": "No evidence matches your filters.",
+    "loading": "Loading arrests...",
+    "empty": "No arrests recorded for this case.",
+    "emptyDescription": "Record the first arrest using the button above.",
+    "emptyFiltered": "No arrests match your current filters.",
     "columns": {
-      "evidenceNumber": "Evidence No.",
-      "description": "Description",
-      "type": "Type",
-      "collectedBy": "Collected By",
-      "collectedAt": "Collected",
-      "storageLocation": "Location",
-      "custodyStatus": "Custody",
+      "arrestNumber": "Arrest No.",
+      "arrestedPerson": "Arrested Person",
+      "arrestingOfficer": "Arresting Officer",
+      "arrestDate": "Date & Time",
+      "location": "Location",
+      "detentionStatus": "Detention",
+      "bailStatus": "Bail",
       "actions": "Actions"
     },
     "rowActions": {
       "view": "View Details",
-      "recordCustody": "Record Custody Event",
-      "delete": "Delete Evidence"
+      "updateStatus": "Update Detention Status",
+      "delete": "Delete Arrest"
     }
   },
-  "types": {
-    "DIGITAL": "Digital",
-    "CRIME_SCENE_PHOTO": "Crime Scene Photo",
-    "PHYSICAL": "Physical Object",
-    "DOCUMENT": "Document",
-    "BIOLOGICAL": "Biological Sample",
-    "FORENSIC_REPORT": "Forensic Report",
-    "WEAPON": "Weapon",
-    "VEHICLE": "Vehicle",
-    "WITNESS_STATEMENT": "Witness Statement",
-    "AUDIO": "Audio Recording",
-    "VIDEO": "Video Recording",
-    "OTHER": "Other"
+  "detentionStatus": {
+    "IN_CUSTODY": "In Custody",
+    "RELEASED_ON_BAIL": "Released on Bail",
+    "RELEASED": "Released",
+    "TRANSFERRED": "Transferred"
   },
-  "custodyStatus": {
-    "COLLECTED": "Collected",
-    "TRANSFERRED": "Transferred",
-    "EXAMINED": "Examined",
-    "STORED": "Stored",
-    "PRESENTED_IN_COURT": "In Court",
-    "RETURNED": "Returned",
-    "DESTROYED": "Destroyed"
+  "bailStatus": {
+    "NOT_SET": "Not Set",
+    "DENIED": "Denied",
+    "GRANTED": "Granted",
+    "POSTED": "Posted"
   },
-  "upload": {
-    "drawerTitle": "Add Evidence",
-    "drawerDescription": "Record a new evidence item for this case.",
-    "section1Title": "Evidence Details",
-    "section2Title": "File Upload",
-    "section2Description": "Attach a file to this evidence item. Supported: images, PDF, audio, video. Maximum 50 MB.",
-    "descriptionLabel": "Description",
-    "descriptionPlaceholder": "Describe the evidence item in detail...",
-    "typeLabel": "Evidence Type",
-    "typePlaceholder": "Select evidence type...",
-    "collectedByLabel": "Collected By",
-    "collectedByPlaceholder": "Search officers...",
-    "collectedAtLabel": "Date & Time Collected",
-    "storageLocationLabel": "Storage Location",
-    "storageLocationPlaceholder": "e.g. Evidence Locker 4B, Bole Division",
+  "create": {
+    "drawerTitle": "Record Arrest",
+    "drawerDescription": "Record a new arrest linked to this case.",
+    "section1Title": "Arrest Details",
+    "section2Title": "Bail Information",
+    "arrestedPersonLabel": "Arrested Person",
+    "arrestedPersonPlaceholder": "Search suspects linked to this case...",
+    "arrestedPersonHint": "Only suspects already linked to this case are shown.",
+    "arrestingOfficerLabel": "Arresting Officer",
+    "arrestingOfficerPlaceholder": "Search officers...",
+    "arrestDateLabel": "Date & Time of Arrest",
+    "locationLabel": "Arrest Location",
+    "locationPlaceholder": "e.g. Bole Road, near Edna Mall",
+    "warrantNumberLabel": "Warrant Number (optional)",
+    "warrantNumberPlaceholder": "e.g. WRN-2026-00041",
+    "chargesAtArrestLabel": "Charges at Time of Arrest",
+    "chargesAtArrestPlaceholder": "Enter a charge and press Enter...",
+    "chargesAtArrestHint": "List the charges known at the time of arrest. These may differ from formal charges filed later.",
+    "chargesMin": "At least one charge is required.",
+    "bailStatusLabel": "Bail Status",
+    "bailAmountLabel": "Bail Amount (ETB)",
+    "bailAmountPlaceholder": "Enter amount in Ethiopian Birr",
     "notesLabel": "Notes (optional)",
-    "notesPlaceholder": "Any additional notes about this evidence item...",
-    "fileLabel": "Attach File",
-    "fileDragPrompt": "Drag a file here or click to browse",
-    "fileSizeLimit": "Maximum 50 MB",
-    "fileReplacePrompt": "Click to replace",
-    "uploadPhase": {
-      "signing": "Preparing upload...",
-      "uploading": "Uploading file: {progress}%",
-      "recording": "Saving evidence record...",
-      "success": "Evidence added successfully.",
-      "error": "Upload failed. See error above."
-    },
-    "submitButton": "Add Evidence",
-    "retryButton": "Retry",
+    "notesPlaceholder": "Any notes about the circumstances of the arrest...",
+    "submitButton": "Record Arrest",
     "cancelButton": "Cancel",
-    "successMessage": "Evidence item added successfully.",
-    "errorMessage": "Failed to add evidence. Please try again."
+    "successMessage": "Arrest record created successfully.",
+    "errorMessage": "Failed to record arrest. Please try again."
   },
   "detail": {
-    "drawerTitle": "Evidence Details",
-    "evidenceNumber": "Evidence Number",
-    "type": "Type",
-    "description": "Description",
-    "collectedBy": "Collected By",
-    "collectedAt": "Date Collected",
-    "storageLocation": "Storage Location",
-    "notes": "Notes",
-    "mediaSection": "Attached File",
-    "viewFullImage": "View full image",
-    "downloadFile": "Download",
-    "noMedia": "No file attached.",
-    "forensicSection": "Forensic Report",
-    "forensicReportNumber": "Report Number",
-    "forensicLab": "Laboratory",
-    "forensicSubmittedBy": "Submitted By",
-    "forensicSubmittedAt": "Submitted",
-    "forensicFindings": "Findings",
-    "forensicConclusion": "Conclusion",
-    "noForensicReport": "No forensic report has been submitted.",
-    "vehicleSection": "Vehicle Details",
-    "weaponSection": "Weapon Details",
-    "recordCustodyButton": "Record Custody Event"
-  },
-  "custody": {
-    "sectionTitle": "Chain of Custody",
-    "intactBadge": "Chain Intact",
-    "brokenBadge": "Custody Gap Detected",
-    "gapWarning": "A custody gap of {hours} hour(s) was detected after this event.",
-    "immutableTooltip": "This custody record cannot be modified or deleted.",
-    "eventTypes": {
-      "COLLECTED": "Collected",
-      "TRANSFERRED": "Transferred",
-      "EXAMINED": "Examined",
-      "STORED": "Stored",
-      "PRESENTED_IN_COURT": "Presented in Court",
-      "RETURNED": "Returned",
-      "DESTROYED": "Destroyed"
-    },
-    "from": "From",
-    "to": "To",
+    "drawerTitle": "Arrest Details",
+    "arrestNumber": "Arrest Number",
+    "arrestedPerson": "Arrested Person",
+    "arrestingOfficer": "Arresting Officer",
+    "arrestDate": "Date & Time",
     "location": "Location",
-    "reason": "Reason",
-    "empty": "No custody events recorded.",
-    "recordDrawerTitle": "Record Custody Event",
-    "recordDrawerDescription": "Record a new transfer or examination event for this evidence item.",
-    "eventTypeLabel": "Event Type",
-    "toOfficerLabel": "Receiving Officer",
-    "toOfficerPlaceholder": "Search officers...",
-    "locationLabel": "Location",
-    "locationPlaceholder": "e.g. Forensic Lab 2, Federal Police HQ",
-    "reasonLabel": "Reason / Notes (optional)",
-    "submitButton": "Record Event",
-    "eventRecordedMessage": "Custody event recorded successfully."
+    "warrantNumber": "Warrant Number",
+    "detentionStatus": "Detention Status",
+    "bailStatus": "Bail Status",
+    "bailAmount": "Bail Amount",
+    "bailAmountValue": "{amount} ETB",
+    "noBailAmount": "—",
+    "chargesAtArrest": "Charges at Time of Arrest",
+    "noCharges": "No charges recorded.",
+    "courtAppearanceDate": "Court Appearance Date",
+    "noCourtDate": "Not yet scheduled.",
+    "notes": "Notes",
+    "noNotes": "No notes.",
+    "updateStatusButton": "Update Detention Status",
+    "noWarrant": "No warrant number recorded."
   },
-  "gallery": {
-    "empty": "No photos for this case.",
-    "emptyDescription": "Add photo evidence using the 'Add Evidence' button.",
-    "hover": {
-      "view": "View",
-      "details": "Details"
-    }
-  },
-  "lightbox": {
-    "closeLabel": "Close lightbox",
-    "prevLabel": "Previous photo",
-    "nextLabel": "Next photo",
-    "openMetadata": "Show metadata",
-    "closeMetadata": "Hide metadata",
-    "downloadLabel": "Download photo",
-    "photoCount": "{current} of {total}",
-    "zoomIn": "Zoom in",
-    "zoomOut": "Zoom out",
-    "resetZoom": "Reset zoom"
+  "update": {
+    "drawerTitle": "Update Detention Status",
+    "drawerDescription": "Update the detention and bail status for this arrest record.",
+    "detentionStatusLabel": "Detention Status",
+    "bailStatusLabel": "Bail Status",
+    "bailAmountLabel": "Bail Amount (ETB)",
+    "bailAmountPlaceholder": "Enter amount in Ethiopian Birr",
+    "notesLabel": "Update Notes (optional)",
+    "notesPlaceholder": "Reason for status change...",
+    "submitButton": "Save Changes",
+    "cancelButton": "Cancel",
+    "successMessage": "Arrest record updated successfully.",
+    "errorMessage": "Failed to update arrest record. Please try again."
   },
   "delete": {
-    "confirmTitle": "Delete evidence item?",
-    "confirmDescription": "This will permanently delete evidence item {evidenceNumber} and remove it from the chain of custody. This action cannot be undone.",
-    "confirmPhrase": "delete {evidenceNumber}",
-    "successMessage": "Evidence item deleted successfully."
+    "confirmTitle": "Delete arrest record?",
+    "confirmDescription": "This will permanently delete arrest record {arrestNumber}. This action cannot be undone and will be logged in the case audit trail.",
+    "confirmPhrase": "delete {arrestNumber}",
+    "successMessage": "Arrest record deleted successfully."
   }
 }
 ```
 
-## 8.2 `messages/am/evidence.json` — Full Amharic equivalent
+## 12.2 `messages/am/arrests.json` — Full Amharic Equivalent
 
-Every key in `en/evidence.json` must appear with the identical key path. Selected translations:
+Every key in `en/arrests.json` must appear with the identical key path:
 
 ```json
 {
-  "pageTitle": "ማስረጃ",
+  "pageTitle": "ቁርኝቶቾ",
   "tab": {
-    "heading": "ማስረጃ",
-    "entityCount": "{count} ንጥሎች",
-    "addEvidence": "ማስረጃ ጨምር",
-    "viewToggle": {
-      "table": "ሰንጠረዥ እይታ",
-      "gallery": "ጋለሪ እይታ"
-    },
+    "heading": "ቁርኝቶቾ",
+    "entityCount": "{count} ቁርኝቶ(ቾ)",
+    "recordArrest": "ቁርኝቶ ይምዝግቡ",
     "filters": {
-      "search": "በመግለጫ ፈልግ...",
-      "type": "የማስረጃ ዓይነት",
-      "collectedBy": "የሰበሰበው",
+      "search": "በሰው ስም ፈልግ...",
+      "detentionStatus": "የቁርኝቶ ሁኔታ",
       "dateRange": "የቀን ክልል",
       "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
     },
-    "loading": "ማስረጃ እየጫነ ነው...",
-    "empty": "ለዚህ ጉዳይ ምንም ማስረጃ አልተመዘገበም።",
-    "emptyDescription": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ማስረጃ ይጨምሩ።",
-    "emptyFiltered": "ምንም ማስረጃ ከማጣሪያዎ ጋር አይዛመድም።",
+    "loading": "ቁርኝቶቾ እየጫነ ነው...",
+    "empty": "ለዚህ ጉዳይ ምንም ቁርኝቶ አልተመዘገበም።",
+    "emptyDescription": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ቁርኝቶ ይምዝግቡ።",
+    "emptyFiltered": "ምንም ቁርኝቶ ከማጣሪያዎ ጋር አይዛመድም።",
     "columns": {
-      "evidenceNumber": "ማስረጃ ቁ.",
-      "description": "መግለጫ",
-      "type": "ዓይነት",
-      "collectedBy": "የሰበሰበው",
-      "collectedAt": "የተሰበሰበ",
-      "storageLocation": "ቦታ",
-      "custodyStatus": "ጥበቃ",
+      "arrestNumber": "የቁርኝቶ ቁ.",
+      "arrestedPerson": "የተያዘ ሰው",
+      "arrestingOfficer": "ያዘ ፖሊስ",
+      "arrestDate": "ቀን እና ሰዓት",
+      "location": "ቦታ",
+      "detentionStatus": "ቁርኝቶ",
+      "bailStatus": "ዋስትና",
       "actions": "ድርጊቶች"
     },
     "rowActions": {
       "view": "ዝርዝሮች ተመልከት",
-      "recordCustody": "የጥበቃ ክስተት መዝግብ",
-      "delete": "ማስረጃ ሰርዝ"
+      "updateStatus": "የቁርኝቶ ሁኔታ አዘምን",
+      "delete": "ቁርኝቶ ሰርዝ"
     }
   },
-  "types": {
-    "DIGITAL": "ዲጂታል",
-    "CRIME_SCENE_PHOTO": "የወንጀል ቦታ ፎቶ",
-    "PHYSICAL": "አካላዊ ዕቃ",
-    "DOCUMENT": "ሰነድ",
-    "BIOLOGICAL": "ባዮሎጂካዊ ናሙና",
-    "FORENSIC_REPORT": "የፎረንሲክ ሪፖርት",
-    "WEAPON": "መሳሪያ",
-    "VEHICLE": "ተሸከርካሪ",
-    "WITNESS_STATEMENT": "የምስክር ቃል",
-    "AUDIO": "የድምጽ መቅጃ",
-    "VIDEO": "የቪዲዮ መቅጃ",
-    "OTHER": "ሌላ"
+  "detentionStatus": {
+    "IN_CUSTODY": "በቁጥጥር ስር",
+    "RELEASED_ON_BAIL": "በዋስ ተፈቷል",
+    "RELEASED": "ተፈቷል",
+    "TRANSFERRED": "ተዛውሯል"
   },
-  "custodyStatus": {
-    "COLLECTED": "ተሰብስቧል",
-    "TRANSFERRED": "ተዛውሯል",
-    "EXAMINED": "ተፈትሷል",
-    "STORED": "ተቀምጧል",
-    "PRESENTED_IN_COURT": "ለፍርድ ቤት ቀርቧል",
-    "RETURNED": "ተመልሷል",
-    "DESTROYED": "ወድሟል"
+  "bailStatus": {
+    "NOT_SET": "አልተቀናጀም",
+    "DENIED": "ተከልክሏል",
+    "GRANTED": "ተፈቅዷል",
+    "POSTED": "ተሰጥቷል"
   },
-  "upload": {
-    "drawerTitle": "ማስረጃ ጨምር",
-    "drawerDescription": "ለዚህ ጉዳይ አዲስ ማስረጃ ይመዝገቡ።",
-    "section1Title": "የማስረጃ ዝርዝሮች",
-    "section2Title": "ፋይል ስቀል",
-    "section2Description": "ለዚህ ማስረጃ ፋይል ያያይዙ። ተቀባይ: ምስሎች፣ PDF፣ ድምጽ፣ ቪዲዮ። ከፍተኛ 50 MB።",
-    "descriptionLabel": "መግለጫ",
-    "descriptionPlaceholder": "የማስረጃ ንጥሉን በዝርዝር ያብራሩ...",
-    "typeLabel": "የማስረጃ ዓይነት",
-    "typePlaceholder": "የማስረጃ ዓይነት ምረጥ...",
-    "collectedByLabel": "የሰበሰበው",
-    "collectedByPlaceholder": "መኮንን ፈልግ...",
-    "collectedAtLabel": "የተሰበሰበ ቀን እና ሰዓት",
-    "storageLocationLabel": "የማቆያ ቦታ",
-    "storageLocationPlaceholder": "ለምሳሌ ማስረጃ ሎከር 4B፣ ቦሌ ዲቪዥን",
+  "create": {
+    "drawerTitle": "ቁርኝቶ ይምዝግቡ",
+    "drawerDescription": "ለዚህ ጉዳይ አዲስ ቁርኝቶ ይምዝገቡ።",
+    "section1Title": "የቁርኝቶ ዝርዝሮች",
+    "section2Title": "የዋስትና መረጃ",
+    "arrestedPersonLabel": "የተያዘ ሰው",
+    "arrestedPersonPlaceholder": "ለዚህ ጉዳይ ተጠርጣሪዎችን ፈልግ...",
+    "arrestedPersonHint": "ለዚህ ጉዳይ ተጠርጣሪ ሆነው የተያያዙ ሰዎች ብቻ ይታያሉ።",
+    "arrestingOfficerLabel": "ያዘ ፖሊስ",
+    "arrestingOfficerPlaceholder": "ፖሊስ ፈልግ...",
+    "arrestDateLabel": "የቁርኝቶ ቀን እና ሰዓት",
+    "locationLabel": "የቁርኝቶ ቦታ",
+    "locationPlaceholder": "ለምሳሌ ቦሌ መንገድ፣ ኤድና ሞል አቅራቢያ",
+    "warrantNumberLabel": "የትዕዛዝ ቁጥር (አማራጭ)",
+    "warrantNumberPlaceholder": "ለምሳሌ WRN-2026-00041",
+    "chargesAtArrestLabel": "በቁርኝቶ ጊዜ ክሶች",
+    "chargesAtArrestPlaceholder": "ክስ ያስገቡ እና Enter ይጫኑ...",
+    "chargesAtArrestHint": "በቁርኝቶ ጊዜ የታወቁ ክሶችን ይዘርዝሩ። እነዚህ ከኋላ ከሚቀርቡ ይለያዩ ይሆናሉ።",
+    "chargesMin": "ቢያንስ አንድ ክስ ያስፈልጋል።",
+    "bailStatusLabel": "የዋስትና ሁኔታ",
+    "bailAmountLabel": "የዋስትና መጠን (ብር)",
+    "bailAmountPlaceholder": "መጠን በኢትዮጵያ ብር ያስገቡ",
     "notesLabel": "ማስታወሻ (አማራጭ)",
-    "notesPlaceholder": "ስለ ማስረጃ ንጥሉ ተጨማሪ ማስታወሻ...",
-    "fileLabel": "ፋይል ያያይዙ",
-    "fileDragPrompt": "ፋይል ወደ ዚህ ጎትቱ ወይም ክፈቱ",
-    "fileSizeLimit": "ከፍተኛ 50 MB",
-    "fileReplacePrompt": "ለመቀየር ጠቅ ያድርጉ",
-    "uploadPhase": {
-      "signing": "ስቀላ እያዘጋጀ ነው...",
-      "uploading": "ፋይል እየስቀለ ነው: {progress}%",
-      "recording": "የማስረጃ መዝገብ እያስቀመጠ ነው...",
-      "success": "ማስረጃ በተሳካ ሁኔታ ተጨምሯል።",
-      "error": "ስቀላ አልተሳካም። ላይ ያለውን ስህተት ተመልከቱ።"
-    },
-    "submitButton": "ማስረጃ ጨምር",
-    "retryButton": "እንደገና ሞክር",
+    "notesPlaceholder": "ስለ ቁርኝቶ ሁኔታ ማስታወሻ...",
+    "submitButton": "ቁርኝቶ ይምዝግቡ",
     "cancelButton": "ሰርዝ",
-    "successMessage": "ማስረጃ ንጥሉ በተሳካ ሁኔታ ተጨምሯል።",
-    "errorMessage": "ማስረጃ ለመጨመር አልተሳካም። እንደገና ይሞክሩ።"
+    "successMessage": "የቁርኝቶ መዝገብ በተሳካ ሁኔታ ተፈጥሯል።",
+    "errorMessage": "ቁርኝቶ ለመምዝገብ አልተሳካም። እንደገና ይሞክሩ።"
   },
   "detail": {
-    "drawerTitle": "የማስረጃ ዝርዝሮች",
-    "evidenceNumber": "የማስረጃ ቁጥር",
-    "type": "ዓይነት",
-    "description": "መግለጫ",
-    "collectedBy": "የሰበሰበው",
-    "collectedAt": "የተሰበሰበ ቀን",
-    "storageLocation": "የማቆያ ቦታ",
-    "notes": "ማስታወሻ",
-    "mediaSection": "የተያያዘ ፋይል",
-    "viewFullImage": "ሙሉ ምስል ተመልከት",
-    "downloadFile": "አውርድ",
-    "noMedia": "ምንም ፋይል አልተያያዘም።",
-    "forensicSection": "የፎረንሲክ ሪፖርት",
-    "forensicReportNumber": "ሪፖርት ቁጥር",
-    "forensicLab": "ላቦራቶሪ",
-    "forensicSubmittedBy": "ያቀረበው",
-    "forensicSubmittedAt": "የቀረበ",
-    "forensicFindings": "ግኝቶች",
-    "forensicConclusion": "መደምደሚያ",
-    "noForensicReport": "ምንም የፎረንሲክ ሪፖርት አልቀረበም።",
-    "vehicleSection": "የተሸከርካሪ ዝርዝሮች",
-    "weaponSection": "የመሳሪያ ዝርዝሮች",
-    "recordCustodyButton": "የጥበቃ ክስተት መዝግብ"
-  },
-  "custody": {
-    "sectionTitle": "የጥበቃ ሰንሰለት",
-    "intactBadge": "ሰንሰለት ሙሉ ነው",
-    "brokenBadge": "ክፍተት ተገኝቷል",
-    "gapWarning": "ከዚህ ክስተት በኋላ {hours} ሰዓት ክፍተት ተገኝቷል።",
-    "immutableTooltip": "ይህ የጥበቃ መዝገብ ሊቀየር ወይም ሊሰረዝ አይችልም።",
-    "eventTypes": {
-      "COLLECTED": "ተሰብስቧል",
-      "TRANSFERRED": "ተዛውሯል",
-      "EXAMINED": "ተፈትሷል",
-      "STORED": "ተቀምጧል",
-      "PRESENTED_IN_COURT": "ለፍርድ ቤት ቀርቧል",
-      "RETURNED": "ተመልሷል",
-      "DESTROYED": "ወድሟል"
-    },
-    "from": "ከ",
-    "to": "ወደ",
+    "drawerTitle": "የቁርኝቶ ዝርዝሮች",
+    "arrestNumber": "የቁርኝቶ ቁጥር",
+    "arrestedPerson": "የተያዘ ሰው",
+    "arrestingOfficer": "ያዘ ፖሊስ",
+    "arrestDate": "ቀን እና ሰዓት",
     "location": "ቦታ",
-    "reason": "ምክንያት",
-    "empty": "ምንም የጥበቃ ክስተቶች አልተመዘገቡም።",
-    "recordDrawerTitle": "የጥበቃ ክስተት መዝግብ",
-    "recordDrawerDescription": "ለዚህ ማስረጃ አዲስ ዝውውር ወይም ምርምር ክስተት ይመዝገቡ።",
-    "eventTypeLabel": "ክስተት ዓይነት",
-    "toOfficerLabel": "ተቀባይ መኮንን",
-    "toOfficerPlaceholder": "መኮንን ፈልግ...",
-    "locationLabel": "ቦታ",
-    "locationPlaceholder": "ለምሳሌ ፎረንሲክ ላብ 2፣ የፌዴራል ፖሊስ ዋና መምሪያ",
-    "reasonLabel": "ምክንያት / ማስታወሻ (አማራጭ)",
-    "submitButton": "ክስተት መዝግብ",
-    "eventRecordedMessage": "የጥበቃ ክስተት በተሳካ ሁኔታ ተመዝግቧል።"
+    "warrantNumber": "የትዕዛዝ ቁጥር",
+    "detentionStatus": "የቁርኝቶ ሁኔታ",
+    "bailStatus": "የዋስትና ሁኔታ",
+    "bailAmount": "የዋስትና መጠን",
+    "bailAmountValue": "{amount} ብር",
+    "noBailAmount": "—",
+    "chargesAtArrest": "በቁርኝቶ ጊዜ ክሶች",
+    "noCharges": "ምንም ክሶች አልተመዘገቡም።",
+    "courtAppearanceDate": "የፍርድ ቤት ቀን",
+    "noCourtDate": "ገና አልተቀናጀም።",
+    "notes": "ማስታወሻ",
+    "noNotes": "ምንም ማስታወሻ የለም።",
+    "updateStatusButton": "የቁርኝቶ ሁኔታ አዘምን",
+    "noWarrant": "ምንም የትዕዛዝ ቁጥር አልተመዘገበም።"
   },
-  "gallery": {
-    "empty": "ለዚህ ጉዳይ ምንም ፎቶ የለም።",
-    "emptyDescription": "ፎቶ ማስረጃ ለመጨመር 'ማስረጃ ጨምር' አዝራሩን ይጠቀሙ።",
-    "hover": {
-      "view": "ተመልከት",
-      "details": "ዝርዝሮች"
-    }
-  },
-  "lightbox": {
-    "closeLabel": "ቀጥታ ዝጋ",
-    "prevLabel": "ቀዳሚ ፎቶ",
-    "nextLabel": "ቀጣዩ ፎቶ",
-    "openMetadata": "ዘዴዳ አሳይ",
-    "closeMetadata": "ዘዴዳ ደብቅ",
-    "downloadLabel": "ፎቶ አውርድ",
-    "photoCount": "{total} ከ {current}",
-    "zoomIn": "አበሳቁ",
-    "zoomOut": "አንቃ",
-    "resetZoom": "ዙም ዳግም ጀምር"
+  "update": {
+    "drawerTitle": "የቁርኝቶ ሁኔታ አዘምን",
+    "drawerDescription": "ለዚህ ቁርኝቶ ሁኔታ እና የዋስትና መረጃ ያዘምኑ።",
+    "detentionStatusLabel": "የቁርኝቶ ሁኔታ",
+    "bailStatusLabel": "የዋስትና ሁኔታ",
+    "bailAmountLabel": "የዋስትና መጠን (ብር)",
+    "bailAmountPlaceholder": "መጠን በኢትዮጵያ ብር ያስገቡ",
+    "notesLabel": "የዝማኔ ማስታወሻ (አማራጭ)",
+    "notesPlaceholder": "ለሁኔታ ለውጥ ምክንያት...",
+    "submitButton": "ለውጦች ያስቀምጡ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "የቁርኝቶ መዝገብ በተሳካ ሁኔታ ተዘምኗል።",
+    "errorMessage": "የቁርኝቶ መዝገብ ለማዘምን አልተሳካም። እንደገና ይሞክሩ።"
   },
   "delete": {
-    "confirmTitle": "ማስረጃ ንጥሉን ሰርዝ?",
-    "confirmDescription": "ማስረጃ ቁጥር {evidenceNumber} ቋሚ ሆኖ ይሰረዛል። ይህ ድርጊት ሊቀለበስ አይችልም።",
-    "confirmPhrase": "{evidenceNumber} ሰርዝ",
-    "successMessage": "ማስረጃ ንጥሉ በተሳካ ሁኔታ ተሰርዟል።"
+    "confirmTitle": "የቁርኝቶ መዝገብ ሰርዝ?",
+    "confirmDescription": "ቁርኝቶ ቁጥር {arrestNumber} ቋሚ ሆኖ ይሰረዛል። ይህ ድርጊት ሊቀለበስ አይችልም።",
+    "confirmPhrase": "{arrestNumber} ሰርዝ",
+    "successMessage": "የቁርኝቶ መዝገብ በተሳካ ሁኔታ ተሰርዟል።"
   }
 }
 ```
 
 ---
 
-# 9. UI Implementation — Evidence Tab
+# 13. i18n Messages — Interrogations
 
-## 9.1 Route: `src/app/(dashboard)/cases/[caseId]/evidence/page.tsx`
+## 13.1 `messages/en/interrogations.json` — Full Population
 
-Replace Phase 3 skeleton. Server Component rendering `<EvidenceTab caseId={params.caseId} />`.
+```json
+{
+  "pageTitle": "Interrogations",
+  "tab": {
+    "heading": "Interrogations",
+    "entityCount": "{count} record(s)",
+    "addInterrogation": "Add Interrogation",
+    "filters": {
+      "search": "Search by subject name...",
+      "dateRange": "Date Range",
+      "clearAll": "Clear all filters"
+    },
+    "loading": "Loading interrogation records...",
+    "empty": "No interrogation records for this case.",
+    "emptyDescription": "Log the first interrogation session using the button above.",
+    "emptyFiltered": "No records match your current filters.",
+    "columns": {
+      "interrogationNumber": "Record No.",
+      "subject": "Subject",
+      "conductingOfficer": "Conducted By",
+      "interrogationDate": "Date & Time",
+      "location": "Location",
+      "duration": "Duration",
+      "legalRep": "Legal Rep",
+      "actions": "Actions"
+    },
+    "durationValue": "{minutes} min",
+    "durationUnknown": "—",
+    "legalRepYes": "Present",
+    "legalRepNo": "Absent",
+    "rowActions": {
+      "view": "View Record"
+    }
+  },
+  "roleOnCase": {
+    "SUSPECT": "Suspect",
+    "VICTIM": "Victim",
+    "WITNESS": "Witness"
+  },
+  "create": {
+    "drawerTitle": "Add Interrogation Record",
+    "drawerDescription": "Log a new interrogation session for this case.",
+    "section1Title": "Session Details",
+    "section2Title": "Legal Representation",
+    "section3Title": "Summary",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "Search persons linked to this case...",
+    "conductingOfficerLabel": "Conducting Officer",
+    "conductingOfficerPlaceholder": "Search officers...",
+    "interrogationDateLabel": "Date & Time",
+    "locationLabel": "Location",
+    "locationPlaceholder": "e.g. Interview Room 3, Bole Sub-City Police Station",
+    "durationLabel": "Duration (minutes, optional)",
+    "durationPlaceholder": "e.g. 90",
+    "legalRepresentativePresentLabel": "Legal Representative Present",
+    "legalRepresentativeNameLabel": "Legal Representative Name",
+    "legalRepresentativeNamePlaceholder": "Full name of the legal representative",
+    "summaryLabel": "Interrogation Summary",
+    "summaryPlaceholder": "Describe the key topics, statements, and outcomes of this interrogation session...",
+    "summaryHint": "This summary will be permanently recorded and may be used as court documentation.",
+    "recordingReferenceLabel": "Recording Reference (optional)",
+    "recordingReferencePlaceholder": "e.g. VID-2026-INT-0042",
+    "submitButton": "Save Record",
+    "cancelButton": "Cancel",
+    "successMessage": "Interrogation record saved successfully.",
+    "errorMessage": "Failed to save interrogation record. Please try again."
+  },
+  "detail": {
+    "drawerTitle": "Interrogation Record",
+    "immutableNotice": "This record is permanent and cannot be edited or deleted.",
+    "interrogationNumber": "Record Number",
+    "subject": "Subject",
+    "subjectRole": "Role on Case",
+    "conductingOfficer": "Conducted By",
+    "interrogationDate": "Date & Time",
+    "location": "Location",
+    "duration": "Duration",
+    "durationValue": "{minutes} minutes",
+    "durationUnknown": "Not recorded.",
+    "legalRepSection": "Legal Representation",
+    "legalRepPresent": "Present",
+    "legalRepAbsent": "Absent",
+    "legalRepName": "Representative",
+    "noLegalRepName": "Name not recorded.",
+    "summarySection": "Summary",
+    "recordingReference": "Recording Reference",
+    "noRecordingReference": "No recording reference.",
+    "immutableTooltip": "Interrogation records cannot be modified or deleted."
+  }
+}
+```
+
+## 13.2 `messages/am/interrogations.json` — Full Amharic Equivalent
+
+```json
+{
+  "pageTitle": "ምርምራዎቹ",
+  "tab": {
+    "heading": "ምርምራዎቹ",
+    "entityCount": "{count} መዝገብ(ቤቶ)",
+    "addInterrogation": "ምርምራ ጨምር",
+    "filters": {
+      "search": "በተጠያቂ ስም ፈልግ...",
+      "dateRange": "የቀን ክልል",
+      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+    },
+    "loading": "የምርምራ መዝገቦች እየጫነ ነው...",
+    "empty": "ለዚህ ጉዳይ ምንም የምርምራ መዝገብ የለም።",
+    "emptyDescription": "ከላይ ያለውን አዝራር ተጠቅሞ የመጀመሪያ ምርምራ ይምዝግቡ።",
+    "emptyFiltered": "ምንም መዝገብ ከማጣሪያዎ ጋር አይዛመድም።",
+    "columns": {
+      "interrogationNumber": "መዝገብ ቁ.",
+      "subject": "ተጠያቂ",
+      "conductingOfficer": "ያካሄደ",
+      "interrogationDate": "ቀን እና ሰዓት",
+      "location": "ቦታ",
+      "duration": "ቆይታ",
+      "legalRep": "ጠበቃ",
+      "actions": "ድርጊቶች"
+    },
+    "durationValue": "{minutes} ደቂቃ",
+    "durationUnknown": "—",
+    "legalRepYes": "ተገኝቷል",
+    "legalRepNo": "አልተገኘም",
+    "rowActions": {
+      "view": "መዝገብ ተመልከት"
+    }
+  },
+  "roleOnCase": {
+    "SUSPECT": "ተጠርጣሪ",
+    "VICTIM": "ተጎጂ",
+    "WITNESS": "ምስክር"
+  },
+  "create": {
+    "drawerTitle": "የምርምራ መዝገብ ጨምር",
+    "drawerDescription": "ለዚህ ጉዳይ አዲስ የምርምራ ስብሰባ ይምዝገቡ።",
+    "section1Title": "የስብሰባ ዝርዝሮች",
+    "section2Title": "የህጋዊ ወኪል",
+    "section3Title": "ማጠቃለያ",
+    "subjectLabel": "ተጠያቂ",
+    "subjectPlaceholder": "ለዚህ ጉዳይ የተያያዙ ሰዎች ፈልግ...",
+    "conductingOfficerLabel": "ምርምራ ያካሄደ ፖሊስ",
+    "conductingOfficerPlaceholder": "ፖሊስ ፈልግ...",
+    "interrogationDateLabel": "ቀን እና ሰዓት",
+    "locationLabel": "ቦታ",
+    "locationPlaceholder": "ለምሳሌ ቃለ መጠይቅ ክፍል 3፣ ቦሌ ክፍለ ከተማ ፖሊስ ጣቢያ",
+    "durationLabel": "ቆይታ (ደቂቃ፣ አማራጭ)",
+    "durationPlaceholder": "ለምሳሌ 90",
+    "legalRepresentativePresentLabel": "ጠበቃ ተገኝቷል",
+    "legalRepresentativeNameLabel": "የጠበቃ ስም",
+    "legalRepresentativeNamePlaceholder": "የህጋዊ ወኪሉ ሙሉ ስም",
+    "summaryLabel": "የምርምራ ማጠቃለያ",
+    "summaryPlaceholder": "ዋና ርዕሶቹን፣ ቃሎቹን እና ውጤቶቹን ይግለጹ...",
+    "summaryHint": "ይህ ማጠቃለያ ቋሚ ሆኖ ይመዘገባል እና ለፍርድ ቤት ሰነድ ሊያገለግል ይችላል።",
+    "recordingReferenceLabel": "የቅጂ ማጣቀሻ (አማራጭ)",
+    "recordingReferencePlaceholder": "ለምሳሌ VID-2026-INT-0042",
+    "submitButton": "መዝገብ አስቀምጥ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "የምርምራ መዝገብ በተሳካ ሁኔታ ተቀምጧል።",
+    "errorMessage": "የምርምራ መዝገብ ለማስቀመጥ አልተሳካም። እንደገና ይሞክሩ።"
+  },
+  "detail": {
+    "drawerTitle": "የምርምራ መዝገብ",
+    "immutableNotice": "ይህ መዝገብ ቋሚ ነው፣ ሊቀናጀጥ ወይም ሊሰረዝ አይችልም።",
+    "interrogationNumber": "የመዝገብ ቁጥር",
+    "subject": "ተጠያቂ",
+    "subjectRole": "በጉዳዩ ሚና",
+    "conductingOfficer": "ያካሄደ",
+    "interrogationDate": "ቀን እና ሰዓት",
+    "location": "ቦታ",
+    "duration": "ቆይታ",
+    "durationValue": "{minutes} ደቂቃ",
+    "durationUnknown": "አልተመዘገበም።",
+    "legalRepSection": "የህጋዊ ወኪል",
+    "legalRepPresent": "ተገኝቷል",
+    "legalRepAbsent": "አልተገኘም",
+    "legalRepName": "ወኪል",
+    "noLegalRepName": "ስም አልተመዘገበም።",
+    "summarySection": "ማጠቃለያ",
+    "recordingReference": "የቅጂ ማጣቀሻ",
+    "noRecordingReference": "ምንም የቅጂ ማጣቀሻ የለም።",
+    "immutableTooltip": "የምርምራ መዝገቦች ሊቀናጁ ወይም ሊሰረዙ አይችሉም።"
+  }
+}
+```
+
+---
+
+# 14. UI Implementation — Arrests Tab
+
+## 14.1 Route: `src/app/(dashboard)/cases/[caseId]/arrests/page.tsx`
+
+Replace the Phase 3 skeleton. Server Component rendering `<ArrestsTab caseId={params.caseId} />`.
 
 ```typescript
 import { getTranslations } from 'next-intl/server'
-import { EvidenceTab } from '@features/evidence/components/EvidenceTab'
+import { ArrestsTab } from '@features/arrests/components/ArrestsTab'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('evidence')
+  const t = await getTranslations('arrests')
   return { title: t('pageTitle') }
 }
 
-export default function CaseEvidencePage({
+export default function CaseArrestsPage({
   params,
 }: {
   params: { caseId: string }
 }) {
-  return <EvidenceTab caseId={params.caseId} />
+  return <ArrestsTab caseId={params.caseId} />
 }
 ```
 
-## 9.2 EvidenceTab Component (`src/features/evidence/components/EvidenceTab.tsx`)
+## 14.2 `ArrestsTab.tsx` — Component Architecture
 
-Client Component. Manages view mode (table vs gallery), filter state, and drawer state.
+Client Component. Manages filter state (URL-driven via `nuqs`), and three drawer states: `createOpen`, `detailOpen/selectedArrestId`, `updateOpen/updateArrestId`.
 
-### 9.2.1 View mode toggle
-
-```tsx
-type ViewMode = 'table' | 'gallery'
-const [viewMode, setViewMode] = useState<ViewMode>('table')
-```
-
-Two icon buttons in the PageHeader actions slot: `LayoutList` (table) and `LayoutGrid` (gallery). Active button has `var(--color-primary)` styling.
-
-### 9.2.2 Filter state (URL-driven)
-
-Use `nuqs` for all filter params:
+### 14.2.1 Filter state (URL-driven)
 
 ```typescript
 const [filters, setFilters] = useQueryStates({
   search: parseAsString.withDefault(''),
-  evidenceType: parseAsArrayOf(parseAsString).withDefault([]),
-  collectedById: parseAsString.withDefault(''),
+  detentionStatus: parseAsArrayOf(parseAsString).withDefault([]),
   dateFrom: parseAsString.withDefault(''),
   dateTo: parseAsString.withDefault(''),
   page: parseAsInteger.withDefault(1),
   pageSize: parseAsInteger.withDefault(25),
-  sortField: parseAsString.withDefault('collectedAt'),
+  sortField: parseAsString.withDefault('arrestDate'),
   sortDirection: parseAsString.withDefault('desc'),
 })
 ```
 
-### 9.2.3 PageHeader
+### 14.2.2 Drawer state (component-local)
+
+```typescript
+const [createOpen, setCreateOpen] = useState(false)
+const [selectedArrestId, setSelectedArrestId] = useState<string | null>(null)
+const [updateArrestId, setUpdateArrestId] = useState<string | null>(null)
+```
+
+Do not store drawer IDs in Zustand. Local `useState` is correct here.
+
+### 14.2.3 PageHeader
 
 ```tsx
 <PageHeader
   title={t('tab.heading')}
   description={`${data?.total ?? 0} ${t('tab.entityCount', { count: data?.total ?? 0 })}`}
   actions={
-    <div className="flex items-center gap-2">
-      {/* View mode toggle */}
-      <ViewModeToggle value={viewMode} onChange={setViewMode} />
-      {/* Add evidence — guarded */}
-      <PermissionGuard permission={Permission.EVIDENCE_MANAGE}>
-        <Button onClick={() => setUploadDrawerOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('tab.addEvidence')}
-        </Button>
-      </PermissionGuard>
-    </div>
+    <PermissionGuard permission={Permission.ARRESTS_MANAGE}>
+      <Button onClick={() => setCreateOpen(true)}>
+        <Plus className="mr-2 h-4 w-4" />
+        {t('tab.recordArrest')}
+      </Button>
+    </PermissionGuard>
   }
 />
 ```
 
-### 9.2.4 DataTable columns
+### 14.2.4 Filter Bar
 
-| Column | Cell | Sortable | Width |
-|--------|------|----------|-------|
-| `evidenceNumber` | Monospace, primary colour, clickable | Yes | 130px |
-| `description` | Truncated 80 chars, tooltip for full | No | 240px |
-| `evidenceType` | Type badge (see variant map below) | Yes | 150px |
-| `collectedBy` | `firstName lastName (badgeNumber)` | No | 170px |
-| `collectedAt` | Formatted `dd MMM yyyy HH:mm` | Yes | 130px |
-| `storageLocation` | Truncated text | No | 140px |
-| `custodyStatus` | Custody status badge | Yes | 120px |
+Rendered below the PageHeader. Contains:
+- Search input (`Search` icon, placeholder from `t('tab.filters.search')`) — debounced 300ms before updating URL
+- Detention status multi-select filter — uses `DetentionStatus` enum values, each labelled via `t('detentionStatus.*')`
+- Date range picker (From/To date fields)
+- "Clear all filters" link button — visible only when any filter is active
+
+Active filter chips appear below the filter bar in a `flex flex-wrap gap-2` row. Each chip: label, `×` remove button. Removing a chip updates the corresponding URL param.
+
+### 14.2.5 DataTable Column Definitions
+
+Define in `src/features/arrests/components/ArrestsTab.tsx` or a co-located `arrests-columns.tsx`:
+
+| Column Key | Renderer | Sortable | Min Width |
+|---|---|---|---|
+| `arrestNumber` | Monospace text, `xs` font | Yes | 110px |
+| `arrestedPerson` | `firstName lastName` linked (or plain if role < dept head) | No | 160px |
+| `arrestingOfficer` | `firstName lastName (badgeNumber)` | No | 160px |
+| `arrestDate` | `dd MMM yyyy HH:mm` | Yes | 130px |
+| `location` | Truncated to 40 chars, full on tooltip | No | 150px |
+| `detentionStatus` | `DetentionStatusBadge` | Yes | 120px |
+| `bailStatus` | `BailStatusBadge` | No | 100px |
 | `actions` | Kebab menu | No | 48px |
 
-**Evidence type → badge variant:**
-```typescript
-const EVIDENCE_TYPE_VARIANTS: Record<EvidenceType, string> = {
-  CRIME_SCENE_PHOTO: 'accent',
-  DIGITAL: 'primary',
-  PHYSICAL: 'muted',
-  DOCUMENT: 'muted',
-  BIOLOGICAL: 'warning',
-  FORENSIC_REPORT: 'success',
-  WEAPON: 'destructive',
-  VEHICLE: 'warning',
-  WITNESS_STATEMENT: 'primary',
-  AUDIO: 'accent',
-  VIDEO: 'accent',
-  OTHER: 'muted',
-}
-```
+**Row click behaviour:** Clicking any row (not the kebab) opens `ArrestDetailDrawer` for that arrest ID.
 
-**Row click behaviour:**
-- Photo evidence (`CRIME_SCENE_PHOTO`) → opens Lightbox
-- All other types → opens `EvidenceDetailDrawer`
-
-**Row kebab actions:**
-- `View Details` → opens detail drawer (all types)
-- `Record Custody Event` — `PermissionGuard` requiring `evidence:manage`
+**Kebab actions:**
+- `t('tab.rowActions.view')` → opens `ArrestDetailDrawer`
+- `t('tab.rowActions.updateStatus')` → opens `UpdateArrestDrawer` (investigator+)
 - Separator
-- `Delete` (destructive) — `PermissionGuard` requiring `evidence:manage`; opens `DestructiveConfirmDialog` with `confirmPhrase`
+- `t('tab.rowActions.delete')` (destructive, red label) → `DestructiveConfirmDialog` (dept head+ only)
+
+### 14.2.6 Status Badge Variants
+
+**Detention Status badge variant mapping:**
+```typescript
+const DETENTION_STATUS_VARIANTS: Record<DetentionStatus, BadgeVariant> = {
+  IN_CUSTODY:       'warning',     // Amber — person is currently held
+  RELEASED_ON_BAIL: 'accent',      // Indigo — released with conditions
+  RELEASED:         'success',     // Green — fully released
+  TRANSFERRED:      'primary',     // Blue — moved elsewhere
+}
+```
+
+**Bail Status badge variant mapping:**
+```typescript
+const BAIL_STATUS_VARIANTS: Record<BailStatus, BadgeVariant> = {
+  NOT_SET:  'muted',        // Slate — not yet determined
+  DENIED:   'destructive',  // Red — bail denied
+  GRANTED:  'success',      // Green — bail approved
+  POSTED:   'accent',       // Indigo — bail has been paid
+}
+```
 
 ---
 
-# 10. UI Implementation — Evidence Upload Drawer
+# 15. UI Implementation — Create Arrest Drawer
 
-## 10.1 `EvidenceUploadDrawer.tsx` (`src/features/evidence/components/EvidenceUploadDrawer.tsx`)
+## 15.1 `CreateArrestDrawer.tsx`
 
-Client Component. Wraps `SlideOverDrawer`.
+Client Component wrapping `SlideOverDrawer` (480px).
 
-### 10.1.1 Two-section form layout
+### 15.1.1 Layout
 
 ```
-EvidenceUploadDrawer (480px, SlideOverDrawer)
+CreateArrestDrawer (480px)
 ──────────────────────────────────────────────
- ┌── Section 1: Evidence Details ────────────┐
- │  Description *           [Textarea]       │
- │  Evidence Type *         [Select]         │
- │  Collected By *          [SearchableSelect]│
- │  Date & Time Collected * [DatePicker]     │
- │  Storage Location *      [Input]          │
- │  Notes                   [Textarea]       │
- └────────────────────────────────────────────┘
-
- ┌── Section 2: File Upload ──────────────────┐  ← Conditionally rendered
- │  ┌──────────────────────────────────────┐ │     Only when evidenceType ∈ MEDIA_EVIDENCE_TYPES
- │  │  🗂  Drag a file here                │ │
- │  │     or click to browse               │ │
- │  │     Max 50 MB                        │ │
+  Record Arrest
+  Record a new arrest linked to this case.
+──────────────────────────────────────────────
+ ┌── Section 1: Arrest Details ──────────────┐
+ │  Arrested Person *    [SearchableSelect]   │
+ │  (hint: suspects on this case only)        │
+ │                                            │
+ │  Arresting Officer *  [SearchableSelect]   │
+ │  Date & Time *        [DatePicker]         │
+ │  Location *           [Input]              │
+ │  Warrant Number       [Input, optional]    │
+ │                                            │
+ │  Charges at Time of Arrest *              │
+ │  ┌──────────────────────────────────────┐ │
+ │  │  [Chip] Robbery  [×]                 │ │  ← Tag-style input
+ │  │  [Chip] Assault  [×]                 │ │
+ │  │  [+Add charge input + Enter]         │ │
  │  └──────────────────────────────────────┘ │
- │  [thumbnail preview once file selected]   │
- │  [████████░░░░ 67%   Uploading...]       │  ← Progress bar during upload
+ │  Notes                [Textarea, optional] │
+ └────────────────────────────────────────────┘
+
+ ┌── Section 2: Bail Information ─────────────┐
+ │  Bail Status          [Select]             │
+ │  Bail Amount (ETB)    [Input, conditional] │  ← Only shown when GRANTED or POSTED
  └────────────────────────────────────────────┘
 
  ────────────────────────────────────────────
- [Cancel]                      [Add Evidence]
+ [Cancel]                     [Record Arrest]
 ```
 
-### 10.1.2 Conditional media section
+### 15.1.2 Person SearchableSelect (suspects on this case)
 
-Watch the `evidenceType` field value via `useWatch`. When the selected type is in `MEDIA_EVIDENCE_TYPES`, the file upload section appears with a smooth height-based expand animation (200ms). When switching to a non-media type, the section collapses and the selected file is cleared.
-
-```typescript
-const selectedType = watch('evidenceType')
-const showFileUpload = MEDIA_EVIDENCE_TYPES.includes(selectedType as EvidenceType)
-```
-
-### 10.1.3 File selection and preview
-
-The `FileUploadZone` renders a drop target. On file selection:
-1. Validate MIME type and size client-side (Zod `evidenceFileSchema`)
-2. If valid: show a thumbnail preview (`<img src={objectUrl} />` for images; a file icon + name for non-images)
-3. If invalid: show an inline error below the drop zone (no toast)
-
-`objectUrl` is created with `URL.createObjectURL(file)` and revoked in a `useEffect` cleanup.
-
-### 10.1.4 Upload progress states
-
-The `useUploadEvidence` hook returns `uploadState.phase` and `uploadState.progress`. Map these to UI:
-
-| Phase | Upload button | Progress bar | Message |
-|-------|--------------|--------------|---------|
-| `idle` | "Add Evidence" enabled | Hidden | — |
-| `signing` | Disabled + spinner | Shown at 0%, indeterminate pulse | `t('upload.uploadPhase.signing')` |
-| `uploading` | Disabled + spinner | Shown, `progress`% filled | `t('upload.uploadPhase.uploading', { progress })` |
-| `recording` | Disabled + spinner | Shown at 100% | `t('upload.uploadPhase.recording')` |
-| `success` | — (drawer closes) | — | Toast shown by hook |
-| `error` | "Retry" button | Hidden | Inline error card with `uploadState.error` text |
-
-**Progress bar design:** Full-width, `height: 4px`, `var(--color-primary)` fill, rounded. Animated fill transition (150ms). The indeterminate pulse (signing/recording phases) uses a CSS shimmer animation.
-
-### 10.1.5 Retry behaviour
-
-On error, render an `<ErrorState>` card inside the drawer showing `uploadState.error`. Render a "Retry" button. On click: call `reset()` from the hook, then re-submit the form. **Do not close the drawer on error** — the officer's metadata must be preserved.
-
-### 10.1.6 Dirty state guard
-
-If the form has been touched (`formState.isDirty`) and the officer attempts to close the drawer, render a `ConfirmDialog`: "Discard evidence? You have unsaved changes." On confirm, close the drawer. On cancel, keep it open.
-
-### 10.1.7 Submit logic
+Use `SearchableSelect` with server-side search. The query function:
 
 ```typescript
-const onSubmit = async (values: EvidenceMetadataValues) => {
-  await upload(values, selectedFile)
-  // hook handles success/error state
-  if (uploadState.phase === 'success') {
-    onClose()          // close the drawer
-    form.reset()       // clear the form
-    setSelectedFile(null)
-  }
+const searchSuspects = async (searchTerm: string): Promise<SelectOption[]> => {
+  const persons = await getCasePersons(caseId, {
+    role: 'SUSPECT',
+    search: searchTerm,
+  })
+  return persons.map((p) => ({
+    value: p.id,
+    label: `${p.firstName} ${p.lastName}`,
+  }))
 }
 ```
 
+Include the hint text `t('create.arrestedPersonHint')` as a `<FormField>` helper below the select. If the case has no suspects, show an empty state inside the dropdown: "No suspects are linked to this case. Add suspects via the Personnel module first."
+
+### 15.1.3 Charges at Arrest — tag-style input
+
+This field is not a standard `Input` or `Textarea`. It functions as a **tag input**:
+- An `<input>` field at the bottom of the charges area allows the officer to type a charge and press `Enter` (or Tab) to add it as a chip.
+- Each chip shows the charge text with a `×` remove button.
+- The chip list is managed in local state: `const [charges, setCharges] = useState<string[]>([])`
+- React Hook Form value is registered via `setValue('chargesAtArrest', charges)` whenever charges change.
+- Pressing `Backspace` on an empty input removes the last chip.
+- Maximum 20 charges; if at max, disable the input and show "Maximum charges reached."
+
+Chip styles: `background: var(--color-card-hover)`, `border: 1px solid var(--color-border)`, `border-radius: var(--radius-sm)`, `padding: 2px 8px`, `font-size: 12px`.
+
+### 15.1.4 Conditional bail amount field
+
+Watch `bailStatus` via `useWatch`. When `GRANTED` or `POSTED`:
+- Show the bail amount `<Input type="number" min="0" step="0.01" />` with the label `t('create.bailAmountLabel')`
+- Animate with `max-height` expand (150ms ease-out) — same technique as evidence media section
+- When bail status changes to `NOT_SET` or `DENIED`, collapse and clear the amount field
+
+```typescript
+const selectedBailStatus = watch('bailStatus')
+const showBailAmount = BAIL_STATUSES_WITH_AMOUNT.includes(selectedBailStatus as BailStatus)
+```
+
+### 15.1.5 Submit logic
+
+```typescript
+const onSubmit = async (values: CreateArrestValues) => {
+  await createArrestMutation.mutateAsync({
+    ...values,
+    chargesAtArrest: charges,
+  })
+  // onSuccess handled by hook — toast + invalidation
+  onClose()
+  form.reset()
+  setCharges([])
+}
+```
+
+On mutation error (from hook `onError`): toast is shown by the hook; drawer stays open.
+
+Dirty state guard: if `formState.isDirty || charges.length > 0` and the officer closes the drawer, show `ConfirmDialog`: "Discard arrest record? You have unsaved changes."
+
 ---
 
-# 11. UI Implementation — Evidence Detail Drawer
+# 16. UI Implementation — Arrest Detail Drawer
 
-## 11.1 `EvidenceDetailDrawer.tsx` (`src/features/evidence/components/EvidenceDetailDrawer.tsx`)
+## 16.1 `ArrestDetailDrawer.tsx`
 
-Client Component. Wraps `SlideOverDrawer`. Opened by clicking any non-photo evidence item.
+Client Component wrapping `SlideOverDrawer` (480px).
 
-Uses `useEvidence(evidenceId)` to fetch full detail including the custody chain.
+Uses `useArrest(selectedArrestId)`. Shows a `<Skeleton>` version while loading.
 
-### 11.1.1 Layout
+### 16.1.1 Layout
 
 ```
-EvidenceDetailDrawer (480px, SlideOverDrawer)
+ArrestDetailDrawer (480px)
 ──────────────────────────────────────────────
- Evidence Details                    EVD-2026-00042
-
- ┌── Metadata ────────────────────────────────┐
- │  Evidence Type   [Crime Scene Photo badge] │
- │  Description     Full text                 │
- │  Collected By    Insp. Dawit (BD-00142)    │
- │  Collected At    14 Jun 2026 09:15 UTC     │
- │  Storage         Evidence Locker 4B         │
- │  Custody Status  [Stored badge]            │
- │  Notes           Any notes here            │
+  Arrest Details                  ARR-2026-00018
+──────────────────────────────────────────────
+ ┌── Arrest Metadata ──────────────────────────┐
+ │  Arrested Person   John Bekele               │
+ │  Arresting Officer Insp. Sara Haile (BD-082) │
+ │  Date & Time       14 Jun 2026  09:23 UTC    │
+ │  Location          Bole Road, near Edna Mall │
+ │  Warrant No.       WRN-2026-00041            │
  └────────────────────────────────────────────┘
 
- ┌── Attached File ──────────────────────────┐
- │  [Thumbnail / File icon]  filename.pdf    │
- │  [View full image]  [Download]            │
+ ┌── Status ───────────────────────────────────┐
+ │  Detention    [In Custody badge]             │
+ │  Bail         [Not Set badge]                │
  └────────────────────────────────────────────┘
 
- ┌── Chain of Custody ────────────────────────┐  ← CustodyChainTimeline component
- │  [Chain Intact ✓] or [Gap Detected ⚠]     │
- │  ...custody events...                      │
+ ┌── Charges at Time of Arrest ───────────────┐
+ │  [Chip] Robbery  [Chip] Assault             │
  └────────────────────────────────────────────┘
 
- ┌── Forensic Report ─────────────────────────┐  ← PermissionGuard: forensic/admin only
- │  ...                                       │
+ ┌── Court Appearance ────────────────────────┐
+ │  "Not yet scheduled."  (or date if set)    │
  └────────────────────────────────────────────┘
 
- ┌── Vehicle / Weapon Details ────────────────┐  ← Conditional: only if type is VEHICLE/WEAPON
- │  ...                                       │
+ ┌── Notes ────────────────────────────────────┐
+ │  ...notes text...                          │
  └────────────────────────────────────────────┘
 
  ────────────────────────────────────────────
- [Record Custody Event]              [Close]
+ [🗑 Delete (destructive)]   [Update Status]
 ```
 
-"Record Custody Event" button opens the `RecordCustodyEventDrawer` (nested within this drawer is not ideal — instead close this drawer and open the custody event drawer).
+### 16.1.2 Action buttons
 
-Loading state: show a `<Skeleton>` version of the metadata section and chain timeline while `useEvidence` is loading.
+- **Update Status** button: `PermissionGuard` requiring `arrests:manage`. Closes this drawer and opens `UpdateArrestDrawer` for the same arrest ID.
+- **Delete** button: `PermissionGuard` requiring `arrests:delete` (dept head+ only). Destructive styling. Opens `DestructiveConfirmDialog` with:
+  - Title: `t('delete.confirmTitle')`
+  - Description: `t('delete.confirmDescription', { arrestNumber })`
+  - Confirm phrase: `t('delete.confirmPhrase', { arrestNumber })`
+  - On confirm: calls `useDeleteArrest` mutation; on success, both the confirm dialog and the detail drawer close
+
+### 16.1.3 Charges display
+
+Render charges as chips using the same style defined in Section 15.1.3. These chips have no `×` button (read-only context). If `chargesAtArrest` is empty, render `t('detail.noCharges')` in muted text.
 
 ---
 
-# 12. UI Implementation — Chain of Custody Timeline
+# 17. UI Implementation — Update Arrest Drawer
 
-## 12.1 `CustodyChainTimeline.tsx` (`src/features/evidence/components/CustodyChainTimeline.tsx`)
+## 17.1 `UpdateArrestDrawer.tsx`
 
-Client Component. Receives `custodyChain: CustodyChain` as a prop.
+Client Component wrapping `SlideOverDrawer` (480px).
 
-### 12.1.1 Integrity header
+### 17.1.1 Purpose and scope
 
-At the top of the custody section, render an integrity status badge:
-- **`isIntact: true`**: `<Badge variant="success">` + `<CheckCircle2>` icon + `t('custody.intactBadge')`
-- **`isIntact: false`**: `<Badge variant="warning">` + `<AlertTriangle>` icon + `t('custody.brokenBadge')`
+This drawer's sole purpose is updating `detentionStatus`, `bailStatus`, and `bailAmount`. It does not expose other arrest fields. This mirrors the case status transition drawer pattern established in Phase 3.
 
-### 12.1.2 Event cards
-
-Each custody event renders as a card. Structure:
+### 17.1.2 Form fields and layout
 
 ```
-  ●───────────────────────────────────────────────────────── 🔒
-  │
-  │ [📤] Transferred                      14 Jun 2026 09:23 UTC
-  │      From: Insp. Dawit Bekele (BD-00142) · Bole Division
-  │      To:   Foren. Sara Haile (BD-00089) · Forensic Lab Unit
-  │
-  │      Location: Federal Police Forensic Laboratory, Addis Ababa
-  │      Reason:   Sent for ballistics analysis
-  │
-  ●──── ⚠ CUSTODY GAP: 26 hours ─────────────────────────── (amber dashed)
-  │
-  │ [🔬] Examined                         15 Jun 2026 11:45 UTC
-  │      ...
+UpdateArrestDrawer (480px)
+──────────────────────────────────────────────
+  Update Detention Status       ARR-2026-00018
+  Update the detention and bail status.
+──────────────────────────────────────────────
+ ┌── Current Status (read-only display) ──────┐
+ │  Detention:  [In Custody badge]            │
+ │  Bail:       [Not Set badge]               │
+ └────────────────────────────────────────────┘
+
+ ┌── Update ───────────────────────────────────┐
+ │  Detention Status *   [Select]              │
+ │  Bail Status *        [Select]              │
+ │  Bail Amount (ETB)    [Input, conditional]  │
+ │  Notes                [Textarea, optional]  │
+ └────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Cancel]                      [Save Changes]
 ```
 
-**Gap connector:** When a `CustodyGap` exists after an event, replace the solid `TimelineConnector` with an amber dashed variant:
-```tsx
-<TimelineConnector gapDetected={true} />
-// Plus: amber badge with gapWarning text
-```
+Uses `useUpdateArrest(arrestId, caseId)`. On success: drawer closes, arrest detail and list queries invalidated automatically by the hook, toast confirms the update.
 
-**Event-type icon mapping:**
-```typescript
-const CUSTODY_EVENT_ICONS: Record<CustodyEventType, LucideIcon> = {
-  COLLECTED: PackagePlus,
-  TRANSFERRED: ArrowRightLeft,
-  EXAMINED: FlaskConical,
-  STORED: Archive,
-  PRESENTED_IN_COURT: Gavel,
-  RETURNED: Undo2,
-  DESTROYED: Trash2,
-}
-```
-
-**Immutability indicator:** `<Lock className="h-3 w-3 text-[var(--color-muted)]" />` at the far right of each event card. Tooltip: `t('custody.immutableTooltip')`.
-
-**Empty state:** When `events.length === 0`, render `<EmptyState>` with the custody empty message.
+The `useArrest(arrestId)` data is used to pre-populate the current status display section and as default values for the form fields.
 
 ---
 
-# 13. UI Implementation — Gallery View
+# 18. UI Implementation — Interrogations Tab
 
-## 13.1 `EvidenceGallery.tsx` (`src/features/evidence/components/EvidenceGallery.tsx`)
+## 18.1 Route: `src/app/(dashboard)/cases/[caseId]/interrogations/page.tsx`
 
-Client Component. Renders when `viewMode === 'gallery'`. Shows only evidence items where `evidenceType === 'CRIME_SCENE_PHOTO'`. If no photos exist, shows the gallery-specific `<EmptyState>`.
-
-### 13.1.1 Grid layout
-
-CSS Grid, `grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))`, `gap: 12px`. On mobile: `minmax(140px, 1fr)`.
-
-### 13.1.2 Gallery card anatomy
-
-```
-┌──────────────────────────────┐
-│                              │
-│   [Cloudinary thumbnail     │  ← aspect-ratio: 4/3, object-fit: cover
-│    160×120 rendered]        │
-│                              │
-├──────────────────────────────┤
-│ [Crime Scene Photo]          │  ← Type badge
-│ EVD-2026-00042               │  ← Evidence number, monospace xs
-│ 14 Jun 2026                  │  ← Date, muted xs
-└──────────────────────────────┘
-```
-
-**Hover state:** On hover, a translucent overlay slides in from the bottom of the image area (50% opacity dark gradient). Two icon buttons appear: `Eye` (View) and `Info` (Details). Transition: 150ms ease-out. Respects `prefers-reduced-motion` — buttons are always visible when reduced motion is preferred.
-
-**Click behaviour:**
-- Clicking the image or the `Eye` button → opens Lightbox at that photo's index
-- Clicking the `Info` button → opens `EvidenceDetailDrawer` for that evidence item
-
-**Cloudinary URL transformation:** Use the Cloudinary transformation API to request a 320×240 thumbnail:
-```typescript
-function getThumbnailUrl(originalUrl: string): string {
-  // Insert /c_fill,w_320,h_240,q_auto,f_auto/ before /upload/
-  return originalUrl.replace('/upload/', '/upload/c_fill,w_320,h_240,q_auto,f_auto/')
-}
-```
-
-Never render full-resolution images in the gallery. Always use the thumbnail transformation URL.
-
----
-
-# 14. UI Implementation — Lightbox Viewer
-
-## 14.1 `EvidenceLightbox.tsx` (`src/features/evidence/components/EvidenceLightbox.tsx`)
-
-Client Component. Full-screen overlay modal. Renders above all other UI (`z-index: 9999`).
-
-### 14.1.1 Props
-
-```typescript
-interface EvidenceLightboxProps {
-  photos: EvidenceListItem[]       // Only CRIME_SCENE_PHOTO items
-  initialIndex: number             // Which photo to start at
-  open: boolean
-  onClose: () => void
-}
-```
-
-### 14.1.2 Visual structure
-
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ [✕ Close]                                          3 of 14   [⇓ Download]   │  ← TopBar
-│                                                                              │
-│    [◀]          [   Full-resolution image centred   ]          [▶]          │
-│                                                                              │
-│                       [+ Zoom In]  [− Zoom Out]                              │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
-   ↑
-   When [ℹ Metadata] button is clicked, a panel slides in from the right:
-   ┌──────────────────────────┐
-   │ Evidence: EVD-2026-00042 │
-   │ Type: Crime Scene Photo  │
-   │ Collected: 14 Jun 2026   │
-   │ By: Insp. Dawit Bekele  │
-   │ Location: Bole Road      │
-   │ Storage: Locker 4B       │
-   └──────────────────────────┘
-```
-
-### 14.1.3 Keyboard handling
-
-```typescript
-useEffect(() => {
-  if (!open) return
-  const handler = (e: KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') navigatePrev()
-    if (e.key === 'ArrowRight') navigateNext()
-    if (e.key === 'Escape') onClose()
-    if (e.key === '+' || e.key === '=') zoomIn()
-    if (e.key === '-') zoomOut()
-  }
-  window.addEventListener('keydown', handler)
-  return () => window.removeEventListener('keydown', handler)
-}, [open, navigatePrev, navigateNext, onClose])
-```
-
-Trap focus inside the lightbox while open. On close, return focus to the element that triggered opening.
-
-### 14.1.4 Zoom
-
-```typescript
-const [scale, setScale] = useState(1)
-const MIN_SCALE = 0.5
-const MAX_SCALE = 4
-
-const zoomIn = () => setScale((s) => Math.min(s + 0.25, MAX_SCALE))
-const zoomOut = () => setScale((s) => Math.max(s - 0.25, MIN_SCALE))
-const resetZoom = () => setScale(1)
-```
-
-Apply zoom with `transform: scale(scale)` and `transition: transform 150ms ease-out`. The image is wrapped in an `overflow: hidden` container so zoomed-out images don't overflow. Dragging the image while zoomed in is achieved via pointer events on the image container.
-
-Scroll-wheel zoom:
-```typescript
-const handleWheel = (e: WheelEvent) => {
-  e.preventDefault()
-  if (e.deltaY < 0) zoomIn()
-  else zoomOut()
-}
-```
-
-### 14.1.5 Touch swipe (mobile)
-
-```typescript
-const touchStartX = useRef<number>(0)
-const onTouchStart = (e: React.TouchEvent) => {
-  touchStartX.current = e.touches[0]?.clientX ?? 0
-}
-const onTouchEnd = (e: React.TouchEvent) => {
-  const delta = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current
-  if (delta < -50) navigateNext()
-  if (delta > 50) navigatePrev()
-}
-```
-
-### 14.1.6 Metadata panel
-
-A slide-in panel from the right edge of the lightbox. State: `metadataPanelOpen: boolean`. When open, the image area shrinks by the panel width (320px) with a CSS transition. The panel shows key evidence metadata fields. Toggle button: `Info` icon in the topbar.
-
-### 14.1.7 Download button
-
-```typescript
-const handleDownload = async () => {
-  const url = photos[currentIndex]?.mediaUrl
-  if (!url) return
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${photos[currentIndex]?.evidenceNumber ?? 'evidence'}.jpg`
-  a.click()
-}
-```
-
-Wrap in `PermissionGuard` requiring `evidence:manage`.
-
-### 14.1.8 Background and transitions
-
-Background: `rgba(0, 0, 0, 0.95)` — near-black, not token-based (lightbox is intentionally outside the normal dark-mode palette). Navigation arrows: `rgba(255,255,255,0.15)` background, `rgba(255,255,255,0.8)` icon. Image navigation transition: the outgoing image fades out, the incoming image fades in (100ms each). Respects `prefers-reduced-motion` — instant swap when reduced motion is preferred.
-
----
-
-# 15. Evidence Detail Page Route
-
-## 15.1 `src/app/(dashboard)/cases/[caseId]/evidence/[evidenceId]/page.tsx`
-
-This route serves as a dedicated full-page view for evidence items that warrant their own page (e.g., large forensic reports, weapon detail). It is also the canonical URL for deep-linking to a specific evidence item.
+Replace the Phase 3 skeleton. Server Component rendering `<InterrogationsTab caseId={params.caseId} />`.
 
 ```typescript
 import { getTranslations } from 'next-intl/server'
-import { EvidenceDetailPage } from '@features/evidence/components/EvidenceDetailPage'
+import { InterrogationsTab } from '@features/interrogations/components/InterrogationsTab'
+import type { Metadata } from 'next'
 
-export default function EvidenceDetailRoute({
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('interrogations')
+  return { title: t('pageTitle') }
+}
+
+export default function CaseInterrogationsPage({
   params,
 }: {
-  params: { caseId: string; evidenceId: string }
+  params: { caseId: string }
 }) {
-  return (
-    <EvidenceDetailPage caseId={params.caseId} evidenceId={params.evidenceId} />
-  )
+  return <InterrogationsTab caseId={params.caseId} />
 }
 ```
 
-`EvidenceDetailPage` is a Client Component that uses `useEvidence(evidenceId)` and renders the full metadata, chain of custody, and all applicable sections (forensic report, vehicle/weapon details) in a full-width page layout with a `<PageHeader>` including a back link to the evidence tab.
+## 18.2 `InterrogationsTab.tsx` — Component Architecture
 
----
+Client Component. Manages filter state (URL-driven) and two drawer states: `createOpen` and `selectedInterrogationId`.
 
-# 16. Record Custody Event Drawer
-
-## 16.1 `RecordCustodyEventDrawer.tsx` (`src/features/evidence/components/RecordCustodyEventDrawer.tsx`)
-
-A `SlideOverDrawer` (480px) containing the custody event form. Fields: Event Type (Select using `CustodyEventType` values), Receiving Officer (`SearchableSelect`), Location (Input), Reason/Notes (Textarea, optional).
-
-Uses `useRecordCustodyEvent(evidenceId)`. On success: closes the drawer, invalidates the evidence detail query so the chain of custody timeline refreshes.
-
----
-
-# 17. Modal Registry Update
-
-Register the lightbox as a portal-rendered component. It does not use the `ModalRenderer` (it is not triggered by `uiStore.openModal` — it is driven by local component state in `EvidenceTab`). No changes to `ModalRenderer` are needed.
-
-However, document in a comment inside `ModalRenderer.tsx` that the Lightbox is intentionally excluded from the registry due to its data requirements (it needs the photo array which is component-local).
-
----
-
-# 18. caseKeys Update for Evidence Sub-Resource
-
-Verify `caseKeys.evidence(caseId)` is present in `src/services/query/keys/caseKeys.ts` (it was defined in Phase 3). The `useUploadEvidence` hook invalidates `caseKeys.summary(caseId)` on success — this triggers the overview tab's Evidence count card to update.
-
----
-
-# 19. Testing Requirements
-
-## 19.1 Schema Tests (`src/features/evidence/schemas/upload-evidence.schema.test.ts`)
-
-- Valid metadata passes
-- Description shorter than 5 chars fails
-- Missing `evidenceType` fails
-- Missing `collectedById` fails
-- File larger than 50 MB fails `evidenceFileSchema`
-- Unsupported MIME type (e.g., `text/plain`) fails `evidenceFileSchema`
-- Valid image MIME type (`image/jpeg`) passes
-- Valid PDF MIME type passes
-
-## 19.2 Schema Tests (`src/features/evidence/schemas/custody-event.schema.test.ts`)
-
-- Valid custody event passes
-- Missing `toOfficerId` fails
-- Missing `location` fails
-- Location shorter than 2 chars fails
-
-## 19.3 Utility Tests (`src/features/evidence/utils/custody-gap.test.ts`)
-
-If client-side gap detection is implemented as a utility:
+### 18.2.1 Filter state
 
 ```typescript
-import { detectCustodyGaps } from '../utils/custody-gap'
-
-test('detects gap of more than 24 hours', () => {
-  const events = [
-    { id: '1', timestamp: '2026-06-14T09:00:00Z', /* ... */ },
-    { id: '2', timestamp: '2026-06-15T10:00:00Z', /* ... */ }, // 25h later
-  ]
-  const gaps = detectCustodyGaps(events)
-  expect(gaps).toHaveLength(1)
-  expect(gaps[0]?.afterEventId).toBe('1')
-  expect(gaps[0]?.gapHours).toBeGreaterThan(24)
-})
-
-test('no gap when events are within 24 hours', () => {
-  const events = [
-    { id: '1', timestamp: '2026-06-14T09:00:00Z' },
-    { id: '2', timestamp: '2026-06-14T18:00:00Z' }, // 9h later
-  ]
-  expect(detectCustodyGaps(events)).toHaveLength(0)
+const [filters, setFilters] = useQueryStates({
+  search: parseAsString.withDefault(''),
+  dateFrom: parseAsString.withDefault(''),
+  dateTo: parseAsString.withDefault(''),
+  page: parseAsInteger.withDefault(1),
+  pageSize: parseAsInteger.withDefault(25),
+  sortField: parseAsString.withDefault('interrogationDate'),
+  sortDirection: parseAsString.withDefault('desc'),
 })
 ```
 
-## 19.4 Hook Tests (`src/features/evidence/hooks/useUploadEvidence.test.ts`)
+### 18.2.2 PageHeader
 
-- Phase transitions: `idle` → `signing` → `uploading` → `recording` → `success`
-- On Cloudinary upload failure: phase becomes `error`, `uploadState.error` is set
-- On backend record creation failure: phase becomes `error`
-- `reset()` returns phase to `idle`
-- On success: `evidenceKeys.caseEvidence(caseId)` and `caseKeys.summary(caseId)` are invalidated
+```tsx
+<PageHeader
+  title={t('tab.heading')}
+  description={`${data?.total ?? 0} ${t('tab.entityCount', { count: data?.total ?? 0 })}`}
+  actions={
+    <PermissionGuard permission={Permission.INTERROGATIONS_MANAGE}>
+      <Button onClick={() => setCreateOpen(true)}>
+        <Plus className="mr-2 h-4 w-4" />
+        {t('tab.addInterrogation')}
+      </Button>
+    </PermissionGuard>
+  }
+/>
+```
 
-## 19.5 Component Tests (`src/features/evidence/components/EvidenceTab.test.tsx`)
+### 18.2.3 DataTable Column Definitions
 
-- Renders DataTable when `viewMode === 'table'`
-- Renders gallery grid when `viewMode === 'gallery'`
-- "Add Evidence" button is absent when officer lacks `evidence:manage`
-- Filter chip for evidence type appears when type filter is set
-- Clearing a filter chip calls `setFilters` with type removed
+| Column Key | Renderer | Sortable | Min Width |
+|---|---|---|---|
+| `interrogationNumber` | Monospace, `xs` | Yes | 100px |
+| `subject` | `firstName lastName` + role badge | No | 160px |
+| `conductingOfficer` | `firstName lastName (badgeNumber)` | No | 160px |
+| `interrogationDate` | `dd MMM yyyy HH:mm` | Yes | 130px |
+| `location` | Truncated to 40 chars | No | 150px |
+| `durationMinutes` | `{n} min` or `—` if null | No | 80px |
+| `legalRepresentativePresent` | Yes/No badge | No | 90px |
+| `actions` | Kebab menu | No | 48px |
 
-## 19.6 Component Tests (`src/features/evidence/components/CustodyChainTimeline.test.tsx`)
+**Subject role badge:** Render a small badge next to the subject's name indicating their role on the case: `t('roleOnCase.SUSPECT')` / `t('roleOnCase.VICTIM')` / `t('roleOnCase.WITNESS')`. Use `accent` variant for SUSPECT, `muted` for VICTIM/WITNESS.
 
-- "Chain Intact" badge renders when `isIntact: true`
-- "Custody Gap Detected" badge renders when `isIntact: false`
-- Amber dashed connector appears between events that have a gap
-- Padlock icon appears on every event card
-- Empty state renders when `events` array is empty
+**Legal rep badge:**
+- Present: `success` variant, label `t('tab.legalRepYes')`
+- Absent: `muted` variant, label `t('tab.legalRepNo')`
 
-## 19.7 Component Tests (`src/features/evidence/components/EvidenceLightbox.test.tsx`)
+**Row click behaviour:** Clicking any row opens `InterrogationDetailDrawer`. There is no destructive row action. The only kebab action is `t('tab.rowActions.view')`.
 
-- `ArrowRight` keyboard event calls `navigateNext`
-- `ArrowLeft` keyboard event calls `navigatePrev`
-- `Escape` keyboard event calls `onClose`
-- Photo counter renders "1 of 3" correctly
-- Metadata panel renders when metadata button is clicked
-- Download button is absent when officer lacks `evidence:manage`
+---
 
-## 19.8 E2E Tests (`tests/e2e/evidence.spec.ts`)
+# 19. UI Implementation — Create Interrogation Drawer
+
+## 19.1 `CreateInterrogationDrawer.tsx`
+
+Client Component wrapping `SlideOverDrawer` (480px).
+
+### 19.1.1 Layout
+
+```
+CreateInterrogationDrawer (480px)
+──────────────────────────────────────────────
+  Add Interrogation Record
+  Log a new interrogation session for this case.
+──────────────────────────────────────────────
+ ┌── Section 1: Session Details ──────────────┐
+ │  Subject *             [SearchableSelect]   │
+ │  Conducting Officer *  [SearchableSelect]   │
+ │  Date & Time *         [DatePicker]         │
+ │  Location *            [Input]              │
+ │  Duration (minutes)    [Input, optional]    │
+ └────────────────────────────────────────────┘
+
+ ┌── Section 2: Legal Representation ─────────┐
+ │  Legal Rep Present?    [Toggle switch]      │
+ │  Legal Rep Name        [Input, conditional] │  ← Only shown when toggle is ON
+ └────────────────────────────────────────────┘
+
+ ┌── Section 3: Summary ──────────────────────┐
+ │  Interrogation Summary * [Textarea, tall]   │
+ │  (hint: permanent record / court use)       │
+ │  Recording Reference     [Input, optional]  │
+ └────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Cancel]                       [Save Record]
+```
+
+### 19.1.2 Subject SearchableSelect (all persons on this case)
 
 ```typescript
-import { test, expect } from '@playwright/test'
-
-test.describe('Evidence module', () => {
-  test('evidence tab shows DataTable for a case with evidence', async ({ page }) => {
-    await page.route('**/api/v1/cases/case-001/evidence*', (route) =>
-      route.fulfill({
-        status: 200,
-        json: {
-          data: [
-            {
-              id: 'ev-001',
-              evidenceNumber: 'EVD-2026-00001',
-              caseId: 'case-001',
-              evidenceType: 'PHYSICAL',
-              description: 'Knife found at scene',
-              collectedBy: { id: 'off-1', badgeNumber: 'BD-001', firstName: 'Dawit', lastName: 'Bekele', departmentName: 'Bole' },
-              collectedAt: '2026-06-14T09:00:00Z',
-              storageLocation: 'Locker 4B',
-              custodyStatus: 'STORED',
-              hasMedia: false,
-              mediaUrl: null,
-              thumbnailUrl: null,
-              createdAt: '2026-06-14T09:00:00Z',
-            },
-          ],
-          total: 1, page: 1, pageSize: 25, totalPages: 1,
-        },
-      }),
-    )
-    await page.goto('/cases/case-001/evidence')
-    await expect(page.getByText('EVD-2026-00001')).toBeVisible()
-    await expect(page.getByText('Knife found at scene')).toBeVisible()
-  })
-
-  test('gallery view toggle shows grid of photo evidence', async ({ page }) => {
-    // Mock evidence list with CRIME_SCENE_PHOTO items
-    await page.goto('/cases/case-001/evidence')
-    await page.getByRole('button', { name: /gallery view/i }).click()
-    await expect(page.locator('[data-testid="evidence-gallery"]')).toBeVisible()
-  })
-
-  test('switching language in evidence tab updates all labels', async ({ page }) => {
-    await page.goto('/cases/case-001/evidence')
-    await expect(page.getByText('Evidence No.')).toBeVisible()
-    // Switch to Amharic
-    await page.getByRole('button', { name: /EN/i }).click()
-    await page.getByText('አማርኛ').click()
-    await expect(page.getByText('ማስረጃ ቁ.')).toBeVisible()
-  })
-})
+const searchPersons = async (searchTerm: string): Promise<SelectOption[]> => {
+  const persons = await getCasePersons(caseId, { search: searchTerm })
+  // No role filter — all linked persons (suspects, victims, witnesses) are shown
+  return persons.map((p) => ({
+    value: p.id,
+    label: `${p.firstName} ${p.lastName}`,
+  }))
+}
 ```
 
----
+The dropdown option renders the person's name with their role (if known), e.g. "Alem Tadesse — Suspect". This requires the `getCasePersons` response to include a `roleOnCase` field. Adjust the type if the API provides it.
 
-# 20. Step-by-Step Execution Order
+### 19.1.3 Legal representative conditional field
 
-**Step 1 — Create evidence types**
-Create `src/features/evidence/types/evidence.types.ts` and barrel.
-Run `pnpm type-check`. Zero errors.
-
-**Step 2 — Create evidence schemas**
-Create all four schema files. Run `pnpm type-check`. Zero errors.
-
-**Step 3 — Implement evidence service**
-Replace stubs in `src/services/domain/evidence.service.ts`.
-Verify direct Cloudinary call uses `axios` not `apiClient` (different base URL, no auth headers).
-Run `pnpm type-check`. Zero errors.
-
-**Step 4 — Update evidenceKeys factory**
-Confirm `src/services/query/keys/evidenceKeys.ts` has all keys.
-
-**Step 5 — Create all React Query hooks**
-Create all five hook files and the barrel.
-Run `pnpm type-check`. Zero errors.
-
-**Step 6 — Create evidence i18n messages**
-Fully populate `messages/en/evidence.json` and `messages/am/evidence.json`.
-Run `pnpm i18n:types` to regenerate TypeScript message types.
-Run `pnpm test tests/integration/i18n-completeness.test.ts`. Must pass.
-
-**Step 7 — Implement EvidenceTab**
-Create `evidence-columns.tsx`, `EvidenceTab.tsx`.
-Update `/cases/[caseId]/evidence/page.tsx` to replace the Phase 3 skeleton.
-Run `pnpm dev`. Navigate to a case's evidence tab. Verify the table renders (empty state or data).
-
-**Step 8 — Implement EvidenceUploadDrawer**
-Create `EvidenceUploadDrawer.tsx`.
-Wire the "Add Evidence" button in `EvidenceTab` to open the drawer.
-Test the upload flow end-to-end with a real (or mocked) backend in dev.
-
-**Step 9 — Implement CustodyChainTimeline**
-Create `CustodyChainTimeline.tsx`.
-Verify gap detection renders the amber dashed connector with the gap warning badge.
-Verify the padlock icon appears on every event.
-
-**Step 10 — Implement EvidenceDetailDrawer**
-Create `EvidenceDetailDrawer.tsx`.
-Wire it to open on row click for non-photo evidence.
-Verify the chain of custody section renders inside the drawer.
-
-**Step 11 — Implement RecordCustodyEventDrawer**
-Create `RecordCustodyEventDrawer.tsx`.
-Wire the "Record Custody Event" row action and the button in the detail drawer.
-Verify submitting the form invalidates the detail query and the chain updates.
-
-**Step 12 — Implement EvidenceGallery**
-Create `EvidenceGallery.tsx`.
-Wire the view-mode toggle in `EvidenceTab`.
-Verify the grid renders only `CRIME_SCENE_PHOTO` items with Cloudinary thumbnail URLs.
-Verify hover overlay reveals View and Details buttons.
-
-**Step 13 — Implement EvidenceLightbox**
-Create `EvidenceLightbox.tsx`.
-Wire it to open when clicking a photo in the gallery (or using the View button hover overlay).
-Test: arrow key navigation, Escape close, zoom in/out, metadata panel toggle.
-Test on mobile viewport: touch swipe navigates.
-
-**Step 14 — Implement EvidenceDetailPage**
-Create `EvidenceDetailPage.tsx` (Client Component).
-Update `src/app/(dashboard)/cases/[caseId]/evidence/[evidenceId]/page.tsx`.
-Verify it renders all sections with correct loading states.
-
-**Step 15 — Write all tests**
-Write unit, component, and E2E tests from Section 19.
-Run `pnpm test`. All must pass.
-
-**Step 16 — Barrel exports**
-Create `src/features/evidence/index.ts` and all sub-directory barrels.
-
-**Step 17 — Final verification**
-```bash
-pnpm type-check   # Zero errors
-pnpm lint         # Zero warnings
-pnpm test         # All tests pass including i18n completeness
-pnpm build        # Production build succeeds
+```typescript
+const legalRepPresent = watch('legalRepresentativePresent')
 ```
 
----
+When `legalRepPresent === true`: animate the `legalRepresentativeName` input into view (same `max-height` expand as bail amount). When toggled off: collapse and clear the name.
 
-# 21. Visual Design Standards for This Phase
+Use a `<Switch>` (Radix-based, from shadcn/ui) for the toggle. Its value is registered via `Controller` in React Hook Form.
 
-## 21.1 Evidence table — forensic gravity
+### 19.1.4 Summary textarea
 
-The evidence table must communicate the seriousness of its contents. Design decisions:
+The summary `<Textarea>` should be taller than the standard field: `min-height: 160px` (approximately 6 rows). It has a character counter in the bottom-right corner (current / 5000). Render the counter in `xs` muted text.
 
-- **Evidence number column**: Monospace, `var(--color-primary)`. Styled identically to the case number in the cases list — creates a consistent visual language for identifiers across the system.
-- **Custody status column**: Use `<StatusBadge>` with colour. `STORED` and `COLLECTED` use `muted`; `EXAMINED` uses `primary`; `PRESENTED_IN_COURT` uses `accent`; `TRANSFERRED` uses `warning`. The colour signals where evidence is in its journey.
-- **Row hover**: Identical to the cases list — `var(--color-card-hover)` background, `cursor: pointer`. The entire row is the click target.
+Below the textarea, render the helper text `t('create.summaryHint')` in `xs` `var(--color-warning)` (amber) — this emphasises the permanence of the record. Use `AlertTriangle` icon (12px) before the text.
 
-## 21.2 Upload drawer — confidence and control
+### 19.1.5 Submit logic
 
-The upload flow must make officers feel in control at every step, not anxious about data loss:
+```typescript
+const onSubmit = async (values: CreateInterrogationValues) => {
+  await createInterrogationMutation.mutateAsync(values)
+  onClose()
+  form.reset()
+}
+```
 
-- **Progress bar design**: Thin (4px), bottom of the file section. The colour transitions from `var(--color-primary)` to `var(--color-success)` at 100%. An animated shimmer effect (`background-size: 200% 100%; animation: shimmer 1.5s infinite`) overlays the fill during `uploading` phase to indicate live progress.
-- **Error state design**: An `<ErrorState>` card with a red `AlertCircle` icon, the error message text, and a prominent "Retry" button. The form fields above remain filled — the officer should not have to re-enter anything.
-- **Phase label**: The text below the progress bar changes at each phase. Monospace font. `xs` size. Not alarming — calm and informative.
-
-## 21.3 Chain of custody — legal weight and immutability
-
-The custody chain is a legal record. Its visual design must signal that:
-
-- **Connector line**: `2px`, `var(--color-border)`. Continuous — no gap between the dot and the line or between the line and the next dot.
-- **Gap connector**: `2px`, `var(--color-warning)`, `dashed` (CSS: `border-left: 2px dashed var(--color-warning)` on the connector element). The gap warning badge (`AlertTriangle` + amber text) sits on the line itself, centred horizontally.
-- **Padlock icon placement**: Top-right of each event card, outside the main text column. `12px`, `var(--color-muted)`. It should read as an institutional watermark — present but not distracting.
-- **Timestamps**: ISO 8601 in `font-mono`, `text-xs`. The precision of the timestamp reinforces immutability. Do not use relative time in the custody chain — absolute time is required for legal purposes.
-- **From → To**: Use an `ArrowRight` icon between officer names. Left side (From) uses `var(--color-foreground-muted)`; right side (To) uses `var(--color-foreground)`. This directionality helps readers trace the chain.
-
-## 21.4 Gallery — forensic professionalism
-
-The evidence gallery shows crime scene images. It must not feel like a photo app:
-
-- **No rounded corners on thumbnails** — `border-radius: 0`. This distinguishes forensic images from consumer photo galleries.
-- **Subtle border**: `1px solid var(--color-border)` on each gallery card. No box-shadow on the cards themselves — shadows are for modals.
-- **Hover overlay**: `rgba(15, 23, 42, 0.7)` gradient from bottom. No animated effects on the overlay — it appears on hover with a simple opacity transition (100ms). Reduced motion: static overlay visible always.
-- **Evidence number**: Always visible below the image even without hover — this is the identifier.
-
-## 21.5 Lightbox — focus and clarity
-
-The lightbox must make the image the absolute focus:
-
-- **Navigation arrows**: Semi-transparent circle buttons on the left and right edges of the image area. They appear on mouse movement and hide after 2 seconds of inactivity (CSS opacity transition). Always visible on touch devices.
-- **Zoom feedback**: A small zoom-level indicator (`100%`, `150%`) appears briefly in the bottom-right corner after zoom changes (2-second fade-out). Renders in `font-mono`, `xs`, `var(--color-foreground-muted)`.
-- **Photo count**: Top-centre of the lightbox, `EN: "3 of 14"` / `AM: "14 ከ 3"`. Monospace. Always visible.
-- **Image loading**: While the full-resolution image loads, show the thumbnail (already available from the gallery) blurred with a CSS filter: `filter: blur(8px)`. When the full image loads, crossfade from blurred to sharp (200ms). This eliminates the jarring "flash of empty" common in lightboxes.
+No dirty state guard is needed for the decision to cancel — interrogation records are created in a single operation and there is no multi-step flow.
 
 ---
 
-# 22. Anti-Patterns Specific to This Phase
+# 20. UI Implementation — Interrogation Detail Drawer
 
-In addition to all previous phase anti-patterns:
+## 20.1 `InterrogationDetailDrawer.tsx`
 
-**Upload violations:**
-- Using `apiClient` to upload directly to Cloudinary — the Cloudinary endpoint uses a different base URL and does not accept CCMS auth cookies. Always use a plain `axios.post` for step 2.
-- Starting the file upload before the metadata form is validated — validate first, upload second.
-- Closing the drawer on upload error — always keep it open so metadata is preserved.
-- Rendering the full-resolution Cloudinary URL in the gallery grid — always use the thumbnail transformation URL.
+Client Component wrapping `SlideOverDrawer` (480px). This is a **read-only** drawer. No edit or delete buttons.
 
-**Chain of custody violations:**
-- Computing custody gaps client-side without the server providing them — if the backend includes `gaps` in the response, use that. If it does not, implement `detectCustodyGaps` as a pure utility function and test it thoroughly.
-- Rendering the custody chain as a generic list — it must use `TimelineConnector` components that clearly distinguish intact vs gapped chains.
-- Showing "edit" or "delete" controls on custody event cards — these records are immutable. No such controls must appear.
+### 20.1.1 Immutability indicator
 
-**Lightbox violations:**
-- Using `window.open` or `<a target="_blank">` for the download — the browser may block this for Cloudinary CDN URLs. Use the programmatic anchor approach described in Section 14.1.7.
-- Not revoking `ObjectURL` after thumbnail preview is unmounted — always revoke in a `useEffect` cleanup to prevent memory leaks.
-- Not returning focus to the triggering element when the lightbox closes — this is both an accessibility requirement and a UX requirement.
-- Loading full-resolution images for all photos in the gallery on mount — only load the image for the currently viewed index. Use `loading="lazy"` on gallery thumbnails.
+Immediately below the drawer title/subtitle area, render a notice bar:
 
-**State violations:**
-- Using `useEffect` to sync `evidenceType` field changes to detect `showFileUpload` — use `useWatch` from `react-hook-form` instead.
-- Storing the currently open evidence ID in a Zustand store — keep it in local component state in `EvidenceTab`.
+```
+┌────────────────────────────────────────────────────────────┐
+│  🔒  This record is permanent and cannot be edited.        │
+└────────────────────────────────────────────────────────────┘
+```
+
+Style: `background: var(--color-card-hover)`, `border: 1px solid var(--color-border)`, `border-radius: var(--radius-sm)`, `padding: 8px 12px`, `font-size: 12px`, `color: var(--color-foreground-muted)`. `Lock` icon (14px, muted).
+
+In the drawer header, place a `Lock` icon tooltip next to the record number with text `t('detail.immutableTooltip')`.
+
+### 20.1.2 Layout
+
+```
+InterrogationDetailDrawer (480px)
+──────────────────────────────────────────────
+  Interrogation Record     🔒  INT-2026-00007
+  [Immutability notice bar]
+──────────────────────────────────────────────
+ ┌── Record Metadata ─────────────────────────┐
+ │  Subject          Alem Tadesse [Suspect]    │
+ │  Conducted By     Insp. Dawit (BD-00142)    │
+ │  Date & Time      14 Jun 2026  14:30 UTC    │
+ │  Location         Interview Room 3          │
+ │  Duration         90 minutes                │
+ └────────────────────────────────────────────┘
+
+ ┌── Legal Representation ────────────────────┐
+ │  Present?        [Present badge]           │
+ │  Representative  Ato Haile Gebre (Lawyer)  │
+ └────────────────────────────────────────────┘
+
+ ┌── Summary ──────────────────────────────────┐
+ │  [Full summary text, whitespace-preserved] │
+ └────────────────────────────────────────────┘
+
+ ┌── Recording ────────────────────────────────┐
+ │  Reference:  VID-2026-INT-0042             │
+ └────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Close]
+```
+
+The Summary section uses `whitespace-pre-wrap` to preserve line breaks entered by the investigator. The text is rendered as `plain text` — never as HTML. The `monospace` font is NOT used here (the summary is narrative text). Use `var(--font-sans)` at `base` size.
+
+The data is fetched from `useInterrogationList` data already in the cache — for the detail drawer, find the matching item by ID from the list. If additional fields (summary, recordingReference) are not in the list response, add `useInterrogationDetail(interrogationId)` as a separate hook fetching from `GET /api/v1/cases/{caseId}/interrogations/{id}` — only if the backend supports it. If the backend does not provide a detail endpoint, all necessary fields must be included in the list response.
 
 ---
 
-# 23. Final Verification Checklist
+# 21. caseKeys Update
 
-## 23.1 Evidence Tab
+## 21.1 Verify and extend `caseKeys.ts`
 
-- [ ] `/cases/[caseId]/evidence` renders the full DataTable (not the Phase 3 skeleton)
-- [ ] "Add Evidence" button is visible for officers with `evidence:manage` permission
-- [ ] "Add Evidence" button is hidden for officers without `evidence:manage` permission
+Open `src/services/query/keys/caseKeys.ts`. Verify these sub-resource keys exist under the `caseKeys` factory. If any are missing, add them:
+
+```typescript
+// Sub-resource keys (add if missing)
+arrests: (caseId: string) =>
+  [...caseKeys.detail(caseId), 'arrests'] as const,
+interrogations: (caseId: string) =>
+  [...caseKeys.detail(caseId), 'interrogations'] as const,
+```
+
+These keys are used by the case overview tab count cards (established in Phase 3). After mutations in this phase, both `caseKeys.arrests(caseId)` and `caseKeys.interrogations(caseId)` are invalidated so the count numbers update without a page refresh.
+
+---
+
+# 22. Permission Guard Matrix
+
+| Action | Required Permission / Role | Guard Type |
+|---|---|---|
+| View arrests tab | Any authenticated | Route access check (investigator+) |
+| See "Record Arrest" button | `arrests:manage` | `PermissionGuard` |
+| Open arrest detail drawer | Any authenticated (tab access) | No guard |
+| Open "Update Status" button | `arrests:manage` | `PermissionGuard` |
+| Delete arrest | `arrests:delete` (dept head+) | `PermissionGuard` |
+| View interrogations tab | Any authenticated | Route access check (investigator+) |
+| See "Add Interrogation" button | `interrogations:manage` | `PermissionGuard` |
+| Open interrogation detail drawer | Any authenticated (tab access) | No guard |
+| Delete interrogation | Not available — records are immutable | N/A |
+
+**Tab disabled state:** The Arrests and Interrogations tabs are accessible to `investigator+`. For roles below investigator (e.g. `legal officer` without investigator rights), both tabs render as disabled (grey, lock icon) in the case tab navigation. They are not hidden. This matches the blueprint's disabled-vs-hidden policy.
+
+---
+
+# 23. Design Specifications
+
+## 23.1 Arrest detail — bail amount display
+
+When bail amount is set, render it with currency formatting:
+
+```typescript
+const formatBailAmount = (amount: number, locale: string): string =>
+  new Intl.NumberFormat(locale === 'am' ? 'am-ET' : 'en-ET', {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount) + ' ETB'
+```
+
+Render as `t('detail.bailAmountValue', { amount: formattedAmount })`. Do not use the browser's Intl currency formatter with `style: 'currency'` — ETB support varies.
+
+## 23.2 Duration display — interrogations
+
+When `durationMinutes` is set, convert for display:
+
+```typescript
+function formatDuration(minutes: number, t: TranslateFunction): string {
+  if (minutes < 60) return t('tab.durationValue', { minutes })
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m > 0 ? `${h}h ${m}min` : `${h}h`
+}
+```
+
+When `durationMinutes` is null, display `t('tab.durationUnknown')` (`—`).
+
+## 23.3 Charges chips — consistent styling
+
+Both the create form and the detail drawer must render charge chips identically:
+- `background: var(--color-card-hover)`
+- `border: 1px solid var(--color-border)`
+- `border-radius: var(--radius-sm)` (4px)
+- `padding: 2px 8px`
+- `font-size: 12px` (`sm` scale)
+- `color: var(--color-foreground-muted)` in the detail view
+- `color: var(--color-foreground)` in the create form (editable context)
+
+## 23.4 Empty states
+
+Both tabs must render meaningful empty states using `<EmptyState>`.
+
+**Arrests empty state:**
+- Icon: `UserX` from Lucide
+- Title: `t('tab.empty')`
+- Description: `t('tab.emptyDescription')` — shown only when `arrests:manage` permission exists
+- CTA button: "Record Arrest" — `PermissionGuard` wrapping, same as the PageHeader button
+
+**Interrogations empty state:**
+- Icon: `MessageSquareOff` from Lucide
+- Title: `t('tab.empty')`
+- Description: `t('tab.emptyDescription')` — shown only when `interrogations:manage` permission exists
+- CTA button: "Add Interrogation" — `PermissionGuard` wrapping
+
+**Filtered empty state** (when filters are active and no results):
+- Icon: `SearchX` from Lucide
+- Title: `t('tab.emptyFiltered')`
+- No CTA button — a "Clear filters" link instead
+
+## 23.5 Loading skeletons
+
+Both tabs render `<TableSkeleton>` on initial load matching the column count of their respective tables. Use `placeholderData: (prev) => prev` in React Query to keep existing rows visible during background refetches (no skeleton on refetch — only on initial load when `data === undefined`).
+
+## 23.6 Information density
+
+The arrests and interrogations tabs follow the same compact row density as the evidence table: `56px` standard row height (not compact mode). The `detentionStatus` and `bailStatus` badges must align vertically within cells. Both status badges render in a single `<td>` column each — they are not stacked.
+
+---
+
+# 24. Testing Requirements
+
+## 24.1 Schema tests — `src/features/arrests/schemas/`
+
+**`create-arrest.schema.test.ts`:**
+- Valid payload passes
+- Missing `arrestedPersonId` fails with required message
+- Missing `arrestingOfficerId` fails
+- `chargesAtArrest` empty array fails with "at least one charge"
+- `bailStatus: GRANTED` with `bailAmount: null` fails the refinement
+- `bailStatus: POSTED` with `bailAmount: undefined` fails the refinement
+- `bailStatus: DENIED` with `bailAmount` undefined passes
+- `bailStatus: NOT_SET` with `bailAmount` undefined passes
+
+**`update-arrest.schema.test.ts`:**
+- Valid update payload passes
+- `bailStatus: GRANTED` without `bailAmount` fails
+- Partial payload with only `detentionStatus` passes
+
+## 24.2 Schema tests — `src/features/interrogations/schemas/`
+
+**`create-interrogation.schema.test.ts`:**
+- Valid payload passes
+- `summary` shorter than 10 chars fails
+- Missing `subjectId` fails
+- Missing `conductingOfficerId` fails
+- `durationMinutes: 0` fails (must be positive)
+- `durationMinutes: null` passes (optional)
+
+## 24.3 Hook tests — `src/features/arrests/hooks/`
+
+**`useCreateArrest.test.ts`:**
+- On success: `arrestKeys.caseArrests(caseId)`, `caseKeys.arrests(caseId)`, and `caseKeys.summary(caseId)` are all invalidated
+- On success: `addToast` is called with `variant: 'success'`
+- On API error: `addToast` is called with `variant: 'error'`
+
+**`useDeleteArrest.test.ts`:**
+- On success: arrest list and case summary are invalidated
+- On success: success toast is shown
+
+## 24.4 Hook tests — `src/features/interrogations/hooks/`
+
+**`useCreateInterrogation.test.ts`:**
+- On success: `interrogationKeys.caseInterrogations(caseId)`, `caseKeys.interrogations(caseId)`, and `caseKeys.summary(caseId)` are invalidated
+- On success: success toast shown
+
+## 24.5 Component tests — `src/features/arrests/components/`
+
+**`ArrestsTab.test.tsx`:**
+- "Record Arrest" button is visible for officers with `arrests:manage` permission
+- "Record Arrest" button is absent for officers without `arrests:manage` permission
+- Search filter updates the URL `search` param on debounce
+- Detention status filter chips appear and can be dismissed
+- Clicking a row opens `ArrestDetailDrawer`
+- Loading skeleton renders on initial load
+- Empty state renders when `data.total === 0` and no filters are active
+- Filtered empty state renders when `data.total === 0` and a filter is active
+
+**`CreateArrestDrawer.test.tsx`:**
+- Renders without the bail amount field when `bailStatus === NOT_SET`
+- Bail amount field appears when `bailStatus` changed to `GRANTED`
+- Bail amount field disappears when `bailStatus` changed back to `NOT_SET`
+- Adding a charge chip and pressing Enter updates the `chargesAtArrest` list
+- Pressing `Backspace` on empty input removes the last charge chip
+- Submitting without charges shows validation error
+
+**`ArrestDetailDrawer.test.tsx`:**
+- Charges are rendered as read-only chips (no `×` button)
+- "Update Detention Status" button is visible for `arrests:manage` permission
+- "Delete" button is visible for `arrests:delete` permission
+- "Delete" button triggers `DestructiveConfirmDialog`
+
+## 24.6 Component tests — `src/features/interrogations/components/`
+
+**`InterrogationsTab.test.tsx`:**
+- "Add Interrogation" button is visible with `interrogations:manage` permission
+- "Add Interrogation" button is absent without that permission
+- Legal rep badge "Present" renders green for `legalRepresentativePresent: true`
+- Duration column shows "—" for `durationMinutes: null`
+- Clicking a row opens `InterrogationDetailDrawer`
+
+**`CreateInterrogationDrawer.test.tsx`:**
+- Legal rep name input is hidden when toggle is off
+- Legal rep name input appears when toggle is switched on
+- Summary character counter shows correct count
+- Submitting without summary shows validation error
+
+**`InterrogationDetailDrawer.test.tsx`:**
+- Immutability notice bar is visible
+- No edit or delete buttons are rendered
+- Summary is rendered with `whitespace-pre-wrap`
+
+---
+
+# 25. Anti-Patterns Specific to This Phase
+
+**Form and mutation violations:**
+- Storing the create/detail/update drawer open state in Zustand — use local `useState` in the tab component
+- Storing arrest IDs or interrogation IDs in Zustand — same, local state only
+- Storing `chargesAtArrest` only in React Hook Form without tracking it in separate `useState` — you need a parallel `charges: string[]` state because the tag input is not a standard HTML input element. Sync both on every change
+- Starting the arrest create mutation before Zod schema validation — `handleSubmit` from React Hook Form validates first; never call `mutateAsync` directly outside of `handleSubmit`
+- Closing the create drawer on mutation error — always keep it open so the officer's data is preserved
+
+**Evidence-specific patterns incorrectly applied:**
+- Using a `FileUploadZone` in the arrest or interrogation forms — these modules do not support file attachments
+- Using `uploadState` phase tracking — there is no multi-step upload in this phase
+- Optimistic updates on arrest status — the blueprint explicitly prohibits this for case status transitions and the same rule applies here. The `detentionStatus` and `bailStatus` are legal states that the server must validate
+
+**Interrogation immutability violations:**
+- Adding an edit button to `InterrogationDetailDrawer` — interrogation records are immutable once created
+- Adding a delete action to interrogation rows — not permitted. There is no `useDeleteInterrogation` hook; do not create one
+- Using `useUpdateInterrogation` — do not create this hook in this phase
+
+**Query key violations:**
+- Not invalidating `caseKeys.arrests(caseId)` after an arrest mutation — this is the key the case overview tab arrest count card uses
+- Not invalidating `caseKeys.interrogations(caseId)` after creating an interrogation — same
+- Not invalidating `caseKeys.summary(caseId)` after mutations — the overview tab's count cards depend on this
+
+**DataTable violations:**
+- Using client-side filtering on the arrests or interrogations tables — all filtering must translate to API query parameters, exactly as in Phase 4 (evidence)
+- Not syncing filter params to URL — the `useQueryStates` (nuqs) pattern from Phase 4 must be applied identically here. All list filters must survive page refresh
+
+**i18n violations:**
+- Hardcoding detention status labels in components instead of using `t('detentionStatus.*')`
+- Hardcoding role labels (SUSPECT/VICTIM/WITNESS) in the interrogations subject column instead of `t('roleOnCase.*')`
+
+**Bail amount display:**
+- Rendering raw numbers (`5000`) instead of formatted currency (`5,000.00 ETB`)
+- Rendering bail amount when `bailAmount === null` — always check for null before displaying; render `t('detail.noBailAmount')` (`—`) otherwise
+
+---
+
+# 26. Final Verification Checklist
+
+## 26.1 Arrests Tab
+
+- [ ] `/cases/[caseId]/arrests` renders the full DataTable (not the Phase 3 skeleton)
+- [ ] "Record Arrest" button is visible for `arrests:manage` permission
+- [ ] "Record Arrest" button is absent for lower roles
 - [ ] Search filter updates the URL `search` param and refetches
-- [ ] Evidence type filter chips appear and can be dismissed
-- [ ] View mode toggle switches between DataTable and gallery grid
-- [ ] Clicking a `CRIME_SCENE_PHOTO` row opens the Lightbox
-- [ ] Clicking any other evidence row opens the detail drawer
-- [ ] Kebab "Delete" row action opens `DestructiveConfirmDialog` with confirmPhrase
+- [ ] Detention status filter chips appear and can be dismissed
+- [ ] Filter state survives page refresh
+- [ ] Clicking a row opens `ArrestDetailDrawer`
 - [ ] Loading skeleton renders on first load
-- [ ] Empty state renders when no evidence exists
+- [ ] Empty state with CTA renders when no arrests exist
+- [ ] Filtered empty state (no CTA) renders when filters yield no results
+- [ ] Detention status badge colours are correct per the variant mapping
 
-## 23.2 Evidence Upload
+## 26.2 Create Arrest
 
-- [ ] Opening the upload drawer shows a clean form
-- [ ] Selecting a non-media evidence type hides the file upload section
-- [ ] Selecting `CRIME_SCENE_PHOTO` shows the file upload section
-- [ ] Selecting a file that exceeds 50 MB shows a validation error inline (no toast)
-- [ ] Selecting a valid file shows a thumbnail preview (for images) or a file icon (for other types)
-- [ ] Submitting with missing required fields shows inline validation errors
-- [ ] During upload: button shows spinner, progress bar fills correctly, phase label updates
-- [ ] On Cloudinary upload error: drawer stays open, error card appears, Retry button works
-- [ ] On backend failure: drawer stays open, error card appears, Retry button works
-- [ ] On success: drawer closes, evidence list refreshes, case summary count increments
+- [ ] Opening the create drawer shows a clean empty form
+- [ ] Person search shows only suspects linked to this case
+- [ ] Charges tag input: pressing Enter adds a chip
+- [ ] Charges tag input: pressing Backspace on empty input removes last chip
+- [ ] Charges validation: submitting with no charges shows inline error
+- [ ] Bail amount field is hidden when `bailStatus` is `NOT_SET` or `DENIED`
+- [ ] Bail amount field appears when `bailStatus` is `GRANTED` or `POSTED`
+- [ ] Bail amount validation: submitting `GRANTED` with no amount shows error
+- [ ] Closing a dirty form shows the unsaved-changes confirmation dialog
+- [ ] On success: drawer closes, arrests list refreshes, case overview arrest count updates
+- [ ] On mutation error: drawer stays open, error toast is shown
 
-## 23.3 Evidence Detail Drawer
+## 26.3 Arrest Detail Drawer
 
-- [ ] Opens on clicking non-photo evidence rows
-- [ ] Shows all metadata fields
-- [ ] Shows chain of custody timeline with correct event icons
-- [ ] Shows gap warning (amber dashed connector + warning badge) when custody gap exists
-- [ ] Shows "Chain Intact" badge when no gaps
-- [ ] Padlock icon appears on every custody event card
-- [ ] Forensic report section is hidden for investigators (visible for forensic/admin roles)
-- [ ] "Record Custody Event" button opens the custody event drawer
+- [ ] Opens on row click showing all arrest fields
+- [ ] Charges render as read-only chips (no remove button)
+- [ ] Bail amount renders as formatted currency when set
+- [ ] Bail amount renders as `—` when null
+- [ ] "Update Detention Status" button is visible for `arrests:manage`
+- [ ] "Update Detention Status" opens the `UpdateArrestDrawer`
+- [ ] "Delete" button is visible for `arrests:delete`
+- [ ] "Delete" opens `DestructiveConfirmDialog` with the correct confirm phrase
+- [ ] Confirming delete removes the arrest, closes both dialogs, refreshes the list
 
-## 23.4 Lightbox
+## 26.4 Update Arrest Drawer
 
-- [ ] Opens when clicking a photo in the gallery
-- [ ] Left/right arrows navigate between photos
-- [ ] `←`/`→` keyboard keys navigate
-- [ ] `Esc` closes the lightbox
-- [ ] Photo count ("3 of 14") updates on navigation
-- [ ] Zoom in/out works with `+`/`-` keys and scroll wheel
-- [ ] Metadata panel slides in from the right
-- [ ] Download button downloads the full-resolution file
-- [ ] Touch swipe navigates on mobile viewport
-- [ ] Focus is returned to the triggering element on close
-- [ ] Blurred thumbnail placeholder appears while full image loads
+- [ ] Opens showing current detention and bail status
+- [ ] Current status section reflects live data from the arrest record
+- [ ] Bail amount field appears/disappears based on selected bail status
+- [ ] On success: drawer closes, arrest detail and list queries refresh
 
-## 23.5 Chain of Custody
+## 26.5 Interrogations Tab
 
-- [ ] Integrity badge shows "Chain Intact" when no gaps
-- [ ] Integrity badge shows "Custody Gap Detected" when gaps exist
-- [ ] Gap connector is amber and dashed between gapped events
-- [ ] Gap warning message shows correct hour count
-- [ ] All timestamps are in ISO 8601 format (not relative time)
-- [ ] All custody events have immutability padlock icons
+- [ ] `/cases/[caseId]/interrogations` renders the full DataTable (not the Phase 3 skeleton)
+- [ ] "Add Interrogation" button is visible for `interrogations:manage`
+- [ ] "Add Interrogation" button is absent for lower roles
+- [ ] Subject column shows person name + role badge
+- [ ] Duration column shows formatted time or `—` for null
+- [ ] Legal rep column shows "Present" (green) or "Absent" (muted) badge
+- [ ] Clicking a row opens `InterrogationDetailDrawer`
+- [ ] Search filter updates URL and refetches
+- [ ] Empty state renders correctly
 
-## 23.6 i18n
+## 26.6 Create Interrogation
 
-- [ ] All evidence UI text is retrieved from message files
-- [ ] Switching to Amharic updates all text in the evidence tab, upload drawer, detail drawer, lightbox
-- [ ] i18n completeness test passes with zero missing keys in `evidence` namespace
-- [ ] Evidence type names render in the selected locale
-- [ ] Custody event type names render in the selected locale
+- [ ] Subject search shows all persons linked to the case (suspects + victims + witnesses)
+- [ ] Legal rep name input is hidden when toggle is OFF
+- [ ] Legal rep name input appears when toggle is switched ON
+- [ ] Summary character counter increments as user types
+- [ ] Submitting with summary shorter than 10 chars shows validation error
+- [ ] On success: drawer closes, interrogations list refreshes, case overview count updates
+- [ ] On error: drawer stays open, error toast shown
 
-## 23.7 Tooling
+## 26.7 Interrogation Detail Drawer
+
+- [ ] Immutability notice bar is visible at the top of the drawer
+- [ ] Lock icon with tooltip is visible in the drawer header
+- [ ] No edit or delete buttons are rendered anywhere in this drawer
+- [ ] Summary is rendered with whitespace-preserve (line breaks preserved)
+- [ ] Legal rep section shows representative's name when present
+- [ ] Legal rep section shows "Name not recorded" when absent
+
+## 26.8 Case Overview Tab — Count Cards
+
+- [ ] After creating an arrest: Arrests count card on the case overview tab increments
+- [ ] After deleting an arrest: Arrests count card decrements
+- [ ] After creating an interrogation: Interrogations count card increments
+
+## 26.9 i18n
+
+- [ ] All arrests UI text is retrieved from message files (no hardcoded English)
+- [ ] Switching to Amharic updates all text in the arrests tab, create drawer, detail drawer, update drawer
+- [ ] Switching to Amharic updates all text in the interrogations tab, create drawer, detail drawer
+- [ ] i18n completeness test passes with zero missing keys in `arrests` namespace
+- [ ] i18n completeness test passes with zero missing keys in `interrogations` namespace
+- [ ] Detention status labels render in the selected locale
+- [ ] Bail status labels render in the selected locale
+- [ ] Role-on-case labels (SUSPECT/VICTIM/WITNESS) render in the selected locale
+
+## 26.10 Tooling
 
 - [ ] `pnpm type-check` exits with zero errors
 - [ ] `pnpm lint` exits with zero warnings
-- [ ] `pnpm test` — all evidence tests pass
+- [ ] `pnpm test` — all arrests and interrogations tests pass
 - [ ] `pnpm build` — production build succeeds without errors
 
 ---
 
-*End of CCMS Phase 4 Instruction — Evidence Module*
+*End of CCMS Phase 5 Instruction — Arrests & Interrogations Module*
 *Prepared for AI Agent execution — 2026 production-grade engineering standards*
 *Package manager: pnpm throughout*
-*Next phase: Phase 5 will implement the Arrests and Interrogations sub-modules*
+*Next phase: Phase 6 will implement the Legal module (Legal tab, court case panel, charges table, charge filing drawer, sentencing)*

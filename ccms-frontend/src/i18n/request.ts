@@ -11,6 +11,8 @@ const NAMESPACES = [
   'accessibility',
   'cases',
   'evidence',
+  'arrests',
+  'interrogations',
   'personnel',
   'departments',
   'legal',

@@ -6,6 +6,7 @@ export const Permission = {
   EVIDENCE_MANAGE: 'evidence:manage',
   ARRESTS_READ: 'arrests:read',
   ARRESTS_MANAGE: 'arrests:manage',
+  ARRESTS_DELETE: 'arrests:delete',
   INTERROGATIONS_READ: 'interrogations:read',
   INTERROGATIONS_MANAGE: 'interrogations:manage',
   LEGAL_READ: 'legal:read',

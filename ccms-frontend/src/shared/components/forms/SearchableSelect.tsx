@@ -27,6 +27,7 @@ interface SearchableSelectProps {
   onSearch?: ((query: string) => void) | undefined
   isLoading?: boolean | undefined
   placeholder?: string | undefined
+  emptyMessage?: string | undefined
 }
 
 export function SearchableSelect({
@@ -36,6 +37,7 @@ export function SearchableSelect({
   onSearch,
   isLoading,
   placeholder = 'Select option',
+  emptyMessage,
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -69,7 +71,7 @@ export function SearchableSelect({
           <CommandList>
             {isLoading ? <CommandEmpty>Loading...</CommandEmpty> : null}
             {!isLoading && options.length === 0 ? (
-              <CommandEmpty>No options found.</CommandEmpty>
+              <CommandEmpty>{emptyMessage ?? 'No options found.'}</CommandEmpty>
             ) : null}
             <CommandGroup>
               {options.map((option) => (

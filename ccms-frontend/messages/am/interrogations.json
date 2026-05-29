@@ -1,0 +1,89 @@
+{
+  "pageTitle": "ምርምራዎቹ",
+  "tab": {
+    "heading": "ምርምራዎቹ",
+    "entityCount": "{count} መዝገብ(ቤቶ)",
+    "addInterrogation": "ምርምራ ጨምር",
+    "filters": {
+      "search": "በተጠያቂ ስም ፈልግ...",
+      "dateRange": "የቀን ክልል",
+      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+    },
+    "loading": "የምርምራ መዝገቦች እየጫነ ነው...",
+    "empty": "ለዚህ ጉዳይ ምንም የምርምራ መዝገብ የለም።",
+    "emptyDescription": "ከላይ ያለውን አዝራር ተጠቅሞ የመጀመሪያ ምርምራ ይምዝግቡ።",
+    "emptyFiltered": "ምንም መዝገብ ከማጣሪያዎ ጋር አይዛመድም።",
+    "columns": {
+      "interrogationNumber": "መዝገብ ቁ.",
+      "subject": "ተጠያቂ",
+      "conductingOfficer": "ያካሄደ",
+      "interrogationDate": "ቀን እና ሰዓት",
+      "location": "ቦታ",
+      "duration": "ቆይታ",
+      "legalRep": "ጠበቃ",
+      "actions": "ድርጊቶች"
+    },
+    "durationValue": "{minutes} ደቂቃ",
+    "durationUnknown": "—",
+    "legalRepYes": "ተገኝቷል",
+    "legalRepNo": "አልተገኘም",
+    "rowActions": {
+      "view": "መዝገብ ተመልከት"
+    }
+  },
+  "roleOnCase": {
+    "SUSPECT": "ተጠርጣሪ",
+    "VICTIM": "ተጎጂ",
+    "WITNESS": "ምስክር"
+  },
+  "create": {
+    "drawerTitle": "የምርምራ መዝገብ ጨምር",
+    "drawerDescription": "ለዚህ ጉዳይ አዲስ የምርምራ ስብሰባ ይምዝገቡ።",
+    "section1Title": "የስብሰባ ዝርዝሮች",
+    "section2Title": "የህጋዊ ወኪል",
+    "section3Title": "ማጠቃለያ",
+    "subjectLabel": "ተጠያቂ",
+    "subjectPlaceholder": "ለዚህ ጉዳይ የተያያዙ ሰዎች ፈልግ...",
+    "conductingOfficerLabel": "ምርምራ ያካሄደ ፖሊስ",
+    "conductingOfficerPlaceholder": "ፖሊስ ፈልግ...",
+    "interrogationDateLabel": "ቀን እና ሰዓት",
+    "locationLabel": "ቦታ",
+    "locationPlaceholder": "ለምሳሌ ቃለ መጠይቅ ክፍል 3፣ ቦሌ ክፍለ ከተማ ፖሊስ ጣቢያ",
+    "durationLabel": "ቆይታ (ደቂቃ፣ አማራጭ)",
+    "durationPlaceholder": "ለምሳሌ 90",
+    "legalRepresentativePresentLabel": "ጠበቃ ተገኝቷል",
+    "legalRepresentativeNameLabel": "የጠበቃ ስም",
+    "legalRepresentativeNamePlaceholder": "የህጋዊ ወኪሉ ሙሉ ስም",
+    "summaryLabel": "የምርምራ ማጠቃለያ",
+    "summaryPlaceholder": "ዋና ርዕሶቹን፣ ቃሎቹን እና ውጤቾቹን ይግለጹ...",
+    "summaryHint": "ይህ ማጠቃለያ ቋሚ ሆኖ ይመዘገባል እና ለፍርድ ቤት ሰነድ ሊያገለግል ይችላል።",
+    "recordingReferenceLabel": "የቅጂ ማጣቀሻ (አማራጭ)",
+    "recordingReferencePlaceholder": "ለምሳሌ VID-2026-INT-0042",
+    "submitButton": "መዝገብ አስቀምጥ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "የምርምራ መዝገብ በተሳካ ሁኔታ ተቀምጧል።",
+    "errorMessage": "የምርምራ መዝገብ ለማስቀመጥ አልተሳካም። እንደገና ይሞክሩ።"
+  },
+  "detail": {
+    "drawerTitle": "የምርምራ መዝገብ",
+    "immutableNotice": "ይህ መዝገብ ቋሚ ነው፣ ሊቀናጀጥ ወይም ሊሰረዝ አይችልም።",
+    "interrogationNumber": "የመዝገብ ቁጥር",
+    "subject": "ተጠያቂ",
+    "subjectRole": "በጉዳዩ ሚና",
+    "conductingOfficer": "ያካሄደ",
+    "interrogationDate": "ቀን እና ሰዓት",
+    "location": "ቦታ",
+    "duration": "ቆይታ",
+    "durationValue": "{minutes} ደቂቃ",
+    "durationUnknown": "አልተመዘገበም።",
+    "legalRepSection": "የህጋዊ ወኪል",
+    "legalRepPresent": "ተገኝቷል",
+    "legalRepAbsent": "አልተገኘም",
+    "legalRepName": "ወኪል",
+    "noLegalRepName": "ስም አልተመዘገበም።",
+    "summarySection": "ማጠቃለያ",
+    "recordingReference": "የቅጂ ማጣቀሻ",
+    "noRecordingReference": "ምንም የቅጂ ማጣቀሻ የለም።",
+    "immutableTooltip": "የምርምራ መዝገቦች ሊቀናጁ ወይም ሊሰረዙ አይችሉም።"
+  }
+}

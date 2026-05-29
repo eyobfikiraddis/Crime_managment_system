@@ -1,0 +1,89 @@
+{
+  "pageTitle": "Interrogations",
+  "tab": {
+    "heading": "Interrogations",
+    "entityCount": "{count} record(s)",
+    "addInterrogation": "Add Interrogation",
+    "filters": {
+      "search": "Search by subject name...",
+      "dateRange": "Date Range",
+      "clearAll": "Clear all filters"
+    },
+    "loading": "Loading interrogation records...",
+    "empty": "No interrogation records for this case.",
+    "emptyDescription": "Log the first interrogation session using the button above.",
+    "emptyFiltered": "No records match your current filters.",
+    "columns": {
+      "interrogationNumber": "Record No.",
+      "subject": "Subject",
+      "conductingOfficer": "Conducted By",
+      "interrogationDate": "Date & Time",
+      "location": "Location",
+      "duration": "Duration",
+      "legalRep": "Legal Rep",
+      "actions": "Actions"
+    },
+    "durationValue": "{minutes} min",
+    "durationUnknown": "—",
+    "legalRepYes": "Present",
+    "legalRepNo": "Absent",
+    "rowActions": {
+      "view": "View Record"
+    }
+  },
+  "roleOnCase": {
+    "SUSPECT": "Suspect",
+    "VICTIM": "Victim",
+    "WITNESS": "Witness"
+  },
+  "create": {
+    "drawerTitle": "Add Interrogation Record",
+    "drawerDescription": "Log a new interrogation session for this case.",
+    "section1Title": "Session Details",
+    "section2Title": "Legal Representation",
+    "section3Title": "Summary",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "Search persons linked to this case...",
+    "conductingOfficerLabel": "Conducting Officer",
+    "conductingOfficerPlaceholder": "Search officers...",
+    "interrogationDateLabel": "Date & Time",
+    "locationLabel": "Location",
+    "locationPlaceholder": "e.g. Interview Room 3, Bole Sub-City Police Station",
+    "durationLabel": "Duration (minutes, optional)",
+    "durationPlaceholder": "e.g. 90",
+    "legalRepresentativePresentLabel": "Legal Representative Present",
+    "legalRepresentativeNameLabel": "Legal Representative Name",
+    "legalRepresentativeNamePlaceholder": "Full name of the legal representative",
+    "summaryLabel": "Interrogation Summary",
+    "summaryPlaceholder": "Describe the key topics, statements, and outcomes of this interrogation session...",
+    "summaryHint": "This summary will be permanently recorded and may be used as court documentation.",
+    "recordingReferenceLabel": "Recording Reference (optional)",
+    "recordingReferencePlaceholder": "e.g. VID-2026-INT-0042",
+    "submitButton": "Save Record",
+    "cancelButton": "Cancel",
+    "successMessage": "Interrogation record saved successfully.",
+    "errorMessage": "Failed to save interrogation record. Please try again."
+  },
+  "detail": {
+    "drawerTitle": "Interrogation Record",
+    "immutableNotice": "This record is permanent and cannot be edited or deleted.",
+    "interrogationNumber": "Record Number",
+    "subject": "Subject",
+    "subjectRole": "Role on Case",
+    "conductingOfficer": "Conducted By",
+    "interrogationDate": "Date & Time",
+    "location": "Location",
+    "duration": "Duration",
+    "durationValue": "{minutes} minutes",
+    "durationUnknown": "Not recorded.",
+    "legalRepSection": "Legal Representation",
+    "legalRepPresent": "Present",
+    "legalRepAbsent": "Absent",
+    "legalRepName": "Representative",
+    "noLegalRepName": "Name not recorded.",
+    "summarySection": "Summary",
+    "recordingReference": "Recording Reference",
+    "noRecordingReference": "No recording reference.",
+    "immutableTooltip": "Interrogation records cannot be modified or deleted."
+  }
+}

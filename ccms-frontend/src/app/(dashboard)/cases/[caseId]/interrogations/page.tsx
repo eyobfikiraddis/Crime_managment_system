@@ -1,28 +1,16 @@
-import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
-import { EmptyState } from '@/shared/components/display/EmptyState'
-import { Info } from 'lucide-react'
+import { InterrogationsTab } from '@features/interrogations/components/InterrogationsTab'
+import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('cases')
+  const t = await getTranslations('interrogations')
   return { title: t('pageTitle') }
 }
 
-type PageProps = {
-  params: Promise<{ caseId: string }> | { caseId: string }
-}
-
-export default async function CaseInterrogationsPage({ params }: PageProps) {
-  void params
-  const t = await getTranslations('cases')
-
-  return (
-    <div className="py-6">
-      <EmptyState
-        title={t('skeletonTabs.interrogations')}
-        description="This module is scheduled for development in Phase 6."
-        icon={Info}
-      />
-    </div>
-  )
+export default function CaseInterrogationsPage({
+  params,
+}: {
+  params: { caseId: string }
+}) {
+  return <InterrogationsTab caseId={params.caseId} />
 }

@@ -1,7 +1,12 @@
 export const arrestKeys = {
   all: ['arrests'] as const,
-  lists: () => [...arrestKeys.all, 'list'] as const,
-  list: (filters: Record<string, unknown>) => [...arrestKeys.lists(), filters] as const,
+
+  // All arrests for a case
+  caseArrests: (caseId: string) => [...arrestKeys.all, 'case', caseId] as const,
+  caseArrestList: (caseId: string, filters: Record<string, unknown>) =>
+    [...arrestKeys.caseArrests(caseId), 'list', filters] as const,
+
+  // Single arrest detail
   details: () => [...arrestKeys.all, 'detail'] as const,
-  detail: (id: string) => [...arrestKeys.details(), id] as const,
+  detail: (arrestId: string) => [...arrestKeys.details(), arrestId] as const,
 } as const

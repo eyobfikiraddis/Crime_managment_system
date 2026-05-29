@@ -1,0 +1,121 @@
+{
+  "pageTitle": "ቁርኝቶቾ",
+  "tab": {
+    "heading": "ቁርኝቶቾ",
+    "entityCount": "{count} ቁርኝቶ(ቾ)",
+    "recordArrest": "ቁርኝቶ ይምዝግቡ",
+    "filters": {
+      "search": "በሰው ስም ፈልግ...",
+      "detentionStatus": "የቁርኝቶ ሁኔታ",
+      "dateRange": "የቀን ክልል",
+      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+    },
+    "loading": "ቁርኝቶቾ እየጫነ ነው...",
+    "empty": "ለዚህ ጉዳይ ምንም ቁርኝቶ አልተመዘገበም።",
+    "emptyDescription": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ቁርኝቶ ይምዝግቡ።",
+    "emptyFiltered": "ምንም ቁርኝቶ ከማጣሪያዎ ጋር አይዛመድም።",
+    "columns": {
+      "arrestNumber": "የቁርኝቶ ቁ.",
+      "arrestedPerson": "የተያዘ ሰው",
+      "arrestingOfficer": "ያዘ ፖሊስ",
+      "arrestDate": "ቀን እና ሰዓት",
+      "location": "ቦታ",
+      "detentionStatus": "ቁርኝቶ",
+      "bailStatus": "ዋስትና",
+      "actions": "ድርጊቶች"
+    },
+    "rowActions": {
+      "view": "ዝርዝሮች ተመልከት",
+      "updateStatus": "የቁርኝቶ ሁኔታ አዘምን",
+      "delete": "ቁርኝቶ ሰርዝ"
+    }
+  },
+  "detentionStatus": {
+    "IN_CUSTODY": "በቁጥጥር ስር",
+    "RELEASED_ON_BAIL": "በዋስ ተፈቷል",
+    "RELEASED": "ተፈቷል",
+    "TRANSFERRED": "ተዛውሯል"
+  },
+  "bailStatus": {
+    "NOT_SET": "አልተቀናጀም",
+    "DENIED": "ተከልክሏል",
+    "GRANTED": "ተፈቅዷል",
+    "POSTED": "ተሰጥቷል"
+  },
+  "create": {
+    "drawerTitle": "ቁርኝቶ ይምዝግቡ",
+    "drawerDescription": "ለዚህ ጉዳይ አዲስ ቁርኝቶ ይምዝገቡ።",
+    "section1Title": "የቁርኝቶ ዝርዝሮች",
+    "section2Title": "የዋስትና መረጃ",
+    "arrestedPersonLabel": "የተያዘ ሰው",
+    "arrestedPersonPlaceholder": "ለዚህ ጉዳይ ተጠርጣሪዎችን ፈልግ...",
+    "arrestedPersonHint": "ለዚህ ጉዳይ ተጠርጣሪ ሆነው የተያያዙ ሰዎች ብቻ ይታያሉ።",
+    "arrestedPersonEmpty": "ለዚህ ጉዳይ ተጠርጣሪ አልተያያዘም። በሰው ኃይል ሞጁል ውስጥ ተጠርጣሪዎችን ያክሉ።",
+    "arrestingOfficerLabel": "ያዘ ፖሊስ",
+    "arrestingOfficerPlaceholder": "ፖሊስ ፈልግ...",
+    "arrestDateLabel": "የቁርኝቶ ቀን እና ሰዓት",
+    "locationLabel": "የቁርኝቶ ቦታ",
+    "locationPlaceholder": "ለምሳሌ ቦሌ መንገድ፣ ኤድና ሞል አቅራቢያ",
+    "warrantNumberLabel": "የትዕዛዝ ቁጥር (አማራጭ)",
+    "warrantNumberPlaceholder": "ለምሳሌ WRN-2026-00041",
+    "chargesAtArrestLabel": "በቁርኝቶ ጊዜ ክሶች",
+    "chargesAtArrestPlaceholder": "ክስ ያስገቡ እና Enter ይጫኑ...",
+    "chargesAtArrestHint": "በቁርኝቶ ጊዜ የታወቁ ክሶችን ይዘርዝሩ። እነዚህ ከኋላ ከሚቀርቡ ይለያዩ ይሆናሉ።",
+    "chargesMin": "ቢያንስ አንድ ክስ ያስፈልጋል።",
+    "bailStatusLabel": "የዋስትና ሁኔታ",
+    "bailAmountLabel": "የዋስትና መጠን (ብር)",
+    "bailAmountPlaceholder": "መጠን በኢትዮጵያ ብር ያስገቡ",
+    "notesLabel": "ማስታወሻ (አማራጭ)",
+    "notesPlaceholder": "ስለ ቁርኝቶ ሁኔታ ማስታወሻ...",
+    "submitButton": "ቁርኝቶ ይምዝግቡ",
+    "cancelButton": "ሰርዝ",
+    "discardTitle": "የቁርኝቶ መዝገብ ይተዉ?",
+    "discardDescription": "ያልተቀመጡ ለውጦች አሉ። ይህን መዝገብ ልትጥሉት ትፈልጋላችሁ?",
+    "discardConfirm": "ይተዉ",
+    "discardCancel": "አርትዕ ቀጥል",
+    "successMessage": "የቁርኝቶ መዝገብ በተሳካ ሁኔታ ተፈጥሯል።",
+    "errorMessage": "ቁርኝቶ ለመምዝገብ አልተሳካም። እንደገና ይሞክሩ።"
+  },
+  "detail": {
+    "drawerTitle": "የቁርኝቶ ዝርዝሮች",
+    "arrestNumber": "የቁርኝቶ ቁጥር",
+    "arrestedPerson": "የተያዘ ሰው",
+    "arrestingOfficer": "ያዘ ፖሊስ",
+    "arrestDate": "ቀን እና ሰዓት",
+    "location": "ቦታ",
+    "warrantNumber": "የትዕዛዝ ቁጥር",
+    "detentionStatus": "የቁርኝቶ ሁኔታ",
+    "bailStatus": "የዋስትና ሁኔታ",
+    "bailAmount": "የዋስትና መጠን",
+    "bailAmountValue": "{amount} ብር",
+    "noBailAmount": "—",
+    "chargesAtArrest": "በቁርኝቶ ጊዜ ክሶች",
+    "noCharges": "ምንም ክሶች አልተመዘገቡም።",
+    "courtAppearanceDate": "የፍርድ ቤት ቀን",
+    "noCourtDate": "ገና አልተቀናጀም።",
+    "notes": "ማስታወሻ",
+    "noNotes": "ምንም ማስታወሻ የለም።",
+    "updateStatusButton": "የቁርኝቶ ሁኔታ አዘምን",
+    "noWarrant": "ምንም የትዕዛዝ ቁጥር አልተመዘገበም።"
+  },
+  "update": {
+    "drawerTitle": "የቁርኝቶ ሁኔታ አዘምን",
+    "drawerDescription": "ለዚህ ቁርኝቶ ሁኔታ እና የዋስትና መረጃ ያዘምኑ።",
+    "detentionStatusLabel": "የቁርኝቶ ሁኔታ",
+    "bailStatusLabel": "የዋስትና ሁኔታ",
+    "bailAmountLabel": "የዋስትና መጠን (ብር)",
+    "bailAmountPlaceholder": "መጠን በኢትዮጵያ ብር ያስገቡ",
+    "notesLabel": "የዝማኔ ማስታወሻ (አማራጭ)",
+    "notesPlaceholder": "ለሁኔታ ለውጥ ምክንያት...",
+    "submitButton": "ለውጦች ያስቀምጡ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "የቁርኝቶ መዝገብ በተሳካ ሁኔታ ተዘምኗል።",
+    "errorMessage": "የቁርኝቶ መዝገብ ለማዘምን አልተሳካም። እንደገና ይሞክሩ።"
+  },
+  "delete": {
+    "confirmTitle": "የቁርኝቶ መዝገብ ሰርዝ?",
+    "confirmDescription": "ቁርኝቶ ቁጥር {arrestNumber} ቋሚ ሆኖ ይሰረዛል። ይህ ድርጊት ሊቀለበስ አይችልም።",
+    "confirmPhrase": "{arrestNumber} ሰርዝ",
+    "successMessage": "የቁርኝቶ መዝገብ በተሳካ ሁኔታ ተሰርዟል።"
+  }
+}

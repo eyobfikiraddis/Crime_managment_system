@@ -1,0 +1,121 @@
+{
+  "pageTitle": "Arrests",
+  "tab": {
+    "heading": "Arrests",
+    "entityCount": "{count} arrest(s)",
+    "recordArrest": "Record Arrest",
+    "filters": {
+      "search": "Search by person name...",
+      "detentionStatus": "Detention Status",
+      "dateRange": "Date Range",
+      "clearAll": "Clear all filters"
+    },
+    "loading": "Loading arrests...",
+    "empty": "No arrests recorded for this case.",
+    "emptyDescription": "Record the first arrest using the button above.",
+    "emptyFiltered": "No arrests match your current filters.",
+    "columns": {
+      "arrestNumber": "Arrest No.",
+      "arrestedPerson": "Arrested Person",
+      "arrestingOfficer": "Arresting Officer",
+      "arrestDate": "Date & Time",
+      "location": "Location",
+      "detentionStatus": "Detention",
+      "bailStatus": "Bail",
+      "actions": "Actions"
+    },
+    "rowActions": {
+      "view": "View Details",
+      "updateStatus": "Update Detention Status",
+      "delete": "Delete Arrest"
+    }
+  },
+  "detentionStatus": {
+    "IN_CUSTODY": "In Custody",
+    "RELEASED_ON_BAIL": "Released on Bail",
+    "RELEASED": "Released",
+    "TRANSFERRED": "Transferred"
+  },
+  "bailStatus": {
+    "NOT_SET": "Not Set",
+    "DENIED": "Denied",
+    "GRANTED": "Granted",
+    "POSTED": "Posted"
+  },
+  "create": {
+    "drawerTitle": "Record Arrest",
+    "drawerDescription": "Record a new arrest linked to this case.",
+    "section1Title": "Arrest Details",
+    "section2Title": "Bail Information",
+    "arrestedPersonLabel": "Arrested Person",
+    "arrestedPersonPlaceholder": "Search suspects linked to this case...",
+    "arrestedPersonHint": "Only suspects already linked to this case are shown.",
+    "arrestedPersonEmpty": "No suspects are linked to this case. Add suspects via the Personnel module first.",
+    "arrestingOfficerLabel": "Arresting Officer",
+    "arrestingOfficerPlaceholder": "Search officers...",
+    "arrestDateLabel": "Date & Time of Arrest",
+    "locationLabel": "Arrest Location",
+    "locationPlaceholder": "e.g. Bole Road, near Edna Mall",
+    "warrantNumberLabel": "Warrant Number (optional)",
+    "warrantNumberPlaceholder": "e.g. WRN-2026-00041",
+    "chargesAtArrestLabel": "Charges at Time of Arrest",
+    "chargesAtArrestPlaceholder": "Enter a charge and press Enter...",
+    "chargesAtArrestHint": "List the charges known at the time of arrest. These may differ from formal charges filed later.",
+    "chargesMin": "At least one charge is required.",
+    "bailStatusLabel": "Bail Status",
+    "bailAmountLabel": "Bail Amount (ETB)",
+    "bailAmountPlaceholder": "Enter amount in Ethiopian Birr",
+    "notesLabel": "Notes (optional)",
+    "notesPlaceholder": "Any notes about the circumstances of the arrest...",
+    "submitButton": "Record Arrest",
+    "cancelButton": "Cancel",
+    "discardTitle": "Discard arrest record?",
+    "discardDescription": "You have unsaved changes. Discard this arrest record?",
+    "discardConfirm": "Discard",
+    "discardCancel": "Keep Editing",
+    "successMessage": "Arrest record created successfully.",
+    "errorMessage": "Failed to record arrest. Please try again."
+  },
+  "detail": {
+    "drawerTitle": "Arrest Details",
+    "arrestNumber": "Arrest Number",
+    "arrestedPerson": "Arrested Person",
+    "arrestingOfficer": "Arresting Officer",
+    "arrestDate": "Date & Time",
+    "location": "Location",
+    "warrantNumber": "Warrant Number",
+    "detentionStatus": "Detention Status",
+    "bailStatus": "Bail Status",
+    "bailAmount": "Bail Amount",
+    "bailAmountValue": "{amount} ETB",
+    "noBailAmount": "—",
+    "chargesAtArrest": "Charges at Time of Arrest",
+    "noCharges": "No charges recorded.",
+    "courtAppearanceDate": "Court Appearance Date",
+    "noCourtDate": "Not yet scheduled.",
+    "notes": "Notes",
+    "noNotes": "No notes.",
+    "updateStatusButton": "Update Detention Status",
+    "noWarrant": "No warrant number recorded."
+  },
+  "update": {
+    "drawerTitle": "Update Detention Status",
+    "drawerDescription": "Update the detention and bail status for this arrest record.",
+    "detentionStatusLabel": "Detention Status",
+    "bailStatusLabel": "Bail Status",
+    "bailAmountLabel": "Bail Amount (ETB)",
+    "bailAmountPlaceholder": "Enter amount in Ethiopian Birr",
+    "notesLabel": "Update Notes (optional)",
+    "notesPlaceholder": "Reason for status change...",
+    "submitButton": "Save Changes",
+    "cancelButton": "Cancel",
+    "successMessage": "Arrest record updated successfully.",
+    "errorMessage": "Failed to update arrest record. Please try again."
+  },
+  "delete": {
+    "confirmTitle": "Delete arrest record?",
+    "confirmDescription": "This will permanently delete arrest record {arrestNumber}. This action cannot be undone and will be logged in the case audit trail.",
+    "confirmPhrase": "delete {arrestNumber}",
+    "successMessage": "Arrest record deleted successfully."
+  }
+}

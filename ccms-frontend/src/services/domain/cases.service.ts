@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { apiClient } from '@services/api/client'
 import {
   paginatedCasesSchema,
@@ -15,6 +16,7 @@ import type {
   CreateCasePayload,
   StatusTransitionPayload,
 } from '@features/cases/types/case.types'
+import type { PersonRef } from '@features/arrests/types/arrest.types'
 import type { PaginatedResponse } from '@shared/types/api.types'
 
 // ─── List ──────────────────────────────────────────────────────────────────
@@ -102,6 +104,25 @@ export async function addCaseNote(
 // ─── Members / Officers ────────────────────────────────────────────────────
 export async function getCaseMembers(caseId: string): Promise<CaseMember[]> {
   return apiClient.get(`/api/v1/cases/${caseId}/officers`)
+}
+
+// ─── Persons linked to a case (for SearchableSelect in arrest/interrogation forms) ─
+export async function getCasePersons(
+  caseId: string,
+  params: { role?: 'SUSPECT' | 'VICTIM' | 'WITNESS'; search?: string },
+): Promise<PersonRef[]> {
+  const p = new URLSearchParams()
+  if (params.role) p.set('role', params.role)
+  if (params.search) p.set('search', params.search)
+  const raw = await apiClient.get(`/api/v1/cases/${caseId}/persons?${p.toString()}`)
+  const personRefSchema = z.object({
+    id: z.string().uuid(),
+    firstName: z.string(),
+    lastName: z.string(),
+    nationalId: z.string(),
+    roleOnCase: z.enum(['SUSPECT', 'VICTIM', 'WITNESS']).optional(),
+  })
+  return z.array(personRefSchema).parse(raw)
 }
 
 // ─── Summary ──────────────────────────────────────────────────────────────
