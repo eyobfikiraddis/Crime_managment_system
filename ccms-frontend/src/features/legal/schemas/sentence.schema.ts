@@ -9,7 +9,7 @@ import {
 export const recordSentenceSchema = z
   .object({
     sentenceType: z.nativeEnum(SentenceType, {
-      errorMap: () => ({ message: 'Sentence type is required.' }),
+      message: 'Sentence type is required.',
     }),
     durationMonths: z.number().int().positive().max(999).nullable().optional(),
     fineAmountETB: z.number().positive().max(999_999_999).nullable().optional(),

@@ -39,7 +39,7 @@ export function CreateCourtCaseDrawer({
   const createMutation = useCreateCourtCase(caseId)
 
   const form = useForm<CreateCourtCaseValues>({
-    resolver: zodResolver(createCourtCaseSchema),
+    resolver: zodResolver(createCourtCaseSchema) as any,
     defaultValues: {
       court: '',
       filedAt: '',

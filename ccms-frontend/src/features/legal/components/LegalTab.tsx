@@ -94,7 +94,7 @@ export function LegalTab({ caseId }: LegalTabProps) {
             retry={() => void refetch()}
             retryLabel={tErrors('pages.global.action')}
           />
-        ) : courtCase === null ? (
+                ) : courtCase === null || courtCase === undefined ? (
           <EmptyState
             icon={Scale}
             title={t('courtCase.empty.title')}

@@ -44,7 +44,7 @@ export function UpdateCourtCaseDrawer({
   const updateMutation = useUpdateCourtCase(courtCase.id, caseId)
 
   const form = useForm<UpdateCourtCaseValues>({
-    resolver: zodResolver(updateCourtCaseSchema),
+    resolver: zodResolver(updateCourtCaseSchema) as any,
     defaultValues: {
       court: courtCase.court,
       status: courtCase.status,

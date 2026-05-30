@@ -151,53 +151,60 @@ export interface CourtCase extends CourtCaseSummary {
   charges: ChargeListItem[]
 }
 
-// ─── Filters ─────────────────────────────────────────────────────────────────-
+// ─── Filters ─────────────────────────────────────────────────────────────────
 export interface CourtCaseFilters {
-  search?: string // Court case number or investigation case title
-  status?: CourtCaseStatus[]
-  dateFrom?: string
-  dateTo?: string
-  page?: number
-  pageSize?: number
-  sortField?: 'filedAt' | 'courtCaseNumber' | 'status'
-  sortDirection?: 'asc' | 'desc'
+  search?: string | undefined
+  status?: CourtCaseStatus[] | undefined
+  dateFrom?: string | undefined
+  dateTo?: string | undefined
+  page?: number | undefined
+  pageSize?: number | undefined
+  sortField?: 'filedAt' | 'courtCaseNumber' | 'status' | undefined
+  sortDirection?: 'asc' | 'desc' | undefined
 }
 
 export interface ChargeFilters {
-  search?: string // Suspect name or crime type
-  status?: ChargeStatus[]
-  page?: number
-  pageSize?: number
-  sortField?: 'filedAt' | 'status'
-  sortDirection?: 'asc' | 'desc'
+  search?: string | undefined
+  status?: ChargeStatus[] | undefined
+  page?: number | undefined
+  pageSize?: number | undefined
+  sortField?: 'filedAt' | 'status' | undefined
+  sortDirection?: 'asc' | 'desc' | undefined
 }
 
-// ─── Payloads ─────────────────────────────────────────────────────────────────-
+export interface HearingDateInput {
+  date: string
+  type: HearingType
+  location: string
+  notes?: string | null | undefined
+}
+
+// ─── Payloads ─────────────────────────────────────────────────────────────────
 export interface CreateCourtCasePayload {
   court: string
   filedAt: string
-  presidingJudge?: string
-  prosecutor?: string
-  defenceCounsel?: string
-  hearingDates?: Omit<HearingDate, 'id' | 'outcome'>[]
-  notes?: string
+  presidingJudge?: string | undefined
+  prosecutor?: string | undefined
+  defenceCounsel?: string | undefined
+  hearingDates?: HearingDateInput[] | undefined
+  notes?: string | undefined
 }
 
 export interface UpdateCourtCasePayload {
-  court?: string
-  status?: CourtCaseStatus
-  outcome?: CourtCaseOutcome | null
-  presidingJudge?: string | null
-  prosecutor?: string | null
-  defenceCounsel?: string | null
-  hearingDates?: Omit<HearingDate, 'id' | 'outcome'>[]
-  notes?: string | null
+  court?: string | undefined
+  status?: CourtCaseStatus | undefined
+  outcome?: CourtCaseOutcome | null | undefined
+  presidingJudge?: string | null | undefined
+  prosecutor?: string | null | undefined
+  defenceCounsel?: string | null | undefined
+  hearingDates?: HearingDateInput[] | undefined
+  notes?: string | null | undefined
 }
 
 export interface CreateChargePayload {
   suspectId: string
   crimeTypeId: string
-  notes?: string
+  notes?: string | undefined
 }
 
 export interface UpdateChargePayload {
@@ -206,9 +213,11 @@ export interface UpdateChargePayload {
 
 export interface RecordSentencePayload {
   sentenceType: SentenceType
-  durationMonths?: number | null
-  fineAmountETB?: number | null
-  notes?: string | null
+  durationMonths?: number | null | undefined
+  fineAmountETB?: number | null | undefined
+  notes?: string | null | undefined
   issuedAt: string
-  issuedByJudge?: string | null
+  issuedByJudge?: string | null | undefined
 }
+
+

@@ -14,7 +14,7 @@ export type CreateChargeValues = z.infer<typeof createChargeSchema>
 // ─── Update charge status (excludes CONVICTED — that goes via sentence form) ──
 export const updateChargeStatusSchema = z.object({
   status: z.enum([ChargeStatus.ACTIVE, ChargeStatus.ACQUITTED] as const, {
-    errorMap: () => ({ message: 'Please select a valid status.' }),
+    message: 'Please select a valid status.',
   }),
 })
 

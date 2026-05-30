@@ -79,7 +79,7 @@ export function UpdateChargeStatusDrawer({
   const recordSentenceMutation = useRecordSentence(chargeId, courtCaseId, caseId)
 
   const form = useForm<UpdateChargeStatusValues>({
-    resolver: zodResolver(combinedSchema),
+    resolver: zodResolver(combinedSchema) as any,
     defaultValues: {
       status: undefined as any,
       sentenceType: undefined as any,

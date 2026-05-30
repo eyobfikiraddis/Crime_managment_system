@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { updateCharge } from '@services/domain/legal.service'
 import { legalKeys } from '@services/query/keys/legalKeys'
+import { caseKeys } from '@services/query/keys/caseKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
 import { ApiError } from '@services/api/errors'
 import type { UpdateChargePayload } from '../types/legal.types'
@@ -27,6 +28,12 @@ export function useUpdateCharge(
       })
       void queryClient.invalidateQueries({
         queryKey: legalKeys.courtCaseByCase(caseId),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: caseKeys.summary(caseId),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: caseKeys.charges(caseId),
       })
       addToast({ message: t('charges.update.successMessage'), variant: 'success' })
     },
