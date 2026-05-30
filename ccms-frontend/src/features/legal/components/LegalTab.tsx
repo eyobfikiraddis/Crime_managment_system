@@ -158,6 +158,7 @@ export function LegalTab({ caseId }: LegalTabProps) {
           chargeId={selectedCharge.id}
           courtCaseId={courtCase.id}
           caseId={caseId}
+          charge={selectedCharge}
         />
       ) : null}
 

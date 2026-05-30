@@ -94,6 +94,15 @@ export async function getCharges(
 }
 
 /**
+ * GET /api/v1/charges/{chargeId}
+ * Fetch a charge with sentence details.
+ */
+export async function getCharge(chargeId: string): Promise<Charge> {
+  const raw = await apiClient.get(`/api/v1/charges/${chargeId}`)
+  return chargeDetailSchema.parse(raw)
+}
+
+/**
  * POST /api/v1/court-cases/{courtCaseId}/charges
  * File a new charge against a suspect within a court case.
  */

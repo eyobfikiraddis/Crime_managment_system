@@ -4,6 +4,7 @@ import { updateCharge } from '@services/domain/legal.service'
 import { legalKeys } from '@services/query/keys/legalKeys'
 import { caseKeys } from '@services/query/keys/caseKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
 import { ChargeStatus } from '../types/legal.types'
 
 export function useDropCharge(
@@ -31,6 +32,13 @@ export function useDropCharge(
         queryKey: caseKeys.charges(caseId),
       })
       addToast({ message: t('charges.drop.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : t('charges.update.errorMessage')
+      addToast({ message, variant: 'error' })
     },
   })
 }

@@ -1,7 +1,265 @@
 {
   "pageTitle": "Legal",
-  "courtCases": {
-    "heading": "Court Cases",
-    "skeleton": "Loading court cases..."
+  "tab": {
+    "heading": "Legal Proceedings",
+    "lockedTooltip": "You do not have access to legal proceedings. Contact a Legal Officer.",
+    "loading": "Loading legal proceedings...",
+    "errorTitle": "Failed to load legal proceedings",
+    "errorDescription": "Please refresh the page or contact support if the issue persists."
+  },
+  "courtCase": {
+    "sectionTitle": "Court Case",
+    "empty": {
+      "title": "No Court Case Linked",
+      "description": "This investigation case has not yet been linked to a court case. A Legal Officer can create and link one.",
+      "createButton": "Create Court Case"
+    },
+    "card": {
+      "caseNumber": "Court Case No.",
+      "court": "Court",
+      "status": "Status",
+      "outcome": "Outcome",
+      "filedAt": "Filed",
+      "nextHearing": "Next Hearing",
+      "noNextHearing": "No hearing scheduled",
+      "presidingJudge": "Presiding Judge",
+      "noJudge": "Not recorded",
+      "prosecutor": "Prosecutor",
+      "noProsecutor": "Not recorded",
+      "defenceCounsel": "Defence Counsel",
+      "noDefenceCounsel": "Not recorded",
+      "notes": "Notes",
+      "noNotes": "No notes.",
+      "chargeCount": "{count} charge(s)",
+      "editButton": "Edit Court Case",
+      "hearingsSectionTitle": "Hearing Dates"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "ACTIVE": "Active",
+      "CONCLUDED": "Concluded",
+      "DISMISSED": "Dismissed"
+    },
+    "outcome": {
+      "GUILTY": "Guilty",
+      "NOT_GUILTY": "Not Guilty",
+      "DISMISSED": "Dismissed",
+      "MISTRIAL": "Mistrial",
+      "PLEA_DEAL": "Plea Deal"
+    },
+    "hearingType": {
+      "PRELIMINARY": "Preliminary Hearing",
+      "TRIAL": "Trial",
+      "SENTENCING": "Sentencing",
+      "APPEAL": "Appeal",
+      "ARRAIGNMENT": "Arraignment"
+    },
+    "create": {
+      "drawerTitle": "Create Court Case",
+      "drawerDescription": "Link this investigation case to court proceedings.",
+      "section1Title": "Court Details",
+      "section2Title": "Key Personnel",
+      "section3Title": "Hearing Dates (optional)",
+      "section4Title": "Additional Notes",
+      "courtLabel": "Court Name",
+      "courtPlaceholder": "e.g. Federal High Court — Lideta Division",
+      "filedAtLabel": "Date Filed",
+      "presidingJudgeLabel": "Presiding Judge (optional)",
+      "presidingJudgePlaceholder": "Full name of the judge",
+      "prosecutorLabel": "Prosecutor (optional)",
+      "prosecutorPlaceholder": "Full name of the prosecutor",
+      "defenceCounselLabel": "Defence Counsel (optional)",
+      "defenceCounselPlaceholder": "Full name of the defence counsel",
+      "addHearingButton": "Add Hearing Date",
+      "hearingDateLabel": "Date",
+      "hearingTypeLabel": "Hearing Type",
+      "hearingLocationLabel": "Location",
+      "hearingLocationPlaceholder": "e.g. Courtroom 4, Lideta Courts",
+      "hearingNotesLabel": "Notes (optional)",
+      "removeHearingButton": "Remove",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Any additional notes about the court case...",
+      "submitButton": "Create Court Case",
+      "cancelButton": "Cancel",
+      "successMessage": "Court case created and linked successfully.",
+      "errorMessage": "Failed to create court case. Please try again.",
+      "discardTitle": "Discard court case?",
+      "discardDescription": "Discard changes? The court case will not be created.",
+      "discardConfirm": "Discard",
+      "discardCancel": "Keep Editing"
+    },
+    "update": {
+      "drawerTitle": "Edit Court Case",
+      "drawerDescription": "Update court case metadata, status, or hearing dates.",
+      "courtLabel": "Court Name",
+      "statusLabel": "Status",
+      "outcomeLabel": "Outcome",
+      "outcomeHint": "Required when status is Concluded.",
+      "presidingJudgeLabel": "Presiding Judge",
+      "prosecutorLabel": "Prosecutor",
+      "defenceCounselLabel": "Defence Counsel",
+      "hearingsSectionTitle": "Hearing Dates",
+      "addHearingButton": "Add Hearing Date",
+      "notesLabel": "Notes",
+      "submitButton": "Save Changes",
+      "cancelButton": "Cancel",
+      "successMessage": "Court case updated successfully.",
+      "errorMessage": "Failed to update court case. Please try again."
+    }
+  },
+  "charges": {
+    "sectionTitle": "Charges",
+    "addChargeButton": "Add Charge",
+    "entityCount": "{count} charge(s)",
+    "filters": {
+      "search": "Search by suspect or crime type...",
+      "status": "Status",
+      "clearAll": "Clear all filters"
+    },
+    "loading": "Loading charges...",
+    "empty": {
+      "title": "No Charges Filed",
+      "description": "No charges have been filed in this court case yet.",
+      "cta": "Add the first charge using the button above."
+    },
+    "emptyFiltered": "No charges match your current filters.",
+    "columns": {
+      "suspect": "Suspect",
+      "crimeType": "Crime Type",
+      "status": "Status",
+      "filedAt": "Filed",
+      "sentence": "Sentence",
+      "actions": "Actions"
+    },
+    "sentenceIndicator": {
+      "recorded": "Recorded",
+      "pending": "Pending"
+    },
+    "rowActions": {
+      "updateStatus": "Update Status",
+      "viewSentence": "View Sentence",
+      "dropCharge": "Drop Charge"
+    },
+    "status": {
+      "FILED": "Filed",
+      "ACTIVE": "Active",
+      "CONVICTED": "Convicted",
+      "ACQUITTED": "Acquitted",
+      "DROPPED": "Dropped"
+    },
+    "create": {
+      "drawerTitle": "Add Charge",
+      "drawerDescription": "File a new charge in this court case.",
+      "section1Title": "Charge Details",
+      "suspectLabel": "Suspect",
+      "suspectPlaceholder": "Search suspects linked to this case...",
+      "suspectHint": "Only persons linked to this investigation case as suspects are shown.",
+      "suspectEmpty": "No suspects are linked to this case. Add suspects from the Personnel module first.",
+      "crimeTypeLabel": "Crime Type",
+      "crimeTypePlaceholder": "Search crime types...",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Additional notes about this charge...",
+      "submitButton": "File Charge",
+      "cancelButton": "Cancel",
+      "successMessage": "Charge filed successfully.",
+      "errorMessage": "Failed to file charge. Please try again."
+    },
+    "update": {
+      "drawerTitle": "Update Charge Status",
+      "drawerDescription": "Change the status of this charge.",
+      "currentStatusLabel": "Current Status",
+      "newStatusLabel": "New Status",
+      "newStatusPlaceholder": "Select new status...",
+      "terminalNotice": "This charge has reached a final status and cannot be changed.",
+      "convictSection": "Record Conviction",
+      "convictNotice": "Selecting 'Convicted' will record this charge as a conviction. You must also record the sentencing details. This action cannot be reversed.",
+      "convictButton": "Record Conviction & Sentence",
+      "submitButton": "Update Status",
+      "cancelButton": "Cancel",
+      "successMessage": "Charge status updated successfully.",
+      "errorMessage": "Failed to update charge status. Please try again."
+    },
+    "drop": {
+      "confirmTitle": "Drop this charge?",
+      "confirmDescription": "Charge against {suspectName} ({crimeType}) will be permanently set to Dropped. This action cannot be undone.",
+      "confirmButton": "Drop Charge",
+      "cancelButton": "Cancel",
+      "successMessage": "Charge dropped successfully."
+    },
+    "sentence": {
+      "drawerTitle": "Record Sentence",
+      "drawerDescription": "Record the sentencing details for this conviction.",
+      "convictionNotice": "Recording a sentence will permanently set this charge to Convicted. This cannot be reversed.",
+      "section1Title": "Sentence Details",
+      "sentenceTypeLabel": "Sentence Type",
+      "durationMonthsLabel": "Duration (months)",
+      "durationMonthsPlaceholder": "e.g. 60 for 5 years",
+      "durationMonthsHint": "Enter the total sentence length in months.",
+      "fineAmountLabel": "Fine Amount (ETB)",
+      "fineAmountPlaceholder": "Enter fine amount in Ethiopian Birr",
+      "issuedAtLabel": "Sentence Date",
+      "issuedByJudgeLabel": "Issued By Judge (optional)",
+      "issuedByJudgePlaceholder": "Full name of the sentencing judge",
+      "notesLabel": "Sentence Notes (optional)",
+      "notesPlaceholder": "Any additional sentencing notes or conditions...",
+      "submitButton": "Record Sentence",
+      "cancelButton": "Cancel",
+      "successMessage": "Sentence recorded successfully. Charge is now Convicted.",
+      "errorMessage": "Failed to record sentence. Please try again."
+    },
+    "viewSentence": {
+      "drawerTitle": "Sentence Details",
+      "contextTitle": "Charge Context",
+      "detailsTitle": "Sentence Details",
+      "pendingNotice": "Sentence details have not been recorded yet.",
+      "immutableNotice": "This sentence record is permanent and cannot be modified.",
+      "sentenceType": "Sentence Type",
+      "duration": "Duration",
+      "fineAmount": "Fine Amount",
+      "issuedAt": "Sentenced On",
+      "issuedByJudge": "Sentenced By",
+      "noJudge": "Not recorded",
+      "notes": "Notes",
+      "noNotes": "No notes.",
+      "closeButton": "Close"
+    },
+    "sentenceType": {
+      "IMPRISONMENT": "Imprisonment",
+      "FINE": "Fine",
+      "COMMUNITY_SERVICE": "Community Service",
+      "SUSPENDED": "Suspended Sentence",
+      "DEATH_PENALTY": "Death Penalty",
+      "LIFE_IMPRISONMENT": "Life Imprisonment"
+    }
+  },
+  "courtCasesList": {
+    "pageTitle": "Court Cases",
+    "entityCount": "{count} court case(s)",
+    "filters": {
+      "search": "Search by case title or court no...",
+      "status": "Status",
+      "dateRange": "Date Range",
+      "clearAll": "Clear all filters"
+    },
+    "loading": "Loading court cases...",
+    "empty": {
+      "title": "No Court Cases",
+      "description": "No court cases found. Court cases are created from within individual case files."
+    },
+    "emptyFiltered": "No court cases match your current filters.",
+    "columns": {
+      "courtCaseNumber": "Court Case No.",
+      "investigationCase": "Investigation Case",
+      "court": "Court",
+      "status": "Status",
+      "outcome": "Outcome",
+      "filedAt": "Filed",
+      "nextHearing": "Next Hearing",
+      "chargeCount": "Charges",
+      "actions": "Actions"
+    },
+    "rowActions": {
+      "viewCase": "View Investigation Case"
+    }
   }
 }

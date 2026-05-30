@@ -1,7 +1,265 @@
 {
-  "pageTitle": "ህጋዊ",
-  "courtCases": {
-    "heading": "የፍርድ ቤት ጉዳዮች",
-    "skeleton": "የፍርድ ቤት ጉዳዮች በመጫን ላይ..."
+  "pageTitle": "ሕጋዊ",
+  "tab": {
+    "heading": "ሕጋዊ ሂደቶች",
+    "lockedTooltip": "ወደ ሕጋዊ ሂደቶች ስልጣን የለዎትም። ሕጋዊ ባለሙያ ያነጋግሩ።",
+    "loading": "ሕጋዊ ሂደቶች እየጫነ ነው...",
+    "errorTitle": "ሕጋዊ ሂደቶችን መጫን አልተሳካም",
+    "errorDescription": "ገጹን ያድሱ ወይም ችግሩ ከቀጠለ ድጋፍ ያነጋግሩ።"
+  },
+  "courtCase": {
+    "sectionTitle": "የፍርድ ቤት ጉዳይ",
+    "empty": {
+      "title": "ምንም የፍርድ ቤት ጉዳይ አልተጣበቀም",
+      "description": "ይህ የምርመራ ጉዳይ ለፍርድ ቤት ጉዳይ ገና አልተጣበቀም። ሕጋዊ ባለሙያ መፍጠር ይችላል።",
+      "createButton": "የፍርድ ቤት ጉዳይ ፍጠር"
+    },
+    "card": {
+      "caseNumber": "የፍርድ ቤት ጉዳይ ቁ.",
+      "court": "ፍርድ ቤት",
+      "status": "ሁኔታ",
+      "outcome": "ውጤት",
+      "filedAt": "የቀረበ",
+      "nextHearing": "ቀጣይ ችሎት",
+      "noNextHearing": "ምንም ችሎት አልታቀደም",
+      "presidingJudge": "ሊቀ-ዳኛ",
+      "noJudge": "አልተመዘገበም",
+      "prosecutor": "አቃቤ ሕግ",
+      "noProsecutor": "አልተመዘገበም",
+      "defenceCounsel": "ጠበቃ",
+      "noDefenceCounsel": "አልተመዘገበም",
+      "notes": "ማስታወሻ",
+      "noNotes": "ምንም ማስታወሻ የለም።",
+      "chargeCount": "{count} ክስ(ቾ)",
+      "editButton": "የፍርድ ቤት ጉዳይ አርም",
+      "hearingsSectionTitle": "የቤት ቀናት"
+    },
+    "status": {
+      "PENDING": "በመጠባበቅ ላይ",
+      "ACTIVE": "ንቁ",
+      "CONCLUDED": "የተጠናቀቀ",
+      "DISMISSED": "ውድቅ"
+    },
+    "outcome": {
+      "GUILTY": "ጥፋተኛ",
+      "NOT_GUILTY": "ጥፋተኛ አይደለም",
+      "DISMISSED": "ውድቅ ተደርጓል",
+      "MISTRIAL": "ሚስትሪያል",
+      "PLEA_DEAL": "ስምምነት"
+    },
+    "hearingType": {
+      "PRELIMINARY": "ቅድመ ችሎት",
+      "TRIAL": "ፍርድ",
+      "SENTENCING": "ቅጣት",
+      "APPEAL": "ይግባኝ",
+      "ARRAIGNMENT": "ክስ ማቅረቢያ"
+    },
+    "create": {
+      "drawerTitle": "የፍርድ ቤት ጉዳይ ፍጠር",
+      "drawerDescription": "ይህን የምርመራ ጉዳይ ከፍርድ ቤት ሂደት ጋር ያጣምሩ።",
+      "section1Title": "የፍርድ ቤት ዝርዝሮች",
+      "section2Title": "ዋና ሰዎች",
+      "section3Title": "የቤት ቀናት (አማራጭ)",
+      "section4Title": "ተጨማሪ ማስታወሻዎች",
+      "courtLabel": "የፍርድ ቤት ስም",
+      "courtPlaceholder": "ለምሳሌ የፌደራል ከፍተኛ ፍርድ ቤት — ልደታ ምድብ",
+      "filedAtLabel": "የቀረበበት ቀን",
+      "presidingJudgeLabel": "ሊቀ-ዳኛ (አማራጭ)",
+      "presidingJudgePlaceholder": "የዳኛ ሙሉ ስም",
+      "prosecutorLabel": "አቃቤ ሕግ (አማራጭ)",
+      "prosecutorPlaceholder": "የአቃቤ ሕግ ሙሉ ስም",
+      "defenceCounselLabel": "ጠበቃ (አማራጭ)",
+      "defenceCounselPlaceholder": "የጠበቃ ሙሉ ስም",
+      "addHearingButton": "የቤት ቀን ጨምር",
+      "hearingDateLabel": "ቀን",
+      "hearingTypeLabel": "የቤት አይነት",
+      "hearingLocationLabel": "ቦታ",
+      "hearingLocationPlaceholder": "ለምሳሌ አዳራሽ 4፣ ልደታ ፍርድ ቤቶች",
+      "hearingNotesLabel": "ማስታወሻ (አማራጭ)",
+      "removeHearingButton": "አስወግድ",
+      "notesLabel": "ማስታወሻ (አማራጭ)",
+      "notesPlaceholder": "ስለ ፍርድ ቤቱ ጉዳይ ማናቸውም ተጨማሪ ማስታወሻ...",
+      "submitButton": "የፍርድ ቤት ጉዳይ ፍጠር",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የፍርድ ቤት ጉዳይ በተሳካ ሁኔታ ተፈጥሮ ተጣምሯል።",
+      "errorMessage": "የፍርድ ቤት ጉዳይ ለመፍጠር አልተሳካም። እንደገና ይሞክሩ።",
+      "discardTitle": "የፍርድ ቤት ጉዳይ ይተዉ?",
+      "discardDescription": "ለውጦች አልተቀመጡም። ይህ ጉዳይ አይፈጠርም ብለው ይተዉ?",
+      "discardConfirm": "ይተዉ",
+      "discardCancel": "አርትዕ ቀጥል"
+    },
+    "update": {
+      "drawerTitle": "የፍርድ ቤት ጉዳይ አርም",
+      "drawerDescription": "የፍርድ ቤት ጉዳዩን ዝርዝሮች፣ ሁኔታ፣ ወይም የቤት ቀናት ያዘምኑ።",
+      "courtLabel": "የፍርድ ቤት ስም",
+      "statusLabel": "ሁኔታ",
+      "outcomeLabel": "ውጤት",
+      "outcomeHint": "ሁኔታው 'ተጠናቋል' ሲሆን ውጤት ያስፈልጋል።",
+      "presidingJudgeLabel": "ሊቀ-ዳኛ",
+      "prosecutorLabel": "አቃቤ ሕግ",
+      "defenceCounselLabel": "ጠበቃ",
+      "hearingsSectionTitle": "የቤት ቀናት",
+      "addHearingButton": "የቤት ቀን ጨምር",
+      "notesLabel": "ማስታወሻ",
+      "submitButton": "ለውጦች ያስቀምጡ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የፍርድ ቤት ጉዳይ በተሳካ ሁኔታ ተዘምኗል።",
+      "errorMessage": "የፍርድ ቤት ጉዳይ ለማዘምን አልተሳካም። እንደገና ይሞክሩ።"
+    }
+  },
+  "charges": {
+    "sectionTitle": "ክሶች",
+    "addChargeButton": "ክስ ጨምር",
+    "entityCount": "{count} ክስ(ቾ)",
+    "filters": {
+      "search": "በተጠርጣሪ ወይም ወንጀል አይነት ፈልግ...",
+      "status": "ሁኔታ",
+      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+    },
+    "loading": "ክሶቾ እየጫነ ነው...",
+    "empty": {
+      "title": "ምንም ክስ አልቀረበም",
+      "description": "ለዚህ የፍርድ ቤት ጉዳይ ምንም ክስ ገና አልቀረበም።",
+      "cta": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ክስ ያቅርቡ።"
+    },
+    "emptyFiltered": "ምንም ክሶቾ ከማጣሪያዎ ጋር አይዛመዱም።",
+    "columns": {
+      "suspect": "ተጠርጣሪ",
+      "crimeType": "የወንጀል አይነት",
+      "status": "ሁኔታ",
+      "filedAt": "የቀረበ",
+      "sentence": "ቅጣት",
+      "actions": "ድርጊቶች"
+    },
+    "sentenceIndicator": {
+      "recorded": "ተመዝግቧል",
+      "pending": "በጥበቃ ላይ"
+    },
+    "rowActions": {
+      "updateStatus": "ሁኔታ አዘምን",
+      "viewSentence": "ቅጣት ተመልከት",
+      "dropCharge": "ክስ ዝቅ አድርግ"
+    },
+    "status": {
+      "FILED": "ቀርቧል",
+      "ACTIVE": "ንቁ",
+      "CONVICTED": "ጥፋተኛ ተብሏል",
+      "ACQUITTED": "ነጻ ተለቋል",
+      "DROPPED": "ውድቅ"
+    },
+    "create": {
+      "drawerTitle": "ክስ ጨምር",
+      "drawerDescription": "ለዚህ ፍርድ ቤት ጉዳይ አዲስ ክስ ያቅርቡ።",
+      "section1Title": "የክስ ዝርዝሮች",
+      "suspectLabel": "ተጠርጣሪ",
+      "suspectPlaceholder": "ለዚህ ጉዳይ ተጠርጣሪዎችን ፈልግ...",
+      "suspectHint": "ለዚህ ምርመራ ጉዳይ ተጠርጣሪ ሆነው የተጣበቁ ሰዎች ብቻ ይታያሉ።",
+      "suspectEmpty": "ለዚህ ጉዳይ ተጠርጣሪዎች አልተጣበቁም። በመጀመሪያ ከሰራተኞች ሞጁል ያክሉ።",
+      "crimeTypeLabel": "የወንጀል አይነት",
+      "crimeTypePlaceholder": "የወንጀል አይነቶችን ፈልግ...",
+      "notesLabel": "ማስታወሻ (አማራጭ)",
+      "notesPlaceholder": "ስለዚህ ክስ ተጨማሪ ማስታወሻዎች...",
+      "submitButton": "ክስ አቅርብ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ክሱ በተሳካ ሁኔታ ቀርቧል።",
+      "errorMessage": "ክስ ለማቅረብ አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "update": {
+      "drawerTitle": "የክስ ሁኔታ አዘምን",
+      "drawerDescription": "የዚህን ክስ ሁኔታ ይቀይሩ።",
+      "currentStatusLabel": "አሁናዊ ሁኔታ",
+      "newStatusLabel": "አዲስ ሁኔታ",
+      "newStatusPlaceholder": "አዲስ ሁኔታ ይምረጡ...",
+      "terminalNotice": "ይህ ክስ የመጨረሻ ሁኔታ ላይ ደርሷል እና ሊቀየር አይችልም።",
+      "convictSection": "ጥፋተኛ ያስመዝጉ",
+      "convictNotice": "'ጥፋተኛ' መምረጥ ይህን ክስ ጥፋተኛ ሆኖ ያሰፍረዋል። የቅጣት ዝርዝሮችንም ማስቀመጥ ያለቦት። ይህ ድርጊት ሊቀለበስ አይችልም።",
+      "convictButton": "ጥፋተኛ & ቅጣት ይመዝግቡ",
+      "submitButton": "ሁኔታ አዘምን",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የክስ ሁኔታ በተሳካ ሁኔታ ተዘምኗል።",
+      "errorMessage": "የክስ ሁኔታ ለማዘምን አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "drop": {
+      "confirmTitle": "ይህን ክስ ዝቅ ያድርጉ?",
+      "confirmDescription": "{suspectName} ({crimeType}) ላይ የቀረበ ክስ ቋሚ ሆኖ ውድቅ ይሆናል። ይህ ድርጊት ሊቀለበስ አይችልም።",
+      "confirmButton": "ክስ ዝቅ አድርግ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ክሱ በተሳካ ሁኔታ ውድቅ ሆኗል።"
+    },
+    "sentence": {
+      "drawerTitle": "ቅጣት ይምዝግቡ",
+      "drawerDescription": "ለዚህ ጥፋተኛ ፍርድ የቅጣት ዝርዝሮች ያስቀምጡ።",
+      "convictionNotice": "ቅጣት መሰወር ይህን ክስ ቋሚ ሆኖ ጥፋተኛ ያስቀምጠዋል። ሊቀለበስ አይችልም።",
+      "section1Title": "የቅጣት ዝርዝሮች",
+      "sentenceTypeLabel": "የቅጣት አይነት",
+      "durationMonthsLabel": "ቆይታ (ወራት)",
+      "durationMonthsPlaceholder": "ለምሳሌ 5 ዓመት = 60",
+      "durationMonthsHint": "ጠቅላላ የቅጣት ቆይታ በወራት ያስገቡ።",
+      "fineAmountLabel": "የቅጣት መጠን (ብር)",
+      "fineAmountPlaceholder": "መጠን በኢትዮጵያ ብር ያስገቡ",
+      "issuedAtLabel": "የቅጣት ቀን",
+      "issuedByJudgeLabel": "ቅጣቱ የተሰጠ ዳኛ (አማራጭ)",
+      "issuedByJudgePlaceholder": "የዳኛ ሙሉ ስም",
+      "notesLabel": "የቅጣት ማስታወሻ (አማራጭ)",
+      "notesPlaceholder": "ስለ ቅጣቱ ተጨማሪ ማስታወሻዎች...",
+      "submitButton": "ቅጣት ይምዝገቡ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ቅጣቱ በተሳካ ሁኔታ ተሰፍሯል። ክሱ አሁን ጥፋተኛ ሆኗል።",
+      "errorMessage": "ቅጣቱን ለማስፈር አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "viewSentence": {
+      "drawerTitle": "የቅጣት ዝርዝሮች",
+      "contextTitle": "የክስ አውድ",
+      "detailsTitle": "የቅጣት ዝርዝሮች",
+      "pendingNotice": "የቅጣት ዝርዝሮች ገና አልተመዘገቡም።",
+      "immutableNotice": "ይህ የቅጣት መዝገብ ቋሚ ነው እና ሊቀየር አይችልም።",
+      "sentenceType": "የቅጣት አይነት",
+      "duration": "ቆይታ",
+      "fineAmount": "የቅጣት መጠን",
+      "issuedAt": "የቅጣት ቀን",
+      "issuedByJudge": "ቅጣቱ ያሰጠ",
+      "noJudge": "አልተመዘገበም",
+      "notes": "ማስታወሻ",
+      "noNotes": "ምንም ማስታወሻ የለም።",
+      "closeButton": "ዝጋ"
+    },
+    "sentenceType": {
+      "IMPRISONMENT": "እስር",
+      "FINE": "ቅጣት",
+      "COMMUNITY_SERVICE": "ማህበረሰብ አገልግሎት",
+      "SUSPENDED": "የተቋረጠ ፍርድ",
+      "DEATH_PENALTY": "ሞት ቅጣት",
+      "LIFE_IMPRISONMENT": "የዕድሜ ልክ እስር"
+    }
+  },
+  "courtCasesList": {
+    "pageTitle": "የፍርድ ቤት ጉዳዮች",
+    "entityCount": "{count} ጉዳይ(ዎች)",
+    "filters": {
+      "search": "በጉዳይ ርዕስ ወይም ቁጥር ፈልግ...",
+      "status": "ሁኔታ",
+      "dateRange": "የቀን ክልል",
+      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+    },
+    "loading": "የፍርድ ቤት ጉዳዮች እየጫነ ነው...",
+    "empty": {
+      "title": "ምንም የፍርድ ቤት ጉዳዮች የሉም",
+      "description": "ምንም የፍርድ ቤት ጉዳዮች አልተገኙም። ጉዳዮቹ ከምርመራ ፋይሎቹ ውስጥ ይፈጠራሉ።"
+    },
+    "emptyFiltered": "ምንም ጉዳዮቾ ከማጣሪያዎ ጋር አይዛመዱም።",
+    "columns": {
+      "courtCaseNumber": "የፍርድ ቤት ቁ.",
+      "investigationCase": "የምርመራ ጉዳይ",
+      "court": "ፍርድ ቤት",
+      "status": "ሁኔታ",
+      "outcome": "ውጤት",
+      "filedAt": "የቀረበ",
+      "nextHearing": "ቀጣይ ቤት",
+      "chargeCount": "ክሶቾ",
+      "actions": "ድርጊቶች"
+    },
+    "rowActions": {
+      "viewCase": "የምርመራ ጉዳዩ ተመልከት"
+    }
   }
 }
