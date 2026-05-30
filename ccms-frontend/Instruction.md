@@ -1,4 +1,4 @@
-# CCMS Frontend — Phase 5: Arrests & Interrogations Module
+# CCMS Frontend — Phase 6: Legal Module
 ## Execution Specification for AI Agent
 ### Year: 2026 | Runtime: Modern 2026 Ecosystem | Package Manager: pnpm | Target: Production-Grade Enterprise Frontend
 
@@ -8,35 +8,38 @@
 
 ## 1.1 Current Project State
 
-Phases 1 through 4 are complete. The following is fully operational:
+Phases 1 through 5 are complete. The following is fully operational:
 
 - **Foundation & Infrastructure**: Project scaffold, design tokens, Tailwind v4, all three Zustand stores, Axios client with 401 refresh queue, React Query with all 12 key factories, App Shell (Sidebar, TopBar, Breadcrumb), middleware, all shared components, i18n (EN + AM)
 - **Auth Module**: Login, logout, forgot-password, reset-password, idle session timeout, silent token refresh
 - **Cases Module**: Cases list, multi-step case creation wizard, case detail layout (header card, interactive status badge, nine-tab navigation), case overview tab, case timeline tab (30s polling, add-note, diff viewer, print), status transition drawer
-- **Evidence Module**: Evidence tab (DataTable + gallery toggle), evidence upload drawer (Cloudinary three-step flow), evidence detail drawer with chain of custody timeline (gap detection, immutability indicators), lightbox viewer (keyboard navigation, touch swipe, zoom, metadata panel), record custody event drawer, evidence detail page sub-route
-- **Route coverage**: All dashboard skeleton routes render; `/403`, admin skeleton pages, settings skeleton pages, and all nine case tab skeletons created
-- **i18n completeness**: Passes for `common`, `auth`, `navigation`, `errors`, `accessibility`, `cases`, and `evidence` namespaces
+- **Evidence Module**: Evidence tab (DataTable + gallery toggle), evidence upload drawer (Cloudinary three-step flow), evidence detail drawer with chain of custody timeline, lightbox viewer, record custody event drawer
+- **Arrests Module**: Arrests tab (DataTable + filter bar), create arrest drawer, arrest detail drawer, update detention/bail status drawer
+- **Interrogations Module**: Interrogations tab (DataTable + filter bar), create interrogation drawer, read-only interrogation detail drawer
+- **Route coverage**: All nine case tab skeletons render; `/legal/court-cases` skeleton is in place; `/403`, admin, settings, and dashboard skeleton routes all render
+- **i18n completeness**: Passes for `common`, `auth`, `navigation`, `errors`, `accessibility`, `cases`, `evidence`, `arrests`, and `interrogations` namespaces
 
-## 1.2 Phase 5 Objective
+## 1.2 Phase 6 Objective
 
-Phase 5 delivers two tightly scoped investigative modules — **Arrests** and **Interrogations** — that live inside the case detail view. Both are accessed exclusively through the case detail tab navigation established in Phase 3.
+Phase 6 delivers the **Legal Module** — the system's judicial proceedings interface. It sits at the intersection of law enforcement and the court system, accessible exclusively to `legal_officer`, `admin`, and `superadmin` roles. A non-legal officer who opens the Legal tab in a case sees the tab rendered but locked (established in Phase 3); Phase 6 replaces the skeleton content that appears behind that lock for authorised roles.
 
-These modules are simpler in technical complexity than evidence (no file uploads, no chain-of-custody law), but they are operationally critical. Arrest records are legal documents. Interrogation logs are court-admissible records. Every field, every label, and every interaction must reflect the weight of that context.
+The legal module introduces a **two-level entity hierarchy**: one CourtCase per investigation case, and multiple Charges under that CourtCase. This is architecturally distinct from the flat lists in arrests and interrogations. It also introduces **terminal status states** — a charge that reaches `CONVICTED` or `ACQUITTED` cannot revert. Sentencing data is only recorded after conviction and is immutable once saved.
 
-**Phase 5 delivers four sub-systems:**
+**Phase 6 delivers five sub-systems:**
 
-1. **Arrests Tab** — Replaces the Phase 3 skeleton at `/cases/[caseId]/arrests`. Full DataTable with filter bar, row actions, and status badges for detention and bail.
-2. **Create Arrest Drawer** — A `SlideOverDrawer` with a structured form for recording a new arrest linked to a case suspect.
-3. **Arrest Detail & Update Drawers** — Inline detail view plus a separate update drawer for changing detention or bail status.
-4. **Interrogations Tab** — Replaces the Phase 3 skeleton at `/cases/[caseId]/interrogations`. DataTable/list of interrogation records with create form.
-5. **Create & Detail Interrogation Drawers** — Form for logging a new interrogation session and a read-only detail view.
+1. **Legal Tab (Case Detail)** — Replaces the Phase 3 skeleton at `/cases/[caseId]/legal`. Full judicial proceedings workspace for legal officers.
+2. **Court Case Panel** — Displays the court case linked to the investigation case. Includes `CreateCourtCaseDrawer` for the empty state and `UpdateCourtCaseDrawer` for editing.
+3. **Charges Table & Management** — DataTable of all charges within the court case. Row-level actions to update status, drop, and view sentencing.
+4. **Charge Drawers** — `AddChargeDrawer`, `UpdateChargeStatusDrawer`, `DropChargeDialog`, `RecordSentenceDrawer`, and `ViewSentenceDrawer`.
+5. **Court Cases List Page** — Replaces the Phase 3 skeleton at `/legal/court-cases`. Global list of court cases for the authenticated legal officer.
 
 **Also in scope:**
 
-- `arrests` and `interrogations` feature modules: full type definitions, Zod schemas, service implementations, React Query hooks
-- Full population of `messages/en/arrests.json`, `messages/am/arrests.json`, `messages/en/interrogations.json`, and `messages/am/interrogations.json`
-- `arrestKeys` and `interrogationKeys` query key factories
-- Case overview tab count cards for Arrests and Interrogations — already rendered as links in Phase 3; the queries they depend on (`caseKeys.arrests(caseId)` and `caseKeys.interrogations(caseId)`) must be invalidated after mutations in this phase so count cards update automatically
+- `legal` feature module: full type definitions, Zod schemas, service implementation, React Query hooks
+- Full population of `messages/en/legal.json` and `messages/am/legal.json`
+- `legalKeys` query key factory at `src/services/query/keys/legalKeys.ts`
+- Case overview tab charge count card query invalidation after charge mutations (the count card at `/cases/[caseId]` already renders using `caseKeys.summary(caseId)`; the Legal module must invalidate it after every charge mutation)
+- Sidebar navigation `Legal` section already renders; verify `/legal/court-cases` route is wired and accessible to `legal_officer+`
 
 ## 1.3 Package Manager
 
@@ -44,112 +47,77 @@ All commands use **pnpm**. No npm or yarn.
 
 ## 1.4 What Must Be Completed
 
-**Arrests service (`src/services/domain/arrests.service.ts`):**
+**Legal service (`src/services/domain/legal.service.ts`):**
 - Replace all stubs with real Axios calls
-- All 5 endpoints from Appendix C of the blueprint (`/api/v1/arrests` + `/api/v1/cases/{id}/arrests`)
-- Response validation via Zod
+- All 7 endpoints covering court cases and charges (see §8)
+- Response validation via Zod `.parse()` on every response
+- Typed return values throughout — no `any`
 
-**Arrests types and schemas:**
-- All TypeScript types: `Arrest`, `ArrestListItem`, `DetentionStatus`, `BailStatus`, `ArrestFilters`, `CreateArrestPayload`, `UpdateArrestPayload`
-- All Zod schemas: create form, update form, API response schemas, filter schema
+**Legal types and schemas:**
+- All TypeScript types: `CourtCase`, `CourtCaseSummary`, `CourtCaseStatus`, `CourtCaseOutcome`, `HearingDate`, `HearingType`, `Charge`, `ChargeListItem`, `ChargeStatus`, `SentenceType`, `Sentence`, `CourtCaseFilters`, `ChargeFilters`, `CreateCourtCasePayload`, `UpdateCourtCasePayload`, `CreateChargePayload`, `UpdateChargePayload`, `RecordSentencePayload`
+- All Zod schemas: create/update form schemas, API response schemas, filter schemas
 
-**Arrests query hooks:**
-- `useArrestList(caseId, filters)` — paginated list with filter params
-- `useArrest(arrestId)` — single arrest detail
-- `useCreateArrest(caseId)` — create mutation
-- `useUpdateArrest(arrestId, caseId)` — update mutation (detention/bail status changes)
-- `useDeleteArrest(arrestId, caseId)` — deletion mutation with `DestructiveConfirmDialog`
+**Legal query hooks:**
+- `useCourtCaseByCase(caseId)` — fetches the single court case linked to an investigation case
+- `useCourtCaseList(filters)` — paginated list for the standalone `/legal/court-cases` page
+- `useCreateCourtCase(caseId)` — create mutation
+- `useUpdateCourtCase(courtCaseId, caseId)` — update mutation
+- `useChargeList(courtCaseId, caseId, filters)` — paginated charges for a given court case
+- `useCreateCharge(courtCaseId, caseId)` — file a new charge mutation
+- `useUpdateCharge(chargeId, courtCaseId, caseId)` — update charge status mutation
+- `useDropCharge(chargeId, courtCaseId, caseId)` — destructive mutation: set status to `DROPPED`
+- `useRecordSentence(chargeId, courtCaseId, caseId)` — record sentencing for a convicted charge
 
-**Interrogations service (`src/services/domain/interrogations.service.ts`):**
-- Replace all stubs with real Axios calls
-- All 2 endpoints: `GET /api/v1/cases/{id}/interrogations` and `POST /api/v1/cases/{id}/interrogations`
-- Response validation via Zod
+**i18n messages:**
+- Fully populate `messages/en/legal.json`
+- Fully populate `messages/am/legal.json`
 
-**Interrogations types and schemas:**
-- All TypeScript types: `Interrogation`, `InterrogationListItem`, `InterrogationFilters`, `CreateInterrogationPayload`
-- All Zod schemas: create form, API response schemas, filter schema
-
-**Interrogations query hooks:**
-- `useInterrogationList(caseId, filters)` — paginated list
-- `useCreateInterrogation(caseId)` — create mutation
-
-**Case-level person query for form selects:**
-- Both create forms require searching persons linked to the current case
-- Add `getCasePersons(caseId, params)` to `cases.service.ts` (uses existing `caseKeys` factory)
-- This call hits `GET /api/v1/cases/{caseId}/persons` (part of the 39 case endpoints)
-- The arrests form filters by `role=SUSPECT`; the interrogations form has no role filter
-
-**Arrests i18n messages:**
-- Fully populate `messages/en/arrests.json` and `messages/am/arrests.json`
-
-**Interrogations i18n messages:**
-- Fully populate `messages/en/interrogations.json` and `messages/am/interrogations.json`
-
-**Arrests tab (`/cases/[caseId]/arrests/page.tsx`):**
+**Legal Tab (`/cases/[caseId]/legal/page.tsx`):**
 - Replace Phase 3 skeleton
-- `PageHeader`: "Arrests" title + count + "Record Arrest" button (investigator+)
-- Filter bar: detention status filter, search by person name, date range
-- DataTable: all columns, sortable, kebab row actions
-- Loading, empty, and error states
+- Empty state when no court case is linked: EmptyState component with "Create Court Case" CTA (legal_officer+)
+- When court case exists: `CourtCaseCard` + `ChargesTable` + filter bar + "Add Charge" button
 
-**Create Arrest Drawer:**
-- `SlideOverDrawer` (480px) with arrested person select, arresting officer select, arrest date/time, location, warrant number, charges at time of arrest, notes
-- Bail status defaults to `NOT_SET`; bail amount field shown conditionally when `GRANTED` or `POSTED`
-
-**Arrest Detail Drawer:**
-- Full metadata card showing all arrest fields
-- "Update Detention Status" action button → opens `UpdateArrestDrawer`
-- "Delete Arrest" destructive action → `DestructiveConfirmDialog`
-
-**Update Arrest Drawer:**
-- Dedicated `SlideOverDrawer` for modifying detention status and bail information only
-- Uses `useUpdateArrest` mutation
-
-**Interrogations tab (`/cases/[caseId]/interrogations/page.tsx`):**
+**Court Cases List Page (`/legal/court-cases/page.tsx`):**
 - Replace Phase 3 skeleton
-- `PageHeader`: "Interrogations" title + count + "Add Interrogation" button (investigator+)
-- Filter bar: search by subject name, date range
-- DataTable: all columns, row click opens detail drawer
-- Loading, empty, and error states
+- Full DataTable with filter bar, loading, empty, and error states
 
-**Create Interrogation Drawer:**
-- `SlideOverDrawer` (480px) with subject (person) select, conducting officer, date/time, location, duration, legal representative fields, summary, recording reference
-- Legal representative name field shown conditionally when `legalRepresentativePresent === true`
-
-**Interrogation Detail Drawer:**
-- Read-only. All fields displayed.
-- No edit or delete actions (interrogation records are immutable once created)
-- Padlock icon in the drawer header to indicate immutability
+**All drawers and dialogs** as listed in §1.2
 
 ## 1.5 What Must NOT Be Implemented
 
-- Interrogation editing or deletion — these records are immutable
-- Bulk arrest operations — deferred to Phase 11
-- Standalone `/arrests` top-level list page — deferred (arrests always accessed via case context in this phase)
-- Court appearance scheduling from the arrest record — belongs to Phase 6 (Legal module)
-- Printing / PDF export of arrest records — Phase 11
-- MSW mocking — still deferred
+- **Charge reversal** — a charge that reaches `CONVICTED` or `ACQUITTED` cannot change status. The `UpdateChargeStatusDrawer` must not present these as options when the charge is in a terminal state.
+- **Sentence editing or deletion** — once a sentence is recorded via `RecordSentenceDrawer`, it is immutable. No edit button, no delete button.
+- **Court case deletion** — legal records are permanent. No delete action on court cases.
+- **Bulk charge operations** — deferred to Phase 11.
+- **Hearing date calendar integration** — hearing dates are recorded as data fields only; no calendar booking or external scheduling.
+- **Court case duplication** — each investigation case has exactly one linked court case. The "Create Court Case" CTA must be hidden once a court case exists.
+- **PDF/print export of court documents** — deferred to Phase 11.
+- **Appeal workflow** — reversing or appealing CONVICTED/ACQUITTED charges is not in scope.
+- **MSW mocking** — still deferred.
+- **Legal Officer Dashboard widgets** — deferred to Phase 9 (Dashboards & Reports).
 
 ## 1.6 Handoff Standard
 
-When Phase 5 finishes:
-- Navigating to `/cases/[caseId]/arrests` shows the full arrests DataTable (not the Phase 3 skeleton)
-- "Record Arrest" opens the create drawer; completing it adds the arrest record and refreshes the list
-- Clicking an arrest row opens the detail drawer; "Update Detention Status" opens the update drawer
-- Navigating to `/cases/[caseId]/interrogations` shows the full interrogations DataTable
-- "Add Interrogation" opens the create drawer; completing it adds the interrogation record and refreshes the list
-- Clicking an interrogation row opens the read-only detail drawer
-- Case overview tab arrest and interrogation count cards reflect the updated totals after mutations
+When Phase 6 finishes:
+- Navigating to `/cases/[caseId]/legal` as a `legal_officer` shows the real legal tab (not the Phase 3 skeleton)
+- If no court case is linked: `EmptyState` with "Create Court Case" button is visible; clicking opens `CreateCourtCaseDrawer`
+- If a court case exists: `CourtCaseCard` shows the court metadata, `HearingDatesList` shows upcoming hearings, `ChargesTable` below shows all charges
+- "Add Charge" button (legal_officer+) opens `AddChargeDrawer`; submitting files the charge, closes the drawer, and refreshes the charges list
+- Charge row kebab menu renders: "Update Status" → `UpdateChargeStatusDrawer`, "Drop Charge" → `DropChargeDialog`, "View Sentence" (only when `CONVICTED`) → `ViewSentenceDrawer`
+- "Drop Charge" triggers `DestructiveConfirmDialog` with the confirm phrase pattern
+- In `UpdateChargeStatusDrawer`, selecting `CONVICTED` expands a sentencing inline form; submitting records the sentence
+- Navigating to `/legal/court-cases` shows the full DataTable of court cases (not the skeleton)
+- Case overview tab charge count card increments after every successful `useCreateCharge` mutation
 - `pnpm type-check` — zero errors
 - `pnpm lint` — zero warnings
-- `pnpm test` — all arrests and interrogations tests pass
-- i18n completeness test passes for the `arrests` and `interrogations` namespaces
+- `pnpm build` — production build succeeds
+- i18n completeness test passes for the `legal` namespace in both EN and AM
 
 ---
 
 # 2. Dependencies
 
-No new packages are required. All dependencies are already installed:
+No new packages are required. All dependencies are already installed from prior phases:
 
 ```bash
 # Verify core dependencies are present
@@ -170,113 +138,151 @@ pnpm add @tanstack/react-query react-hook-form @hookform/resolvers zod nuqs date
 
 # 3. File & Directory Structure
 
-Create the following new directories and files. All stubs already generated in Phase 3 are replaced.
+Create the following new directories and files. All stubs from Phase 3 are replaced.
 
 ```
 src/
 ├── features/
-│   ├── arrests/
-│   │   ├── components/
-│   │   │   ├── ArrestsTab.tsx                # Main tab — filter bar + table + drawers
-│   │   │   ├── CreateArrestDrawer.tsx         # SlideOverDrawer — new arrest form
-│   │   │   ├── ArrestDetailDrawer.tsx         # SlideOverDrawer — read + actions
-│   │   │   └── UpdateArrestDrawer.tsx         # SlideOverDrawer — detention/bail update
-│   │   ├── hooks/
-│   │   │   ├── useArrestList.ts
-│   │   │   ├── useArrest.ts
-│   │   │   ├── useCreateArrest.ts
-│   │   │   ├── useUpdateArrest.ts
-│   │   │   ├── useDeleteArrest.ts
-│   │   │   └── index.ts
-│   │   ├── schemas/
-│   │   │   ├── create-arrest.schema.ts
-│   │   │   ├── update-arrest.schema.ts
-│   │   │   ├── arrest-api.schema.ts
-│   │   │   └── arrest-filters.schema.ts
-│   │   ├── types/
-│   │   │   ├── arrest.types.ts
-│   │   │   └── index.ts
-│   │   └── index.ts                          # Public barrel export
-│   │
-│   └── interrogations/
+│   └── legal/
 │       ├── components/
-│       │   ├── InterrogationsTab.tsx          # Main tab — filter bar + table + drawers
-│       │   ├── CreateInterrogationDrawer.tsx  # SlideOverDrawer — new interrogation form
-│       │   └── InterrogationDetailDrawer.tsx  # SlideOverDrawer — read-only detail
+│       │   ├── CourtCaseCard.tsx            # Displays linked court case metadata
+│       │   ├── HearingDatesList.tsx          # Chronological list of hearing dates
+│       │   ├── CreateCourtCaseDrawer.tsx     # SlideOverDrawer — create court case form
+│       │   ├── UpdateCourtCaseDrawer.tsx     # SlideOverDrawer — edit court case
+│       │   ├── ChargesTable.tsx              # DataTable of charges within court case
+│       │   ├── AddChargeDrawer.tsx           # SlideOverDrawer — file a new charge
+│       │   ├── UpdateChargeStatusDrawer.tsx  # SlideOverDrawer — update status + sentencing
+│       │   ├── DropChargeDialog.tsx          # DestructiveConfirmDialog wrapper
+│       │   ├── RecordSentenceDrawer.tsx      # SlideOverDrawer — sentence details (CONVICTED)
+│       │   ├── ViewSentenceDrawer.tsx        # SlideOverDrawer — read-only sentence view
+│       │   └── CourtCasesList.tsx            # Main component for /legal/court-cases page
 │       ├── hooks/
-│       │   ├── useInterrogationList.ts
-│       │   ├── useCreateInterrogation.ts
+│       │   ├── useCourtCaseByCase.ts
+│       │   ├── useCourtCaseList.ts
+│       │   ├── useCreateCourtCase.ts
+│       │   ├── useUpdateCourtCase.ts
+│       │   ├── useChargeList.ts
+│       │   ├── useCreateCharge.ts
+│       │   ├── useUpdateCharge.ts
+│       │   ├── useDropCharge.ts
+│       │   ├── useRecordSentence.ts
 │       │   └── index.ts
 │       ├── schemas/
-│       │   ├── create-interrogation.schema.ts
-│       │   ├── interrogation-api.schema.ts
-│       │   └── interrogation-filters.schema.ts
+│       │   ├── court-case.schema.ts
+│       │   ├── charge.schema.ts
+│       │   ├── sentence.schema.ts
+│       │   ├── legal-api.schema.ts
+│       │   └── legal-filters.schema.ts
 │       ├── types/
-│       │   ├── interrogation.types.ts
+│       │   ├── legal.types.ts
 │       │   └── index.ts
+│       ├── utils/
+│       │   └── chargeUtils.ts
 │       └── index.ts
-│
+
 ├── services/
 │   └── query/
 │       └── keys/
-│           ├── arrestKeys.ts                  # New — query key factory
-│           └── interrogationKeys.ts           # New — query key factory
-│
+│           └── legalKeys.ts                  # New — query key factory
+
 └── app/
     └── (dashboard)/
-        └── cases/
-            └── [caseId]/
-                ├── arrests/
-                │   └── page.tsx               # Replaces Phase 3 skeleton
-                └── interrogations/
-                    └── page.tsx               # Replaces Phase 3 skeleton
+        ├── cases/
+        │   └── [caseId]/
+        │       └── legal/
+        │           └── page.tsx              # Replaces Phase 3 skeleton
+        └── legal/
+            └── court-cases/
+                └── page.tsx                  # Replaces Phase 3 skeleton
 
 messages/
 ├── en/
-│   ├── arrests.json                           # Full EN population
-│   └── interrogations.json                    # Full EN population
+│   └── legal.json                           # Full EN population
 └── am/
-    ├── arrests.json                           # Full AM population
-    └── interrogations.json                    # Full AM population
+    └── legal.json                           # Full AM population
 ```
 
 ---
 
-# 4. TypeScript Types — Arrests
+# 4. TypeScript Types
 
-## 4.1 `src/features/arrests/types/arrest.types.ts`
+## 4.1 `src/features/legal/types/legal.types.ts`
 
 ```typescript
-// ─── Detention Status enum ──────────────────────────────────────────────────
-export const DetentionStatus = {
-  IN_CUSTODY:          'IN_CUSTODY',
-  RELEASED_ON_BAIL:    'RELEASED_ON_BAIL',
-  RELEASED:            'RELEASED',
-  TRANSFERRED:         'TRANSFERRED',
+// ─── Court Case Status enum ──────────────────────────────────────────────────
+export const CourtCaseStatus = {
+  PENDING:    'PENDING',
+  ACTIVE:     'ACTIVE',
+  CONCLUDED:  'CONCLUDED',
+  DISMISSED:  'DISMISSED',
 } as const
-export type DetentionStatus = (typeof DetentionStatus)[keyof typeof DetentionStatus]
+export type CourtCaseStatus = (typeof CourtCaseStatus)[keyof typeof CourtCaseStatus]
 
-// ─── Bail Status enum ───────────────────────────────────────────────────────
-export const BailStatus = {
-  NOT_SET:  'NOT_SET',
-  DENIED:   'DENIED',
-  GRANTED:  'GRANTED',
-  POSTED:   'POSTED',
+// ─── Court Case Outcome enum ──────────────────────────────────────────────────
+export const CourtCaseOutcome = {
+  GUILTY:        'GUILTY',
+  NOT_GUILTY:    'NOT_GUILTY',
+  DISMISSED:     'DISMISSED',
+  MISTRIAL:      'MISTRIAL',
+  PLEA_DEAL:     'PLEA_DEAL',
 } as const
-export type BailStatus = (typeof BailStatus)[keyof typeof BailStatus]
+export type CourtCaseOutcome = (typeof CourtCaseOutcome)[keyof typeof CourtCaseOutcome]
 
-// Bail statuses that require the bail amount field to be shown
-export const BAIL_STATUSES_WITH_AMOUNT: BailStatus[] = [
-  BailStatus.GRANTED,
-  BailStatus.POSTED,
+// ─── Hearing Type enum ───────────────────────────────────────────────────────
+export const HearingType = {
+  PRELIMINARY:  'PRELIMINARY',
+  TRIAL:        'TRIAL',
+  SENTENCING:   'SENTENCING',
+  APPEAL:       'APPEAL',
+  ARRAIGNMENT:  'ARRAIGNMENT',
+} as const
+export type HearingType = (typeof HearingType)[keyof typeof HearingType]
+
+// ─── Charge Status enum ───────────────────────────────────────────────────────
+export const ChargeStatus = {
+  FILED:      'FILED',
+  ACTIVE:     'ACTIVE',
+  CONVICTED:  'CONVICTED',
+  ACQUITTED:  'ACQUITTED',
+  DROPPED:    'DROPPED',
+} as const
+export type ChargeStatus = (typeof ChargeStatus)[keyof typeof ChargeStatus]
+
+// Terminal charge statuses — cannot be changed once reached
+export const TERMINAL_CHARGE_STATUSES: ChargeStatus[] = [
+  ChargeStatus.CONVICTED,
+  ChargeStatus.ACQUITTED,
+  ChargeStatus.DROPPED,
 ]
 
-// ─── Shared reference shapes ────────────────────────────────────────────────
+// ─── Sentence Type enum ───────────────────────────────────────────────────────
+export const SentenceType = {
+  IMPRISONMENT:        'IMPRISONMENT',
+  FINE:                'FINE',
+  COMMUNITY_SERVICE:   'COMMUNITY_SERVICE',
+  SUSPENDED:           'SUSPENDED',
+  DEATH_PENALTY:       'DEATH_PENALTY',
+  LIFE_IMPRISONMENT:   'LIFE_IMPRISONMENT',
+} as const
+export type SentenceType = (typeof SentenceType)[keyof typeof SentenceType]
+
+// Sentence types that require a duration field
+export const SENTENCE_TYPES_WITH_DURATION: SentenceType[] = [
+  SentenceType.IMPRISONMENT,
+  SentenceType.COMMUNITY_SERVICE,
+  SentenceType.SUSPENDED,
+]
+
+// Sentence types that require a fine amount field
+export const SENTENCE_TYPES_WITH_FINE: SentenceType[] = [
+  SentenceType.FINE,
+]
+
+// ─── Shared reference shapes ──────────────────────────────────────────────────
 export interface PersonRef {
   id: string
   firstName: string
   lastName: string
-  nationalId: string   // Masked to last 4 digits below dept head
 }
 
 export interface OfficerRef {
@@ -287,264 +293,382 @@ export interface OfficerRef {
   departmentName: string
 }
 
-// ─── Core arrest entity ──────────────────────────────────────────────────────
-export interface ArrestListItem {
+export interface CrimeTypeRef {
   id: string
-  arrestNumber: string              // e.g. "ARR-2026-00018"
-  caseId: string
-  arrestedPerson: PersonRef
-  arrestingOfficer: OfficerRef
-  arrestDate: string                // ISO 8601
+  name: string
+}
+
+// ─── Hearing Date ─────────────────────────────────────────────────────────────
+export interface HearingDate {
+  id: string
+  date: string             // ISO 8601
+  type: HearingType
   location: string
-  detentionStatus: DetentionStatus
-  bailStatus: BailStatus
-  bailAmount: number | null         // In ETB; null unless bailStatus is GRANTED/POSTED
-  warrantNumber: string | null
-  createdAt: string
+  notes: string | null
+  outcome: string | null   // Free-text outcome note for concluded hearings
+}
+
+// ─── Sentence ─────────────────────────────────────────────────────────────────
+export interface Sentence {
+  id: string
+  sentenceType: SentenceType
+  durationMonths: number | null   // In months; null for non-duration sentence types
+  fineAmountETB: number | null    // In ETB; null for non-fine types
+  notes: string | null
+  issuedAt: string                // ISO 8601
+  issuedByJudge: string | null
+}
+
+// ─── Charge List Item (for DataTable) ────────────────────────────────────────
+export interface ChargeListItem {
+  id: string
+  courtCaseId: string
+  caseId: string
+  suspect: PersonRef
+  crimeType: CrimeTypeRef
+  status: ChargeStatus
+  filedAt: string          // ISO 8601
+  updatedAt: string
+  hasSentence: boolean     // True when status is CONVICTED and a sentence is recorded
+}
+
+// ─── Charge Detail (for detail drawer and sentence panel) ────────────────────
+export interface Charge extends ChargeListItem {
+  sentence: Sentence | null
+  notes: string | null
+}
+
+// ─── Court Case Summary (for list page) ──────────────────────────────────────
+export interface CourtCaseSummary {
+  id: string
+  courtCaseNumber: string     // Court-assigned reference (e.g. "CC-2026-0047")
+  investigationCaseId: string
+  investigationCaseTitle: string
+  court: string
+  status: CourtCaseStatus
+  outcome: CourtCaseOutcome | null
+  filedAt: string
+  nextHearingDate: string | null   // ISO 8601
+  chargeCount: number
   updatedAt: string
 }
 
-export interface Arrest extends ArrestListItem {
-  chargesAtArrest: string[]         // Freetext charge descriptions at time of arrest
+// ─── Court Case Detail (for case detail legal tab) ────────────────────────────
+export interface CourtCase extends CourtCaseSummary {
+  hearingDates: HearingDate[]
+  presidingJudge: string | null
+  prosecutor: string | null
+  defenceCounsel: string | null
   notes: string | null
-  courtAppearanceDate: string | null  // ISO 8601 date; populated by legal module later
+  charges: ChargeListItem[]
 }
 
-// ─── Filters ─────────────────────────────────────────────────────────────────
-export interface ArrestFilters {
-  search?: string                    // Search by arrested person name
-  detentionStatus?: DetentionStatus[]
+// ─── Filters ──────────────────────────────────────────────────────────────────
+export interface CourtCaseFilters {
+  search?: string          // Court case number or investigation case title
+  status?: CourtCaseStatus[]
   dateFrom?: string
   dateTo?: string
   page?: number
   pageSize?: number
-  sortField?: 'arrestDate' | 'arrestNumber' | 'detentionStatus'
+  sortField?: 'filedAt' | 'courtCaseNumber' | 'status'
   sortDirection?: 'asc' | 'desc'
 }
 
-// ─── Payloads ─────────────────────────────────────────────────────────────────
-export interface CreateArrestPayload {
-  arrestedPersonId: string
-  arrestingOfficerId: string
-  arrestDate: string                 // ISO 8601
-  location: string
-  warrantNumber?: string
-  chargesAtArrest: string[]
-  bailStatus?: BailStatus            // Defaults to NOT_SET
-  notes?: string
-}
-
-export interface UpdateArrestPayload {
-  detentionStatus?: DetentionStatus
-  bailStatus?: BailStatus
-  bailAmount?: number | null
-  notes?: string
-}
-```
-
-## 4.2 `src/features/arrests/types/index.ts`
-
-Re-export all types and constants:
-
-```typescript
-export * from './arrest.types'
-```
-
----
-
-# 5. TypeScript Types — Interrogations
-
-## 5.1 `src/features/interrogations/types/interrogation.types.ts`
-
-```typescript
-import type { OfficerRef } from '@features/arrests/types/arrest.types'
-
-// Re-export PersonRef for use in this module
-export type { PersonRef } from '@features/arrests/types/arrest.types'
-
-// ─── Core interrogation entity ───────────────────────────────────────────────
-export interface InterrogationListItem {
-  id: string
-  interrogationNumber: string          // e.g. "INT-2026-00007"
-  caseId: string
-  subject: {
-    id: string
-    firstName: string
-    lastName: string
-    roleOnCase: 'SUSPECT' | 'VICTIM' | 'WITNESS'
-  }
-  conductingOfficer: OfficerRef
-  interrogationDate: string            // ISO 8601
-  location: string
-  durationMinutes: number | null
-  legalRepresentativePresent: boolean
-  createdAt: string
-}
-
-export interface Interrogation extends InterrogationListItem {
-  legalRepresentativeName: string | null
-  summary: string
-  recordingReference: string | null
-}
-
-// ─── Filters ─────────────────────────────────────────────────────────────────
-export interface InterrogationFilters {
-  search?: string                      // Search by subject name
-  dateFrom?: string
-  dateTo?: string
+export interface ChargeFilters {
+  search?: string          // Suspect name or crime type
+  status?: ChargeStatus[]
   page?: number
   pageSize?: number
-  sortField?: 'interrogationDate' | 'interrogationNumber'
+  sortField?: 'filedAt' | 'status'
   sortDirection?: 'asc' | 'desc'
 }
 
-// ─── Payload ─────────────────────────────────────────────────────────────────
-export interface CreateInterrogationPayload {
-  subjectId: string
-  conductingOfficerId: string
-  interrogationDate: string            // ISO 8601
-  location: string
-  durationMinutes?: number
-  legalRepresentativePresent: boolean
-  legalRepresentativeName?: string
-  summary: string
-  recordingReference?: string
+// ─── Payloads ──────────────────────────────────────────────────────────────────
+export interface CreateCourtCasePayload {
+  court: string
+  filedAt: string
+  presidingJudge?: string
+  prosecutor?: string
+  defenceCounsel?: string
+  hearingDates?: Omit<HearingDate, 'id' | 'outcome'>[]
+  notes?: string
+}
+
+export interface UpdateCourtCasePayload {
+  court?: string
+  status?: CourtCaseStatus
+  outcome?: CourtCaseOutcome | null
+  presidingJudge?: string | null
+  prosecutor?: string | null
+  defenceCounsel?: string | null
+  hearingDates?: Omit<HearingDate, 'id' | 'outcome'>[]
+  notes?: string | null
+}
+
+export interface CreateChargePayload {
+  suspectId: string
+  crimeTypeId: string
+  notes?: string
+}
+
+export interface UpdateChargePayload {
+  status: Exclude<ChargeStatus, 'CONVICTED'>  // CONVICTED goes via RecordSentencePayload
+}
+
+export interface RecordSentencePayload {
+  sentenceType: SentenceType
+  durationMonths?: number | null
+  fineAmountETB?: number | null
+  notes?: string | null
+  issuedAt: string
+  issuedByJudge?: string | null
 }
 ```
 
-## 5.2 `src/features/interrogations/types/index.ts`
+## 4.2 `src/features/legal/types/index.ts`
 
 ```typescript
-export * from './interrogation.types'
+export * from './legal.types'
 ```
 
 ---
 
-# 6. Zod Schemas — Arrests
+# 5. Zod Schemas
 
-## 6.1 `src/features/arrests/schemas/create-arrest.schema.ts`
+## 5.1 `src/features/legal/schemas/court-case.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { BailStatus } from '../types/arrest.types'
+import { CourtCaseStatus, CourtCaseOutcome, HearingType } from '../types/legal.types'
 
-export const createArrestSchema = z.object({
-  arrestedPersonId: z
+// ─── Hearing date sub-schema ──────────────────────────────────────────────────
+export const hearingDateInputSchema = z.object({
+  date: z.string().min(1, { message: 'Hearing date is required.' }),
+  type: z.nativeEnum(HearingType),
+  location: z.string().min(2, { message: 'Location is required.' }).max(300),
+  notes: z.string().max(1000).optional(),
+})
+
+// ─── Create court case ────────────────────────────────────────────────────────
+export const createCourtCaseSchema = z.object({
+  court: z
     .string()
-    .min(1, { message: 'Arrested person is required.' }),
-  arrestingOfficerId: z
-    .string()
-    .min(1, { message: 'Arresting officer is required.' }),
-  arrestDate: z
-    .string()
-    .min(1, { message: 'Arrest date and time is required.' }),
-  location: z
-    .string()
-    .min(2, { message: 'Arrest location is required.' })
+    .min(2, { message: 'Court name is required.' })
     .max(300),
-  warrantNumber: z.string().max(100).optional(),
-  chargesAtArrest: z
-    .array(z.string().min(1))
-    .min(1, { message: 'At least one charge must be listed.' })
-    .max(20),
-  bailStatus: z.nativeEnum(BailStatus).optional().default(BailStatus.NOT_SET),
-  bailAmount: z.number().positive().nullable().optional(),
-  notes: z.string().max(2000).optional(),
+  filedAt: z.string().min(1, { message: 'Filing date is required.' }),
+  presidingJudge: z.string().max(200).optional(),
+  prosecutor: z.string().max(200).optional(),
+  defenceCounsel: z.string().max(200).optional(),
+  hearingDates: z.array(hearingDateInputSchema).max(20).optional().default([]),
+  notes: z.string().max(3000).optional(),
+})
+
+export type CreateCourtCaseValues = z.infer<typeof createCourtCaseSchema>
+
+// ─── Update court case ────────────────────────────────────────────────────────
+export const updateCourtCaseSchema = z.object({
+  court: z.string().min(2).max(300).optional(),
+  status: z.nativeEnum(CourtCaseStatus).optional(),
+  outcome: z.nativeEnum(CourtCaseOutcome).nullable().optional(),
+  presidingJudge: z.string().max(200).nullable().optional(),
+  prosecutor: z.string().max(200).nullable().optional(),
+  defenceCounsel: z.string().max(200).nullable().optional(),
+  hearingDates: z.array(hearingDateInputSchema).max(20).optional(),
+  notes: z.string().max(3000).nullable().optional(),
 }).refine(
   (data) => {
-    // Bail amount is required when bail is GRANTED or POSTED
-    if (
-      (data.bailStatus === BailStatus.GRANTED || data.bailStatus === BailStatus.POSTED) &&
-      (data.bailAmount === null || data.bailAmount === undefined)
-    ) {
+    // If status is CONCLUDED, outcome is required
+    if (data.status === CourtCaseStatus.CONCLUDED && !data.outcome) {
       return false
     }
     return true
   },
   {
-    message: 'Bail amount is required when bail is granted or posted.',
-    path: ['bailAmount'],
+    message: 'An outcome is required when the court case status is Concluded.',
+    path: ['outcome'],
   },
 )
 
-export type CreateArrestValues = z.infer<typeof createArrestSchema>
+export type UpdateCourtCaseValues = z.infer<typeof updateCourtCaseSchema>
 ```
 
-## 6.2 `src/features/arrests/schemas/update-arrest.schema.ts`
+## 5.2 `src/features/legal/schemas/charge.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { DetentionStatus, BailStatus } from '../types/arrest.types'
+import { ChargeStatus } from '../types/legal.types'
 
-export const updateArrestSchema = z.object({
-  detentionStatus: z.nativeEnum(DetentionStatus).optional(),
-  bailStatus: z.nativeEnum(BailStatus).optional(),
-  bailAmount: z.number().positive().nullable().optional(),
+// ─── Add charge ───────────────────────────────────────────────────────────────
+export const createChargeSchema = z.object({
+  suspectId: z.string().min(1, { message: 'Suspect is required.' }),
+  crimeTypeId: z.string().min(1, { message: 'Crime type is required.' }),
   notes: z.string().max(2000).optional(),
-}).refine(
-  (data) => {
-    if (
-      (data.bailStatus === BailStatus.GRANTED || data.bailStatus === BailStatus.POSTED) &&
-      (data.bailAmount === null || data.bailAmount === undefined)
-    ) {
-      return false
-    }
-    return true
-  },
-  {
-    message: 'Bail amount is required when bail is granted or posted.',
-    path: ['bailAmount'],
-  },
-)
+})
 
-export type UpdateArrestValues = z.infer<typeof updateArrestSchema>
+export type CreateChargeValues = z.infer<typeof createChargeSchema>
+
+// ─── Update charge status (excludes CONVICTED — that goes via sentence form) ──
+export const updateChargeStatusSchema = z.object({
+  status: z.enum([
+    ChargeStatus.ACTIVE,
+    ChargeStatus.ACQUITTED,
+  ] as const, {
+    errorMap: () => ({ message: 'Please select a valid status.' }),
+  }),
+})
+
+export type UpdateChargeStatusValues = z.infer<typeof updateChargeStatusSchema>
 ```
 
-## 6.3 `src/features/arrests/schemas/arrest-api.schema.ts`
+## 5.3 `src/features/legal/schemas/sentence.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { DetentionStatus, BailStatus } from '../types/arrest.types'
+import {
+  SentenceType,
+  SENTENCE_TYPES_WITH_DURATION,
+  SENTENCE_TYPES_WITH_FINE,
+} from '../types/legal.types'
 
+export const recordSentenceSchema = z.object({
+  sentenceType: z.nativeEnum(SentenceType, {
+    errorMap: () => ({ message: 'Sentence type is required.' }),
+  }),
+  durationMonths: z.number().int().positive().max(999).nullable().optional(),
+  fineAmountETB: z.number().positive().max(999_999_999).nullable().optional(),
+  notes: z.string().max(3000).nullable().optional(),
+  issuedAt: z.string().min(1, { message: 'Sentence date is required.' }),
+  issuedByJudge: z.string().max(200).nullable().optional(),
+}).superRefine((data, ctx) => {
+  // Duration is required for imprisonment, community service, suspended
+  if (
+    SENTENCE_TYPES_WITH_DURATION.includes(data.sentenceType) &&
+    (data.durationMonths === null || data.durationMonths === undefined)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Duration is required for this sentence type.',
+      path: ['durationMonths'],
+    })
+  }
+  // Fine amount is required for fine-type sentences
+  if (
+    SENTENCE_TYPES_WITH_FINE.includes(data.sentenceType) &&
+    (data.fineAmountETB === null || data.fineAmountETB === undefined)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Fine amount is required for a fine sentence.',
+      path: ['fineAmountETB'],
+    })
+  }
+})
+
+export type RecordSentenceValues = z.infer<typeof recordSentenceSchema>
+```
+
+## 5.4 `src/features/legal/schemas/legal-api.schema.ts`
+
+```typescript
+import { z } from 'zod'
+import {
+  CourtCaseStatus,
+  CourtCaseOutcome,
+  HearingType,
+  ChargeStatus,
+  SentenceType,
+} from '../types/legal.types'
+
+// ─── Shared refs ──────────────────────────────────────────────────────────────
 const personRefSchema = z.object({
   id: z.string().uuid(),
   firstName: z.string(),
   lastName: z.string(),
-  nationalId: z.string(),
 })
 
-const officerRefSchema = z.object({
+const crimeTypeRefSchema = z.object({
   id: z.string().uuid(),
-  badgeNumber: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  departmentName: z.string(),
+  name: z.string(),
 })
 
-export const arrestListItemSchema = z.object({
+// ─── Sentence ─────────────────────────────────────────────────────────────────
+export const sentenceSchema = z.object({
   id: z.string().uuid(),
-  arrestNumber: z.string(),
-  caseId: z.string().uuid(),
-  arrestedPerson: personRefSchema,
-  arrestingOfficer: officerRefSchema,
-  arrestDate: z.string(),
+  sentenceType: z.nativeEnum(SentenceType),
+  durationMonths: z.number().nullable(),
+  fineAmountETB: z.number().nullable(),
+  notes: z.string().nullable(),
+  issuedAt: z.string(),
+  issuedByJudge: z.string().nullable(),
+})
+
+// ─── Hearing Date ─────────────────────────────────────────────────────────────
+export const hearingDateSchema = z.object({
+  id: z.string().uuid(),
+  date: z.string(),
+  type: z.nativeEnum(HearingType),
   location: z.string(),
-  detentionStatus: z.nativeEnum(DetentionStatus),
-  bailStatus: z.nativeEnum(BailStatus),
-  bailAmount: z.number().nullable(),
-  warrantNumber: z.string().nullable(),
-  createdAt: z.string(),
+  notes: z.string().nullable(),
+  outcome: z.string().nullable(),
+})
+
+// ─── Charge List Item ─────────────────────────────────────────────────────────
+export const chargeListItemSchema = z.object({
+  id: z.string().uuid(),
+  courtCaseId: z.string().uuid(),
+  caseId: z.string().uuid(),
+  suspect: personRefSchema,
+  crimeType: crimeTypeRefSchema,
+  status: z.nativeEnum(ChargeStatus),
+  filedAt: z.string(),
+  updatedAt: z.string(),
+  hasSentence: z.boolean(),
+})
+
+// ─── Charge Detail ────────────────────────────────────────────────────────────
+export const chargeDetailSchema = chargeListItemSchema.extend({
+  sentence: sentenceSchema.nullable(),
+  notes: z.string().nullable(),
+})
+
+// ─── Paginated charges ────────────────────────────────────────────────────────
+export const paginatedChargesSchema = z.object({
+  data: z.array(chargeListItemSchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+  totalPages: z.number(),
+})
+
+// ─── Court Case Summary ───────────────────────────────────────────────────────
+export const courtCaseSummarySchema = z.object({
+  id: z.string().uuid(),
+  courtCaseNumber: z.string(),
+  investigationCaseId: z.string().uuid(),
+  investigationCaseTitle: z.string(),
+  court: z.string(),
+  status: z.nativeEnum(CourtCaseStatus),
+  outcome: z.nativeEnum(CourtCaseOutcome).nullable(),
+  filedAt: z.string(),
+  nextHearingDate: z.string().nullable(),
+  chargeCount: z.number(),
   updatedAt: z.string(),
 })
 
-export const arrestDetailSchema = arrestListItemSchema.extend({
-  chargesAtArrest: z.array(z.string()),
+// ─── Court Case Detail ────────────────────────────────────────────────────────
+export const courtCaseDetailSchema = courtCaseSummarySchema.extend({
+  hearingDates: z.array(hearingDateSchema),
+  presidingJudge: z.string().nullable(),
+  prosecutor: z.string().nullable(),
+  defenceCounsel: z.string().nullable(),
   notes: z.string().nullable(),
-  courtAppearanceDate: z.string().nullable(),
+  charges: z.array(chargeListItemSchema),
 })
 
-export const paginatedArrestsSchema = z.object({
-  data: z.array(arrestListItemSchema),
+// ─── Paginated court cases ────────────────────────────────────────────────────
+export const paginatedCourtCasesSchema = z.object({
+  data: z.array(courtCaseSummarySchema),
   total: z.number(),
   page: z.number(),
   pageSize: z.number(),
@@ -552,198 +676,293 @@ export const paginatedArrestsSchema = z.object({
 })
 ```
 
-## 6.4 `src/features/arrests/schemas/arrest-filters.schema.ts`
+## 5.5 `src/features/legal/schemas/legal-filters.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { DetentionStatus } from '../types/arrest.types'
+import { CourtCaseStatus, ChargeStatus } from '../types/legal.types'
 
-export const arrestFiltersSchema = z.object({
+export const courtCaseFiltersSchema = z.object({
   search: z.string().optional(),
-  detentionStatus: z.array(z.nativeEnum(DetentionStatus)).optional(),
+  status: z.array(z.nativeEnum(CourtCaseStatus)).optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
   page: z.coerce.number().min(1).optional().default(1),
   pageSize: z.coerce.number().min(10).max(100).optional().default(25),
   sortField: z
-    .enum(['arrestDate', 'arrestNumber', 'detentionStatus'])
+    .enum(['filedAt', 'courtCaseNumber', 'status'])
     .optional()
-    .default('arrestDate'),
+    .default('filedAt'),
+  sortDirection: z.enum(['asc', 'desc']).optional().default('desc'),
+})
+
+export const chargeFiltersSchema = z.object({
+  search: z.string().optional(),
+  status: z.array(z.nativeEnum(ChargeStatus)).optional(),
+  page: z.coerce.number().min(1).optional().default(1),
+  pageSize: z.coerce.number().min(10).max(100).optional().default(25),
+  sortField: z.enum(['filedAt', 'status']).optional().default('filedAt'),
   sortDirection: z.enum(['asc', 'desc']).optional().default('desc'),
 })
 ```
 
 ---
 
-# 7. Zod Schemas — Interrogations
+# 6. `src/features/legal/utils/chargeUtils.ts`
 
-## 7.1 `src/features/interrogations/schemas/create-interrogation.schema.ts`
-
-```typescript
-import { z } from 'zod'
-
-export const createInterrogationSchema = z.object({
-  subjectId: z
-    .string()
-    .min(1, { message: 'Subject is required.' }),
-  conductingOfficerId: z
-    .string()
-    .min(1, { message: 'Conducting officer is required.' }),
-  interrogationDate: z
-    .string()
-    .min(1, { message: 'Date and time is required.' }),
-  location: z
-    .string()
-    .min(2, { message: 'Location is required.' })
-    .max(300),
-  durationMinutes: z.number().int().positive().max(1440).nullable().optional(),
-  legalRepresentativePresent: z.boolean().default(false),
-  legalRepresentativeName: z.string().max(200).optional(),
-  summary: z
-    .string()
-    .min(10, { message: 'Summary must be at least 10 characters.' })
-    .max(5000),
-  recordingReference: z.string().max(200).optional(),
-})
-
-export type CreateInterrogationValues = z.infer<typeof createInterrogationSchema>
-```
-
-## 7.2 `src/features/interrogations/schemas/interrogation-api.schema.ts`
+Utility functions shared across charge components.
 
 ```typescript
-import { z } from 'zod'
+import { ChargeStatus, TERMINAL_CHARGE_STATUSES } from '../types/legal.types'
+import type { BadgeVariant } from '@shared/types/ui.types'
 
-const officerRefSchema = z.object({
-  id: z.string().uuid(),
-  badgeNumber: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  departmentName: z.string(),
-})
+// ─── Charge Status badge variant mapping ─────────────────────────────────────
+export const CHARGE_STATUS_VARIANTS: Record<ChargeStatus, BadgeVariant> = {
+  FILED:      'primary',       // Blue — charge has been filed
+  ACTIVE:     'warning',       // Amber — case in active proceedings
+  CONVICTED:  'destructive',   // Red — found guilty
+  ACQUITTED:  'success',       // Green — found not guilty
+  DROPPED:    'muted',         // Slate — charge withdrawn
+}
 
-const subjectSchema = z.object({
-  id: z.string().uuid(),
-  firstName: z.string(),
-  lastName: z.string(),
-  roleOnCase: z.enum(['SUSPECT', 'VICTIM', 'WITNESS']),
-})
+// ─── Terminal state guard ─────────────────────────────────────────────────────
+export function isChargeTerminal(status: ChargeStatus): boolean {
+  return TERMINAL_CHARGE_STATUSES.includes(status)
+}
 
-export const interrogationListItemSchema = z.object({
-  id: z.string().uuid(),
-  interrogationNumber: z.string(),
-  caseId: z.string().uuid(),
-  subject: subjectSchema,
-  conductingOfficer: officerRefSchema,
-  interrogationDate: z.string(),
-  location: z.string(),
-  durationMinutes: z.number().nullable(),
-  legalRepresentativePresent: z.boolean(),
-  createdAt: z.string(),
-})
+// ─── Available next statuses for a charge ────────────────────────────────────
+// CONVICTED is omitted here — that transition is only available via the
+// "Record Conviction & Sentence" flow in UpdateChargeStatusDrawer.
+export function getAvailableChargeStatuses(
+  current: ChargeStatus,
+): ChargeStatus[] {
+  if (isChargeTerminal(current)) return []
+  if (current === ChargeStatus.FILED) {
+    return [ChargeStatus.ACTIVE, ChargeStatus.ACQUITTED]
+  }
+  if (current === ChargeStatus.ACTIVE) {
+    return [ChargeStatus.ACQUITTED]
+  }
+  return []
+}
 
-export const interrogationDetailSchema = interrogationListItemSchema.extend({
-  legalRepresentativeName: z.string().nullable(),
-  summary: z.string(),
-  recordingReference: z.string().nullable(),
-})
+// ─── Duration formatter ───────────────────────────────────────────────────────
+export function formatDurationMonths(months: number): string {
+  if (months < 12) return `${months} month${months === 1 ? '' : 's'}`
+  const years = Math.floor(months / 12)
+  const rem = months % 12
+  if (rem === 0) return `${years} year${years === 1 ? '' : 's'}`
+  return `${years} year${years === 1 ? '' : 's'}, ${rem} month${rem === 1 ? '' : 's'}`
+}
 
-export const paginatedInterrogationsSchema = z.object({
-  data: z.array(interrogationListItemSchema),
-  total: z.number(),
-  page: z.number(),
-  pageSize: z.number(),
-  totalPages: z.number(),
-})
-```
-
-## 7.3 `src/features/interrogations/schemas/interrogation-filters.schema.ts`
-
-```typescript
-import { z } from 'zod'
-
-export const interrogationFiltersSchema = z.object({
-  search: z.string().optional(),
-  dateFrom: z.string().optional(),
-  dateTo: z.string().optional(),
-  page: z.coerce.number().min(1).optional().default(1),
-  pageSize: z.coerce.number().min(10).max(100).optional().default(25),
-  sortField: z
-    .enum(['interrogationDate', 'interrogationNumber'])
-    .optional()
-    .default('interrogationDate'),
-  sortDirection: z.enum(['asc', 'desc']).optional().default('desc'),
-})
+// ─── Fine amount formatter ────────────────────────────────────────────────────
+export function formatFineAmount(amount: number): string {
+  return `${amount.toLocaleString('en-ET', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} ETB`
+}
 ```
 
 ---
 
-# 8. Service Implementations
+# 7. Query Key Factory
 
-## 8.1 `src/services/domain/arrests.service.ts`
+## 7.1 `src/services/query/keys/legalKeys.ts`
 
-Replace all stubs. Every response is validated with the corresponding Zod schema.
+```typescript
+export const legalKeys = {
+  // ── Court case root ─────────────────────────────────────────────────────────
+  courtCases: () => ['courtCases'] as const,
+
+  // ── Global court case list (for /legal/court-cases page) ────────────────────
+  courtCaseList: () => [...legalKeys.courtCases(), 'list'] as const,
+  courtCaseListFiltered: (filters: Record<string, unknown>) =>
+    [...legalKeys.courtCaseList(), filters] as const,
+
+  // ── Court case detail ────────────────────────────────────────────────────────
+  courtCaseDetail: () => [...legalKeys.courtCases(), 'detail'] as const,
+  courtCase: (courtCaseId: string) =>
+    [...legalKeys.courtCaseDetail(), courtCaseId] as const,
+
+  // ── Court case by investigation case (for legal tab) ────────────────────────
+  courtCaseByCase: (caseId: string) =>
+    [...legalKeys.courtCases(), 'byCase', caseId] as const,
+
+  // ── Charges ──────────────────────────────────────────────────────────────────
+  charges: () => ['charges'] as const,
+
+  chargeList: (courtCaseId: string) =>
+    [...legalKeys.charges(), 'list', courtCaseId] as const,
+  chargeListFiltered: (
+    courtCaseId: string,
+    filters: Record<string, unknown>,
+  ) => [...legalKeys.chargeList(courtCaseId), filters] as const,
+
+  chargeDetail: (chargeId: string) =>
+    [...legalKeys.charges(), 'detail', chargeId] as const,
+} as const
+```
+
+---
+
+# 8. Service Layer
+
+## 8.1 `src/services/domain/legal.service.ts`
+
+Replace all stubs. Every response is validated with the corresponding Zod schema. Services return typed objects; the Zod parse throws on schema mismatch, which the `ApiError` interceptor handles.
 
 ```typescript
 import { apiClient } from '@services/api/client'
 import {
-  paginatedArrestsSchema,
-  arrestDetailSchema,
-} from '@features/arrests/schemas/arrest-api.schema'
+  paginatedCourtCasesSchema,
+  courtCaseDetailSchema,
+  paginatedChargesSchema,
+  chargeDetailSchema,
+} from '@features/legal/schemas/legal-api.schema'
 import type {
-  ArrestListItem,
-  Arrest,
-  ArrestFilters,
-  CreateArrestPayload,
-  UpdateArrestPayload,
-} from '@features/arrests/types/arrest.types'
+  CourtCase,
+  CourtCaseSummary,
+  CourtCaseFilters,
+  ChargeListItem,
+  Charge,
+  ChargeFilters,
+  CreateCourtCasePayload,
+  UpdateCourtCasePayload,
+  CreateChargePayload,
+  UpdateChargePayload,
+  RecordSentencePayload,
+} from '@features/legal/types/legal.types'
 import type { PaginatedResponse } from '@shared/types/api.types'
 
-// ─── List arrests for a case ──────────────────────────────────────────────────
-export async function getCaseArrests(
+// ─── Court Cases ──────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/v1/court-cases
+ * List all court cases (scoped to officer's access level by backend).
+ */
+export async function getCourtCases(
+  filters: CourtCaseFilters,
+): Promise<PaginatedResponse<CourtCaseSummary>> {
+  const params = buildCourtCaseParams(filters)
+  const raw = await apiClient.get(`/api/v1/court-cases?${params}`)
+  return paginatedCourtCasesSchema.parse(raw)
+}
+
+/**
+ * GET /api/v1/cases/{caseId}/court-case
+ * Fetch the single court case linked to an investigation case.
+ * Returns null-equivalent (empty response) when no court case exists.
+ * Backend returns 404 when none is linked — catch 404 and return null in the hook.
+ */
+export async function getCourtCaseByCase(
   caseId: string,
-  filters: ArrestFilters,
-): Promise<PaginatedResponse<ArrestListItem>> {
-  const params = buildArrestParams(filters)
-  const raw = await apiClient.get(`/api/v1/cases/${caseId}/arrests?${params}`)
-  return paginatedArrestsSchema.parse(raw)
+): Promise<CourtCase | null> {
+  try {
+    const raw = await apiClient.get(`/api/v1/cases/${caseId}/court-case`)
+    return courtCaseDetailSchema.parse(raw)
+  } catch (err: unknown) {
+    // A 404 means no court case is linked yet — this is an expected state
+    if (isNotFoundError(err)) return null
+    throw err
+  }
 }
 
-// ─── Detail ───────────────────────────────────────────────────────────────────
-export async function getArrest(arrestId: string): Promise<Arrest> {
-  const raw = await apiClient.get(`/api/v1/arrests/${arrestId}`)
-  return arrestDetailSchema.parse(raw)
-}
-
-// ─── Create ───────────────────────────────────────────────────────────────────
-export async function createArrest(
+/**
+ * POST /api/v1/cases/{caseId}/court-case
+ * Create and link a court case to an investigation case.
+ */
+export async function createCourtCase(
   caseId: string,
-  payload: CreateArrestPayload,
-): Promise<Arrest> {
-  const raw = await apiClient.post(`/api/v1/cases/${caseId}/arrests`, payload)
-  return arrestDetailSchema.parse(raw)
+  payload: CreateCourtCasePayload,
+): Promise<CourtCase> {
+  const raw = await apiClient.post(
+    `/api/v1/cases/${caseId}/court-case`,
+    payload,
+  )
+  return courtCaseDetailSchema.parse(raw)
 }
 
-// ─── Update ───────────────────────────────────────────────────────────────────
-export async function updateArrest(
-  arrestId: string,
-  payload: UpdateArrestPayload,
-): Promise<Arrest> {
-  const raw = await apiClient.patch(`/api/v1/arrests/${arrestId}`, payload)
-  return arrestDetailSchema.parse(raw)
+/**
+ * PATCH /api/v1/court-cases/{courtCaseId}
+ * Update a court case's metadata, status, hearing dates, or outcome.
+ */
+export async function updateCourtCase(
+  courtCaseId: string,
+  payload: UpdateCourtCasePayload,
+): Promise<CourtCase> {
+  const raw = await apiClient.patch(
+    `/api/v1/court-cases/${courtCaseId}`,
+    payload,
+  )
+  return courtCaseDetailSchema.parse(raw)
 }
 
-// ─── Delete ───────────────────────────────────────────────────────────────────
-export async function deleteArrest(arrestId: string): Promise<void> {
-  await apiClient.delete(`/api/v1/arrests/${arrestId}`)
+// ─── Charges ──────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/v1/court-cases/{courtCaseId}/charges
+ * Paginated list of charges for a given court case.
+ */
+export async function getCharges(
+  courtCaseId: string,
+  filters: ChargeFilters,
+): Promise<PaginatedResponse<ChargeListItem>> {
+  const params = buildChargeParams(filters)
+  const raw = await apiClient.get(
+    `/api/v1/court-cases/${courtCaseId}/charges?${params}`,
+  )
+  return paginatedChargesSchema.parse(raw)
+}
+
+/**
+ * POST /api/v1/court-cases/{courtCaseId}/charges
+ * File a new charge against a suspect within a court case.
+ */
+export async function createCharge(
+  courtCaseId: string,
+  payload: CreateChargePayload,
+): Promise<Charge> {
+  const raw = await apiClient.post(
+    `/api/v1/court-cases/${courtCaseId}/charges`,
+    payload,
+  )
+  return chargeDetailSchema.parse(raw)
+}
+
+/**
+ * PATCH /api/v1/charges/{chargeId}
+ * Update a charge's status. For conviction, use recordSentence instead.
+ */
+export async function updateCharge(
+  chargeId: string,
+  payload: UpdateChargePayload,
+): Promise<Charge> {
+  const raw = await apiClient.patch(`/api/v1/charges/${chargeId}`, payload)
+  return chargeDetailSchema.parse(raw)
+}
+
+/**
+ * POST /api/v1/charges/{chargeId}/sentence
+ * Record conviction and sentence for a charge. Sets status to CONVICTED.
+ */
+export async function recordSentence(
+  chargeId: string,
+  payload: RecordSentencePayload,
+): Promise<Charge> {
+  const raw = await apiClient.post(
+    `/api/v1/charges/${chargeId}/sentence`,
+    payload,
+  )
+  return chargeDetailSchema.parse(raw)
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function buildArrestParams(filters: ArrestFilters): string {
+
+function buildCourtCaseParams(filters: CourtCaseFilters): string {
   const p = new URLSearchParams()
   if (filters.search) p.set('search', filters.search)
-  if (filters.detentionStatus?.length)
-    p.set('detentionStatus', filters.detentionStatus.join(','))
+  if (filters.status?.length) p.set('status', filters.status.join(','))
   if (filters.dateFrom) p.set('dateFrom', filters.dateFrom)
   if (filters.dateTo) p.set('dateTo', filters.dateTo)
   p.set('page', String(filters.page ?? 1))
@@ -752,960 +971,1363 @@ function buildArrestParams(filters: ArrestFilters): string {
   if (filters.sortDirection) p.set('sortDirection', filters.sortDirection)
   return p.toString()
 }
-```
 
-## 8.2 `src/services/domain/interrogations.service.ts`
-
-```typescript
-import { apiClient } from '@services/api/client'
-import {
-  paginatedInterrogationsSchema,
-  interrogationDetailSchema,
-} from '@features/interrogations/schemas/interrogation-api.schema'
-import type {
-  InterrogationListItem,
-  Interrogation,
-  InterrogationFilters,
-  CreateInterrogationPayload,
-} from '@features/interrogations/types/interrogation.types'
-import type { PaginatedResponse } from '@shared/types/api.types'
-
-// ─── List ─────────────────────────────────────────────────────────────────────
-export async function getCaseInterrogations(
-  caseId: string,
-  filters: InterrogationFilters,
-): Promise<PaginatedResponse<InterrogationListItem>> {
-  const params = buildInterrogationParams(filters)
-  const raw = await apiClient.get(`/api/v1/cases/${caseId}/interrogations?${params}`)
-  return paginatedInterrogationsSchema.parse(raw)
-}
-
-// ─── Create ───────────────────────────────────────────────────────────────────
-export async function createInterrogation(
-  caseId: string,
-  payload: CreateInterrogationPayload,
-): Promise<Interrogation> {
-  const raw = await apiClient.post(`/api/v1/cases/${caseId}/interrogations`, payload)
-  return interrogationDetailSchema.parse(raw)
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function buildInterrogationParams(filters: InterrogationFilters): string {
+function buildChargeParams(filters: ChargeFilters): string {
   const p = new URLSearchParams()
   if (filters.search) p.set('search', filters.search)
-  if (filters.dateFrom) p.set('dateFrom', filters.dateFrom)
-  if (filters.dateTo) p.set('dateTo', filters.dateTo)
+  if (filters.status?.length) p.set('status', filters.status.join(','))
   p.set('page', String(filters.page ?? 1))
   p.set('pageSize', String(filters.pageSize ?? 25))
   if (filters.sortField) p.set('sortField', filters.sortField)
   if (filters.sortDirection) p.set('sortDirection', filters.sortDirection)
   return p.toString()
 }
-```
 
-## 8.3 `src/services/domain/cases.service.ts` — Addition: `getCasePersons`
-
-Add the following function to the existing cases service. Do not remove any existing functions.
-
-```typescript
-import type { PersonRef } from '@features/arrests/types/arrest.types'
-
-// ─── Persons linked to a case (for SearchableSelect in arrest/interrogation forms) ─
-export async function getCasePersons(
-  caseId: string,
-  params: { role?: 'SUSPECT' | 'VICTIM' | 'WITNESS'; search?: string },
-): Promise<PersonRef[]> {
-  const p = new URLSearchParams()
-  if (params.role) p.set('role', params.role)
-  if (params.search) p.set('search', params.search)
-  // Returns a flat list — no pagination (cases rarely have more than 50 linked persons)
-  const raw = await apiClient.get(`/api/v1/cases/${caseId}/persons?${p.toString()}`)
-  // Validate as an array of PersonRef
-  const personRefSchema = z.object({
-    id: z.string().uuid(),
-    firstName: z.string(),
-    lastName: z.string(),
-    nationalId: z.string(),
-  })
-  return z.array(personRefSchema).parse(raw)
+function isNotFoundError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'status' in err &&
+    (err as { status: number }).status === 404
+  )
 }
 ```
 
 ---
 
-# 9. Query Key Factories
+# 9. React Query Hooks
 
-## 9.1 `src/services/query/keys/arrestKeys.ts`
+Create all hooks in `src/features/legal/hooks/`.
 
-```typescript
-import type { ArrestFilters } from '@features/arrests/types/arrest.types'
-
-export const arrestKeys = {
-  all: ['arrests'] as const,
-
-  // All arrests for a case
-  caseArrests: (caseId: string) =>
-    [...arrestKeys.all, 'case', caseId] as const,
-  caseArrestList: (caseId: string, filters: Record<string, unknown>) =>
-    [...arrestKeys.caseArrests(caseId), 'list', filters] as const,
-
-  // Single arrest detail
-  details: () => [...arrestKeys.all, 'detail'] as const,
-  detail: (arrestId: string) =>
-    [...arrestKeys.details(), arrestId] as const,
-}
-```
-
-## 9.2 `src/services/query/keys/interrogationKeys.ts`
-
-```typescript
-export const interrogationKeys = {
-  all: ['interrogations'] as const,
-
-  // All interrogations for a case
-  caseInterrogations: (caseId: string) =>
-    [...interrogationKeys.all, 'case', caseId] as const,
-  caseInterrogationList: (caseId: string, filters: Record<string, unknown>) =>
-    [...interrogationKeys.caseInterrogations(caseId), 'list', filters] as const,
-}
-```
-
-## 9.3 Verify `caseKeys` sub-resources
-
-Ensure `src/services/query/keys/caseKeys.ts` contains the following sub-resource keys. If they do not exist, add them now:
-
-```typescript
-// Inside caseKeys — add if missing:
-arrests: (caseId: string) =>
-  [...caseKeys.detail(caseId), 'arrests'] as const,
-interrogations: (caseId: string) =>
-  [...caseKeys.detail(caseId), 'interrogations'] as const,
-```
-
-These are the keys invalidated after mutations so the case overview tab count cards update.
-
----
-
-# 10. React Query Hooks — Arrests
-
-Create all hooks in `src/features/arrests/hooks/`.
-
-## 10.1 `useArrestList.ts`
+## 9.1 `useCourtCaseByCase.ts`
 
 ```typescript
 import { useQuery } from '@tanstack/react-query'
-import { getCaseArrests } from '@services/domain/arrests.service'
-import { arrestKeys } from '@services/query/keys/arrestKeys'
-import type { ArrestFilters } from '../types/arrest.types'
+import { getCourtCaseByCase } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
 
-export function useArrestList(caseId: string, filters: ArrestFilters) {
+export function useCourtCaseByCase(caseId: string) {
   return useQuery({
-    queryKey: arrestKeys.caseArrestList(caseId, filters as Record<string, unknown>),
-    queryFn: () => getCaseArrests(caseId, filters),
+    queryKey: legalKeys.courtCaseByCase(caseId),
+    queryFn: () => getCourtCaseByCase(caseId),
+    staleTime: 2 * 60 * 1000,
+    enabled: Boolean(caseId),
+    // null result (no court case) is a valid state — not an error
+    retry: (failureCount, error: unknown) => {
+      const is404 =
+        typeof error === 'object' &&
+        error !== null &&
+        'status' in error &&
+        (error as { status: number }).status === 404
+      if (is404) return false
+      return failureCount < 3
+    },
+  })
+}
+```
+
+## 9.2 `useCourtCaseList.ts`
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getCourtCases } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
+import type { CourtCaseFilters } from '../types/legal.types'
+
+export function useCourtCaseList(filters: CourtCaseFilters) {
+  return useQuery({
+    queryKey: legalKeys.courtCaseListFiltered(filters as Record<string, unknown>),
+    queryFn: () => getCourtCases(filters),
     staleTime: 2 * 60 * 1000,
     placeholderData: (prev) => prev,
-    enabled: Boolean(caseId),
   })
 }
 ```
 
-## 10.2 `useArrest.ts`
-
-```typescript
-import { useQuery } from '@tanstack/react-query'
-import { getArrest } from '@services/domain/arrests.service'
-import { arrestKeys } from '@services/query/keys/arrestKeys'
-
-export function useArrest(arrestId: string) {
-  return useQuery({
-    queryKey: arrestKeys.detail(arrestId),
-    queryFn: () => getArrest(arrestId),
-    staleTime: 2 * 60 * 1000,
-    enabled: Boolean(arrestId),
-  })
-}
-```
-
-## 10.3 `useCreateArrest.ts`
+## 9.3 `useCreateCourtCase.ts`
 
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { createArrest } from '@services/domain/arrests.service'
-import { arrestKeys } from '@services/query/keys/arrestKeys'
+import { createCourtCase } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
 import { caseKeys } from '@services/query/keys/caseKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
 import { ApiError } from '@services/api/errors'
-import type { CreateArrestPayload } from '../types/arrest.types'
+import type { CreateCourtCasePayload } from '../types/legal.types'
 
-export function useCreateArrest(caseId: string) {
+export function useCreateCourtCase(caseId: string) {
   const queryClient = useQueryClient()
   const { addToast } = useNotificationStore()
-  const t = useTranslations('arrests')
+  const t = useTranslations('legal')
 
   return useMutation({
-    mutationFn: (payload: CreateArrestPayload) => createArrest(caseId, payload),
+    mutationFn: (payload: CreateCourtCasePayload) =>
+      createCourtCase(caseId, payload),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: arrestKeys.caseArrests(caseId) })
-      void queryClient.invalidateQueries({ queryKey: caseKeys.arrests(caseId) })
-      void queryClient.invalidateQueries({ queryKey: caseKeys.summary(caseId) })
-      addToast({ message: t('create.successMessage'), variant: 'success' })
+      // Invalidate the court case for this investigation case
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.courtCaseByCase(caseId),
+      })
+      // Invalidate the global court case list
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.courtCaseList(),
+      })
+      // Invalidate case summary so the overview tab count cards update
+      void queryClient.invalidateQueries({
+        queryKey: caseKeys.summary(caseId),
+      })
+      addToast({ message: t('courtCase.create.successMessage'), variant: 'success' })
     },
     onError: (err: unknown) => {
       const message =
-        err instanceof ApiError ? err.message : t('create.errorMessage')
+        err instanceof ApiError
+          ? err.message
+          : t('courtCase.create.errorMessage')
       addToast({ message, variant: 'error' })
     },
   })
 }
 ```
 
-## 10.4 `useUpdateArrest.ts`
+## 9.4 `useUpdateCourtCase.ts`
 
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { updateArrest } from '@services/domain/arrests.service'
-import { arrestKeys } from '@services/query/keys/arrestKeys'
+import { updateCourtCase } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
 import { ApiError } from '@services/api/errors'
-import type { UpdateArrestPayload } from '../types/arrest.types'
+import type { UpdateCourtCasePayload } from '../types/legal.types'
 
-export function useUpdateArrest(arrestId: string, caseId: string) {
+export function useUpdateCourtCase(courtCaseId: string, caseId: string) {
   const queryClient = useQueryClient()
   const { addToast } = useNotificationStore()
-  const t = useTranslations('arrests')
+  const t = useTranslations('legal')
 
   return useMutation({
-    mutationFn: (payload: UpdateArrestPayload) => updateArrest(arrestId, payload),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: arrestKeys.detail(arrestId) })
-      void queryClient.invalidateQueries({ queryKey: arrestKeys.caseArrests(caseId) })
-      addToast({ message: t('update.successMessage'), variant: 'success' })
-    },
-    onError: (err: unknown) => {
-      const message =
-        err instanceof ApiError ? err.message : t('update.errorMessage')
-      addToast({ message, variant: 'error' })
-    },
-  })
-}
-```
-
-## 10.5 `useDeleteArrest.ts`
-
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import { deleteArrest } from '@services/domain/arrests.service'
-import { arrestKeys } from '@services/query/keys/arrestKeys'
-import { caseKeys } from '@services/query/keys/caseKeys'
-import { useNotificationStore } from '@shared/stores/notification.store'
-
-export function useDeleteArrest(caseId: string) {
-  const queryClient = useQueryClient()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('arrests')
-
-  return useMutation({
-    mutationFn: (arrestId: string) => deleteArrest(arrestId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: arrestKeys.caseArrests(caseId) })
-      void queryClient.invalidateQueries({ queryKey: caseKeys.arrests(caseId) })
-      void queryClient.invalidateQueries({ queryKey: caseKeys.summary(caseId) })
-      addToast({ message: t('delete.successMessage'), variant: 'success' })
-    },
-  })
-}
-```
-
-## 10.6 `src/features/arrests/hooks/index.ts`
-
-Export all hooks.
-
----
-
-# 11. React Query Hooks — Interrogations
-
-Create all hooks in `src/features/interrogations/hooks/`.
-
-## 11.1 `useInterrogationList.ts`
-
-```typescript
-import { useQuery } from '@tanstack/react-query'
-import { getCaseInterrogations } from '@services/domain/interrogations.service'
-import { interrogationKeys } from '@services/query/keys/interrogationKeys'
-import type { InterrogationFilters } from '../types/interrogation.types'
-
-export function useInterrogationList(caseId: string, filters: InterrogationFilters) {
-  return useQuery({
-    queryKey: interrogationKeys.caseInterrogationList(
-      caseId,
-      filters as Record<string, unknown>,
-    ),
-    queryFn: () => getCaseInterrogations(caseId, filters),
-    staleTime: 2 * 60 * 1000,
-    placeholderData: (prev) => prev,
-    enabled: Boolean(caseId),
-  })
-}
-```
-
-## 11.2 `useCreateInterrogation.ts`
-
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import { createInterrogation } from '@services/domain/interrogations.service'
-import { interrogationKeys } from '@services/query/keys/interrogationKeys'
-import { caseKeys } from '@services/query/keys/caseKeys'
-import { useNotificationStore } from '@shared/stores/notification.store'
-import { ApiError } from '@services/api/errors'
-import type { CreateInterrogationPayload } from '../types/interrogation.types'
-
-export function useCreateInterrogation(caseId: string) {
-  const queryClient = useQueryClient()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('interrogations')
-
-  return useMutation({
-    mutationFn: (payload: CreateInterrogationPayload) =>
-      createInterrogation(caseId, payload),
+    mutationFn: (payload: UpdateCourtCasePayload) =>
+      updateCourtCase(courtCaseId, payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: interrogationKeys.caseInterrogations(caseId),
+        queryKey: legalKeys.courtCase(courtCaseId),
       })
-      void queryClient.invalidateQueries({ queryKey: caseKeys.interrogations(caseId) })
-      void queryClient.invalidateQueries({ queryKey: caseKeys.summary(caseId) })
-      addToast({ message: t('create.successMessage'), variant: 'success' })
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.courtCaseByCase(caseId),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.courtCaseList(),
+      })
+      addToast({ message: t('courtCase.update.successMessage'), variant: 'success' })
     },
     onError: (err: unknown) => {
       const message =
-        err instanceof ApiError ? err.message : t('create.errorMessage')
+        err instanceof ApiError
+          ? err.message
+          : t('courtCase.update.errorMessage')
       addToast({ message, variant: 'error' })
     },
   })
 }
 ```
 
-## 11.3 `src/features/interrogations/hooks/index.ts`
+## 9.5 `useChargeList.ts`
 
-Export all hooks.
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getCharges } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
+import type { ChargeFilters } from '../types/legal.types'
+
+export function useChargeList(
+  courtCaseId: string,
+  caseId: string,
+  filters: ChargeFilters,
+) {
+  return useQuery({
+    queryKey: legalKeys.chargeListFiltered(
+      courtCaseId,
+      filters as Record<string, unknown>,
+    ),
+    queryFn: () => getCharges(courtCaseId, filters),
+    staleTime: 2 * 60 * 1000,
+    placeholderData: (prev) => prev,
+    enabled: Boolean(courtCaseId) && Boolean(caseId),
+  })
+}
+```
+
+## 9.6 `useCreateCharge.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { createCharge } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { CreateChargePayload } from '../types/legal.types'
+
+export function useCreateCharge(courtCaseId: string, caseId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('legal')
+
+  return useMutation({
+    mutationFn: (payload: CreateChargePayload) =>
+      createCharge(courtCaseId, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.chargeList(courtCaseId),
+      })
+      // Refresh the court case so chargeCount updates in the CourtCaseCard
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.courtCaseByCase(caseId),
+      })
+      // Update case overview tab count card
+      void queryClient.invalidateQueries({
+        queryKey: caseKeys.summary(caseId),
+      })
+      addToast({ message: t('charges.create.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : t('charges.create.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 9.7 `useUpdateCharge.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { updateCharge } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { UpdateChargePayload } from '../types/legal.types'
+
+export function useUpdateCharge(
+  chargeId: string,
+  courtCaseId: string,
+  caseId: string,
+) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('legal')
+
+  return useMutation({
+    mutationFn: (payload: UpdateChargePayload) =>
+      updateCharge(chargeId, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.chargeDetail(chargeId),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.chargeList(courtCaseId),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.courtCaseByCase(caseId),
+      })
+      addToast({ message: t('charges.update.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : t('charges.update.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 9.8 `useDropCharge.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { updateCharge } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ChargeStatus } from '../types/legal.types'
+
+export function useDropCharge(
+  chargeId: string,
+  courtCaseId: string,
+  caseId: string,
+) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('legal')
+
+  return useMutation({
+    // Drop is a specific status update — set to DROPPED
+    mutationFn: () =>
+      updateCharge(chargeId, { status: ChargeStatus.DROPPED }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.chargeList(courtCaseId),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.courtCaseByCase(caseId),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: caseKeys.summary(caseId),
+      })
+      addToast({ message: t('charges.drop.successMessage'), variant: 'success' })
+    },
+  })
+}
+```
+
+## 9.9 `useRecordSentence.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { recordSentence } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { RecordSentencePayload } from '../types/legal.types'
+
+export function useRecordSentence(
+  chargeId: string,
+  courtCaseId: string,
+  caseId: string,
+) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('legal')
+
+  return useMutation({
+    mutationFn: (payload: RecordSentencePayload) =>
+      recordSentence(chargeId, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.chargeDetail(chargeId),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.chargeList(courtCaseId),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: legalKeys.courtCaseByCase(caseId),
+      })
+      addToast({ message: t('charges.sentence.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : t('charges.sentence.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 9.10 `src/features/legal/hooks/index.ts`
+
+Export all hooks:
+
+```typescript
+export { useCourtCaseByCase } from './useCourtCaseByCase'
+export { useCourtCaseList } from './useCourtCaseList'
+export { useCreateCourtCase } from './useCreateCourtCase'
+export { useUpdateCourtCase } from './useUpdateCourtCase'
+export { useChargeList } from './useChargeList'
+export { useCreateCharge } from './useCreateCharge'
+export { useUpdateCharge } from './useUpdateCharge'
+export { useDropCharge } from './useDropCharge'
+export { useRecordSentence } from './useRecordSentence'
+```
 
 ---
 
-# 12. i18n Messages — Arrests
+# 10. i18n Messages — Legal
 
-## 12.1 `messages/en/arrests.json` — Full Population
+## 10.1 `messages/en/legal.json` — Full Population
 
 ```json
 {
-  "pageTitle": "Arrests",
+  "pageTitle": "Legal",
   "tab": {
-    "heading": "Arrests",
-    "entityCount": "{count} arrest(s)",
-    "recordArrest": "Record Arrest",
+    "heading": "Legal Proceedings",
+    "lockedTooltip": "You do not have access to legal proceedings. Contact a Legal Officer.",
+    "loading": "Loading legal proceedings...",
+    "errorTitle": "Failed to load legal proceedings",
+    "errorDescription": "Please refresh the page or contact support if the issue persists."
+  },
+  "courtCase": {
+    "sectionTitle": "Court Case",
+    "empty": {
+      "title": "No Court Case Linked",
+      "description": "This investigation case has not yet been linked to a court case. A Legal Officer can create and link one.",
+      "createButton": "Create Court Case"
+    },
+    "card": {
+      "caseNumber": "Court Case No.",
+      "court": "Court",
+      "status": "Status",
+      "outcome": "Outcome",
+      "filedAt": "Filed",
+      "nextHearing": "Next Hearing",
+      "noNextHearing": "No hearing scheduled",
+      "presidingJudge": "Presiding Judge",
+      "noJudge": "Not recorded",
+      "prosecutor": "Prosecutor",
+      "noProsecutor": "Not recorded",
+      "defenceCounsel": "Defence Counsel",
+      "noDefenceCounsel": "Not recorded",
+      "notes": "Notes",
+      "noNotes": "No notes.",
+      "chargeCount": "{count} charge(s)",
+      "editButton": "Edit Court Case",
+      "hearingsSectionTitle": "Hearing Dates"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "ACTIVE": "Active",
+      "CONCLUDED": "Concluded",
+      "DISMISSED": "Dismissed"
+    },
+    "outcome": {
+      "GUILTY": "Guilty",
+      "NOT_GUILTY": "Not Guilty",
+      "DISMISSED": "Dismissed",
+      "MISTRIAL": "Mistrial",
+      "PLEA_DEAL": "Plea Deal"
+    },
+    "hearingType": {
+      "PRELIMINARY": "Preliminary Hearing",
+      "TRIAL": "Trial",
+      "SENTENCING": "Sentencing",
+      "APPEAL": "Appeal",
+      "ARRAIGNMENT": "Arraignment"
+    },
+    "create": {
+      "drawerTitle": "Create Court Case",
+      "drawerDescription": "Link this investigation case to court proceedings.",
+      "section1Title": "Court Details",
+      "section2Title": "Key Personnel",
+      "section3Title": "Hearing Dates (optional)",
+      "section4Title": "Additional Notes",
+      "courtLabel": "Court Name",
+      "courtPlaceholder": "e.g. Federal High Court — Lideta Division",
+      "filedAtLabel": "Date Filed",
+      "presidingJudgeLabel": "Presiding Judge (optional)",
+      "presidingJudgePlaceholder": "Full name of the judge",
+      "prosecutorLabel": "Prosecutor (optional)",
+      "prosecutorPlaceholder": "Full name of the prosecutor",
+      "defenceCounselLabel": "Defence Counsel (optional)",
+      "defenceCounselPlaceholder": "Full name of the defence counsel",
+      "addHearingButton": "Add Hearing Date",
+      "hearingDateLabel": "Date",
+      "hearingTypeLabel": "Hearing Type",
+      "hearingLocationLabel": "Location",
+      "hearingLocationPlaceholder": "e.g. Courtroom 4, Lideta Courts",
+      "hearingNotesLabel": "Notes (optional)",
+      "removeHearingButton": "Remove",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Any additional notes about the court case...",
+      "submitButton": "Create Court Case",
+      "cancelButton": "Cancel",
+      "successMessage": "Court case created and linked successfully.",
+      "errorMessage": "Failed to create court case. Please try again."
+    },
+    "update": {
+      "drawerTitle": "Edit Court Case",
+      "drawerDescription": "Update court case metadata, status, or hearing dates.",
+      "courtLabel": "Court Name",
+      "statusLabel": "Status",
+      "outcomeLabel": "Outcome",
+      "outcomeHint": "Required when status is Concluded.",
+      "presidingJudgeLabel": "Presiding Judge",
+      "prosecutorLabel": "Prosecutor",
+      "defenceCounselLabel": "Defence Counsel",
+      "hearingsSectionTitle": "Hearing Dates",
+      "addHearingButton": "Add Hearing Date",
+      "notesLabel": "Notes",
+      "submitButton": "Save Changes",
+      "cancelButton": "Cancel",
+      "successMessage": "Court case updated successfully.",
+      "errorMessage": "Failed to update court case. Please try again."
+    }
+  },
+  "charges": {
+    "sectionTitle": "Charges",
+    "addChargeButton": "Add Charge",
+    "entityCount": "{count} charge(s)",
     "filters": {
-      "search": "Search by person name...",
-      "detentionStatus": "Detention Status",
-      "dateRange": "Date Range",
+      "search": "Search by suspect or crime type...",
+      "status": "Status",
       "clearAll": "Clear all filters"
     },
-    "loading": "Loading arrests...",
-    "empty": "No arrests recorded for this case.",
-    "emptyDescription": "Record the first arrest using the button above.",
-    "emptyFiltered": "No arrests match your current filters.",
+    "loading": "Loading charges...",
+    "empty": {
+      "title": "No Charges Filed",
+      "description": "No charges have been filed in this court case yet.",
+      "cta": "Add the first charge using the button above."
+    },
+    "emptyFiltered": "No charges match your current filters.",
     "columns": {
-      "arrestNumber": "Arrest No.",
-      "arrestedPerson": "Arrested Person",
-      "arrestingOfficer": "Arresting Officer",
-      "arrestDate": "Date & Time",
-      "location": "Location",
-      "detentionStatus": "Detention",
-      "bailStatus": "Bail",
+      "suspect": "Suspect",
+      "crimeType": "Crime Type",
+      "status": "Status",
+      "filedAt": "Filed",
+      "sentence": "Sentence",
       "actions": "Actions"
     },
-    "rowActions": {
-      "view": "View Details",
-      "updateStatus": "Update Detention Status",
-      "delete": "Delete Arrest"
-    }
-  },
-  "detentionStatus": {
-    "IN_CUSTODY": "In Custody",
-    "RELEASED_ON_BAIL": "Released on Bail",
-    "RELEASED": "Released",
-    "TRANSFERRED": "Transferred"
-  },
-  "bailStatus": {
-    "NOT_SET": "Not Set",
-    "DENIED": "Denied",
-    "GRANTED": "Granted",
-    "POSTED": "Posted"
-  },
-  "create": {
-    "drawerTitle": "Record Arrest",
-    "drawerDescription": "Record a new arrest linked to this case.",
-    "section1Title": "Arrest Details",
-    "section2Title": "Bail Information",
-    "arrestedPersonLabel": "Arrested Person",
-    "arrestedPersonPlaceholder": "Search suspects linked to this case...",
-    "arrestedPersonHint": "Only suspects already linked to this case are shown.",
-    "arrestingOfficerLabel": "Arresting Officer",
-    "arrestingOfficerPlaceholder": "Search officers...",
-    "arrestDateLabel": "Date & Time of Arrest",
-    "locationLabel": "Arrest Location",
-    "locationPlaceholder": "e.g. Bole Road, near Edna Mall",
-    "warrantNumberLabel": "Warrant Number (optional)",
-    "warrantNumberPlaceholder": "e.g. WRN-2026-00041",
-    "chargesAtArrestLabel": "Charges at Time of Arrest",
-    "chargesAtArrestPlaceholder": "Enter a charge and press Enter...",
-    "chargesAtArrestHint": "List the charges known at the time of arrest. These may differ from formal charges filed later.",
-    "chargesMin": "At least one charge is required.",
-    "bailStatusLabel": "Bail Status",
-    "bailAmountLabel": "Bail Amount (ETB)",
-    "bailAmountPlaceholder": "Enter amount in Ethiopian Birr",
-    "notesLabel": "Notes (optional)",
-    "notesPlaceholder": "Any notes about the circumstances of the arrest...",
-    "submitButton": "Record Arrest",
-    "cancelButton": "Cancel",
-    "successMessage": "Arrest record created successfully.",
-    "errorMessage": "Failed to record arrest. Please try again."
-  },
-  "detail": {
-    "drawerTitle": "Arrest Details",
-    "arrestNumber": "Arrest Number",
-    "arrestedPerson": "Arrested Person",
-    "arrestingOfficer": "Arresting Officer",
-    "arrestDate": "Date & Time",
-    "location": "Location",
-    "warrantNumber": "Warrant Number",
-    "detentionStatus": "Detention Status",
-    "bailStatus": "Bail Status",
-    "bailAmount": "Bail Amount",
-    "bailAmountValue": "{amount} ETB",
-    "noBailAmount": "—",
-    "chargesAtArrest": "Charges at Time of Arrest",
-    "noCharges": "No charges recorded.",
-    "courtAppearanceDate": "Court Appearance Date",
-    "noCourtDate": "Not yet scheduled.",
-    "notes": "Notes",
-    "noNotes": "No notes.",
-    "updateStatusButton": "Update Detention Status",
-    "noWarrant": "No warrant number recorded."
-  },
-  "update": {
-    "drawerTitle": "Update Detention Status",
-    "drawerDescription": "Update the detention and bail status for this arrest record.",
-    "detentionStatusLabel": "Detention Status",
-    "bailStatusLabel": "Bail Status",
-    "bailAmountLabel": "Bail Amount (ETB)",
-    "bailAmountPlaceholder": "Enter amount in Ethiopian Birr",
-    "notesLabel": "Update Notes (optional)",
-    "notesPlaceholder": "Reason for status change...",
-    "submitButton": "Save Changes",
-    "cancelButton": "Cancel",
-    "successMessage": "Arrest record updated successfully.",
-    "errorMessage": "Failed to update arrest record. Please try again."
-  },
-  "delete": {
-    "confirmTitle": "Delete arrest record?",
-    "confirmDescription": "This will permanently delete arrest record {arrestNumber}. This action cannot be undone and will be logged in the case audit trail.",
-    "confirmPhrase": "delete {arrestNumber}",
-    "successMessage": "Arrest record deleted successfully."
-  }
-}
-```
-
-## 12.2 `messages/am/arrests.json` — Full Amharic Equivalent
-
-Every key in `en/arrests.json` must appear with the identical key path:
-
-```json
-{
-  "pageTitle": "ቁርኝቶቾ",
-  "tab": {
-    "heading": "ቁርኝቶቾ",
-    "entityCount": "{count} ቁርኝቶ(ቾ)",
-    "recordArrest": "ቁርኝቶ ይምዝግቡ",
-    "filters": {
-      "search": "በሰው ስም ፈልግ...",
-      "detentionStatus": "የቁርኝቶ ሁኔታ",
-      "dateRange": "የቀን ክልል",
-      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
-    },
-    "loading": "ቁርኝቶቾ እየጫነ ነው...",
-    "empty": "ለዚህ ጉዳይ ምንም ቁርኝቶ አልተመዘገበም።",
-    "emptyDescription": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ቁርኝቶ ይምዝግቡ።",
-    "emptyFiltered": "ምንም ቁርኝቶ ከማጣሪያዎ ጋር አይዛመድም።",
-    "columns": {
-      "arrestNumber": "የቁርኝቶ ቁ.",
-      "arrestedPerson": "የተያዘ ሰው",
-      "arrestingOfficer": "ያዘ ፖሊስ",
-      "arrestDate": "ቀን እና ሰዓት",
-      "location": "ቦታ",
-      "detentionStatus": "ቁርኝቶ",
-      "bailStatus": "ዋስትና",
-      "actions": "ድርጊቶች"
+    "sentenceIndicator": {
+      "recorded": "Recorded",
+      "pending": "Pending"
     },
     "rowActions": {
-      "view": "ዝርዝሮች ተመልከት",
-      "updateStatus": "የቁርኝቶ ሁኔታ አዘምን",
-      "delete": "ቁርኝቶ ሰርዝ"
-    }
-  },
-  "detentionStatus": {
-    "IN_CUSTODY": "በቁጥጥር ስር",
-    "RELEASED_ON_BAIL": "በዋስ ተፈቷል",
-    "RELEASED": "ተፈቷል",
-    "TRANSFERRED": "ተዛውሯል"
-  },
-  "bailStatus": {
-    "NOT_SET": "አልተቀናጀም",
-    "DENIED": "ተከልክሏል",
-    "GRANTED": "ተፈቅዷል",
-    "POSTED": "ተሰጥቷል"
-  },
-  "create": {
-    "drawerTitle": "ቁርኝቶ ይምዝግቡ",
-    "drawerDescription": "ለዚህ ጉዳይ አዲስ ቁርኝቶ ይምዝገቡ።",
-    "section1Title": "የቁርኝቶ ዝርዝሮች",
-    "section2Title": "የዋስትና መረጃ",
-    "arrestedPersonLabel": "የተያዘ ሰው",
-    "arrestedPersonPlaceholder": "ለዚህ ጉዳይ ተጠርጣሪዎችን ፈልግ...",
-    "arrestedPersonHint": "ለዚህ ጉዳይ ተጠርጣሪ ሆነው የተያያዙ ሰዎች ብቻ ይታያሉ።",
-    "arrestingOfficerLabel": "ያዘ ፖሊስ",
-    "arrestingOfficerPlaceholder": "ፖሊስ ፈልግ...",
-    "arrestDateLabel": "የቁርኝቶ ቀን እና ሰዓት",
-    "locationLabel": "የቁርኝቶ ቦታ",
-    "locationPlaceholder": "ለምሳሌ ቦሌ መንገድ፣ ኤድና ሞል አቅራቢያ",
-    "warrantNumberLabel": "የትዕዛዝ ቁጥር (አማራጭ)",
-    "warrantNumberPlaceholder": "ለምሳሌ WRN-2026-00041",
-    "chargesAtArrestLabel": "በቁርኝቶ ጊዜ ክሶች",
-    "chargesAtArrestPlaceholder": "ክስ ያስገቡ እና Enter ይጫኑ...",
-    "chargesAtArrestHint": "በቁርኝቶ ጊዜ የታወቁ ክሶችን ይዘርዝሩ። እነዚህ ከኋላ ከሚቀርቡ ይለያዩ ይሆናሉ።",
-    "chargesMin": "ቢያንስ አንድ ክስ ያስፈልጋል።",
-    "bailStatusLabel": "የዋስትና ሁኔታ",
-    "bailAmountLabel": "የዋስትና መጠን (ብር)",
-    "bailAmountPlaceholder": "መጠን በኢትዮጵያ ብር ያስገቡ",
-    "notesLabel": "ማስታወሻ (አማራጭ)",
-    "notesPlaceholder": "ስለ ቁርኝቶ ሁኔታ ማስታወሻ...",
-    "submitButton": "ቁርኝቶ ይምዝግቡ",
-    "cancelButton": "ሰርዝ",
-    "successMessage": "የቁርኝቶ መዝገብ በተሳካ ሁኔታ ተፈጥሯል።",
-    "errorMessage": "ቁርኝቶ ለመምዝገብ አልተሳካም። እንደገና ይሞክሩ።"
-  },
-  "detail": {
-    "drawerTitle": "የቁርኝቶ ዝርዝሮች",
-    "arrestNumber": "የቁርኝቶ ቁጥር",
-    "arrestedPerson": "የተያዘ ሰው",
-    "arrestingOfficer": "ያዘ ፖሊስ",
-    "arrestDate": "ቀን እና ሰዓት",
-    "location": "ቦታ",
-    "warrantNumber": "የትዕዛዝ ቁጥር",
-    "detentionStatus": "የቁርኝቶ ሁኔታ",
-    "bailStatus": "የዋስትና ሁኔታ",
-    "bailAmount": "የዋስትና መጠን",
-    "bailAmountValue": "{amount} ብር",
-    "noBailAmount": "—",
-    "chargesAtArrest": "በቁርኝቶ ጊዜ ክሶች",
-    "noCharges": "ምንም ክሶች አልተመዘገቡም።",
-    "courtAppearanceDate": "የፍርድ ቤት ቀን",
-    "noCourtDate": "ገና አልተቀናጀም።",
-    "notes": "ማስታወሻ",
-    "noNotes": "ምንም ማስታወሻ የለም።",
-    "updateStatusButton": "የቁርኝቶ ሁኔታ አዘምን",
-    "noWarrant": "ምንም የትዕዛዝ ቁጥር አልተመዘገበም።"
-  },
-  "update": {
-    "drawerTitle": "የቁርኝቶ ሁኔታ አዘምን",
-    "drawerDescription": "ለዚህ ቁርኝቶ ሁኔታ እና የዋስትና መረጃ ያዘምኑ።",
-    "detentionStatusLabel": "የቁርኝቶ ሁኔታ",
-    "bailStatusLabel": "የዋስትና ሁኔታ",
-    "bailAmountLabel": "የዋስትና መጠን (ብር)",
-    "bailAmountPlaceholder": "መጠን በኢትዮጵያ ብር ያስገቡ",
-    "notesLabel": "የዝማኔ ማስታወሻ (አማራጭ)",
-    "notesPlaceholder": "ለሁኔታ ለውጥ ምክንያት...",
-    "submitButton": "ለውጦች ያስቀምጡ",
-    "cancelButton": "ሰርዝ",
-    "successMessage": "የቁርኝቶ መዝገብ በተሳካ ሁኔታ ተዘምኗል።",
-    "errorMessage": "የቁርኝቶ መዝገብ ለማዘምን አልተሳካም። እንደገና ይሞክሩ።"
-  },
-  "delete": {
-    "confirmTitle": "የቁርኝቶ መዝገብ ሰርዝ?",
-    "confirmDescription": "ቁርኝቶ ቁጥር {arrestNumber} ቋሚ ሆኖ ይሰረዛል። ይህ ድርጊት ሊቀለበስ አይችልም።",
-    "confirmPhrase": "{arrestNumber} ሰርዝ",
-    "successMessage": "የቁርኝቶ መዝገብ በተሳካ ሁኔታ ተሰርዟል።"
-  }
-}
-```
-
----
-
-# 13. i18n Messages — Interrogations
-
-## 13.1 `messages/en/interrogations.json` — Full Population
-
-```json
-{
-  "pageTitle": "Interrogations",
-  "tab": {
-    "heading": "Interrogations",
-    "entityCount": "{count} record(s)",
-    "addInterrogation": "Add Interrogation",
-    "filters": {
-      "search": "Search by subject name...",
-      "dateRange": "Date Range",
-      "clearAll": "Clear all filters"
+      "updateStatus": "Update Status",
+      "viewSentence": "View Sentence",
+      "dropCharge": "Drop Charge"
     },
-    "loading": "Loading interrogation records...",
-    "empty": "No interrogation records for this case.",
-    "emptyDescription": "Log the first interrogation session using the button above.",
-    "emptyFiltered": "No records match your current filters.",
-    "columns": {
-      "interrogationNumber": "Record No.",
-      "subject": "Subject",
-      "conductingOfficer": "Conducted By",
-      "interrogationDate": "Date & Time",
-      "location": "Location",
+    "status": {
+      "FILED": "Filed",
+      "ACTIVE": "Active",
+      "CONVICTED": "Convicted",
+      "ACQUITTED": "Acquitted",
+      "DROPPED": "Dropped"
+    },
+    "create": {
+      "drawerTitle": "Add Charge",
+      "drawerDescription": "File a new charge in this court case.",
+      "section1Title": "Charge Details",
+      "suspectLabel": "Suspect",
+      "suspectPlaceholder": "Search suspects linked to this case...",
+      "suspectHint": "Only persons linked to this investigation case as suspects are shown.",
+      "crimeTypeLabel": "Crime Type",
+      "crimeTypePlaceholder": "Search crime types...",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Additional notes about this charge...",
+      "submitButton": "File Charge",
+      "cancelButton": "Cancel",
+      "successMessage": "Charge filed successfully.",
+      "errorMessage": "Failed to file charge. Please try again."
+    },
+    "update": {
+      "drawerTitle": "Update Charge Status",
+      "drawerDescription": "Change the status of this charge.",
+      "currentStatusLabel": "Current Status",
+      "newStatusLabel": "New Status",
+      "newStatusPlaceholder": "Select new status...",
+      "terminalNotice": "This charge has reached a final status and cannot be changed.",
+      "convictSection": "Record Conviction",
+      "convictNotice": "Selecting 'Convicted' will record this charge as a conviction. You must also record the sentencing details. This action cannot be reversed.",
+      "convictButton": "Record Conviction & Sentence",
+      "submitButton": "Update Status",
+      "cancelButton": "Cancel",
+      "successMessage": "Charge status updated successfully.",
+      "errorMessage": "Failed to update charge status. Please try again."
+    },
+    "drop": {
+      "confirmTitle": "Drop this charge?",
+      "confirmDescription": "Charge against {suspectName} ({crimeType}) will be permanently set to Dropped. This action cannot be undone.",
+      "confirmButton": "Drop Charge",
+      "cancelButton": "Cancel",
+      "successMessage": "Charge dropped successfully."
+    },
+    "sentence": {
+      "drawerTitle": "Record Sentence",
+      "drawerDescription": "Record the sentencing details for this conviction.",
+      "convictionNotice": "Recording a sentence will permanently set this charge to Convicted. This cannot be reversed.",
+      "section1Title": "Sentence Details",
+      "sentenceTypeLabel": "Sentence Type",
+      "durationMonthsLabel": "Duration (months)",
+      "durationMonthsPlaceholder": "e.g. 60 for 5 years",
+      "durationMonthsHint": "Enter the total sentence length in months.",
+      "fineAmountLabel": "Fine Amount (ETB)",
+      "fineAmountPlaceholder": "Enter fine amount in Ethiopian Birr",
+      "issuedAtLabel": "Sentence Date",
+      "issuedByJudgeLabel": "Issued By Judge (optional)",
+      "issuedByJudgePlaceholder": "Full name of the sentencing judge",
+      "notesLabel": "Sentence Notes (optional)",
+      "notesPlaceholder": "Any additional sentencing notes or conditions...",
+      "submitButton": "Record Sentence",
+      "cancelButton": "Cancel",
+      "successMessage": "Sentence recorded successfully. Charge is now Convicted.",
+      "errorMessage": "Failed to record sentence. Please try again."
+    },
+    "viewSentence": {
+      "drawerTitle": "Sentence Details",
+      "immutableNotice": "This sentence record is permanent and cannot be modified.",
+      "sentenceType": "Sentence Type",
       "duration": "Duration",
-      "legalRep": "Legal Rep",
-      "actions": "Actions"
+      "fineAmount": "Fine Amount",
+      "issuedAt": "Sentenced On",
+      "issuedByJudge": "Sentenced By",
+      "noJudge": "Not recorded",
+      "notes": "Notes",
+      "noNotes": "No notes.",
+      "closeButton": "Close"
     },
-    "durationValue": "{minutes} min",
-    "durationUnknown": "—",
-    "legalRepYes": "Present",
-    "legalRepNo": "Absent",
-    "rowActions": {
-      "view": "View Record"
+    "sentenceType": {
+      "IMPRISONMENT": "Imprisonment",
+      "FINE": "Fine",
+      "COMMUNITY_SERVICE": "Community Service",
+      "SUSPENDED": "Suspended Sentence",
+      "DEATH_PENALTY": "Death Penalty",
+      "LIFE_IMPRISONMENT": "Life Imprisonment"
     }
   },
-  "roleOnCase": {
-    "SUSPECT": "Suspect",
-    "VICTIM": "Victim",
-    "WITNESS": "Witness"
-  },
-  "create": {
-    "drawerTitle": "Add Interrogation Record",
-    "drawerDescription": "Log a new interrogation session for this case.",
-    "section1Title": "Session Details",
-    "section2Title": "Legal Representation",
-    "section3Title": "Summary",
-    "subjectLabel": "Subject",
-    "subjectPlaceholder": "Search persons linked to this case...",
-    "conductingOfficerLabel": "Conducting Officer",
-    "conductingOfficerPlaceholder": "Search officers...",
-    "interrogationDateLabel": "Date & Time",
-    "locationLabel": "Location",
-    "locationPlaceholder": "e.g. Interview Room 3, Bole Sub-City Police Station",
-    "durationLabel": "Duration (minutes, optional)",
-    "durationPlaceholder": "e.g. 90",
-    "legalRepresentativePresentLabel": "Legal Representative Present",
-    "legalRepresentativeNameLabel": "Legal Representative Name",
-    "legalRepresentativeNamePlaceholder": "Full name of the legal representative",
-    "summaryLabel": "Interrogation Summary",
-    "summaryPlaceholder": "Describe the key topics, statements, and outcomes of this interrogation session...",
-    "summaryHint": "This summary will be permanently recorded and may be used as court documentation.",
-    "recordingReferenceLabel": "Recording Reference (optional)",
-    "recordingReferencePlaceholder": "e.g. VID-2026-INT-0042",
-    "submitButton": "Save Record",
-    "cancelButton": "Cancel",
-    "successMessage": "Interrogation record saved successfully.",
-    "errorMessage": "Failed to save interrogation record. Please try again."
-  },
-  "detail": {
-    "drawerTitle": "Interrogation Record",
-    "immutableNotice": "This record is permanent and cannot be edited or deleted.",
-    "interrogationNumber": "Record Number",
-    "subject": "Subject",
-    "subjectRole": "Role on Case",
-    "conductingOfficer": "Conducted By",
-    "interrogationDate": "Date & Time",
-    "location": "Location",
-    "duration": "Duration",
-    "durationValue": "{minutes} minutes",
-    "durationUnknown": "Not recorded.",
-    "legalRepSection": "Legal Representation",
-    "legalRepPresent": "Present",
-    "legalRepAbsent": "Absent",
-    "legalRepName": "Representative",
-    "noLegalRepName": "Name not recorded.",
-    "summarySection": "Summary",
-    "recordingReference": "Recording Reference",
-    "noRecordingReference": "No recording reference.",
-    "immutableTooltip": "Interrogation records cannot be modified or deleted."
+  "courtCasesList": {
+    "pageTitle": "Court Cases",
+    "entityCount": "{count} court case(s)",
+    "filters": {
+      "search": "Search by case title or court no...",
+      "status": "Status",
+      "dateRange": "Date Range",
+      "clearAll": "Clear all filters"
+    },
+    "loading": "Loading court cases...",
+    "empty": {
+      "title": "No Court Cases",
+      "description": "No court cases found. Court cases are created from within individual case files."
+    },
+    "emptyFiltered": "No court cases match your current filters.",
+    "columns": {
+      "courtCaseNumber": "Court Case No.",
+      "investigationCase": "Investigation Case",
+      "court": "Court",
+      "status": "Status",
+      "outcome": "Outcome",
+      "filedAt": "Filed",
+      "nextHearing": "Next Hearing",
+      "chargeCount": "Charges",
+      "actions": "Actions"
+    },
+    "rowActions": {
+      "viewCase": "View Investigation Case"
+    }
   }
 }
 ```
 
-## 13.2 `messages/am/interrogations.json` — Full Amharic Equivalent
+## 10.2 `messages/am/legal.json` — Full Amharic Equivalent
+
+Every key in `en/legal.json` must appear with the identical key path:
 
 ```json
 {
-  "pageTitle": "ምርምራዎቹ",
+  "pageTitle": "ሕጋዊ",
   "tab": {
-    "heading": "ምርምራዎቹ",
-    "entityCount": "{count} መዝገብ(ቤቶ)",
-    "addInterrogation": "ምርምራ ጨምር",
+    "heading": "ሕጋዊ ሂደቶች",
+    "lockedTooltip": "ወደ ሕጋዊ ሂደቶች ስልጣን የለዎትም። ሕጋዊ ባለሙያ ያነጋግሩ።",
+    "loading": "ሕጋዊ ሂደቶች እየጫነ ነው...",
+    "errorTitle": "ሕጋዊ ሂደቶችን መጫን አልተሳካም",
+    "errorDescription": "ገጹን ያድሱ ወይም ችግሩ ከቀጠለ ድጋፍ ያነጋግሩ።"
+  },
+  "courtCase": {
+    "sectionTitle": "የፍርድ ቤት ጉዳይ",
+    "empty": {
+      "title": "ምንም የፍርድ ቤት ጉዳይ አልተጣበቀም",
+      "description": "ይህ የምርመራ ጉዳይ ለፍርድ ቤት ጉዳይ ገና አልተጣበቀም። ሕጋዊ ባለሙያ መፍጠር ይችላል።",
+      "createButton": "የፍርድ ቤት ጉዳይ ፍጠር"
+    },
+    "card": {
+      "caseNumber": "የፍርድ ቤት ጉዳይ ቁ.",
+      "court": "ፍርድ ቤት",
+      "status": "ሁኔታ",
+      "outcome": "ውጤት",
+      "filedAt": "የቀረበ",
+      "nextHearing": "ቀጣይ ችሎት",
+      "noNextHearing": "ምንም ችሎት አልታቀደም",
+      "presidingJudge": "ሊቀ-ዳኛ",
+      "noJudge": "አልተመዘገበም",
+      "prosecutor": "አቃቤ ሕግ",
+      "noProsecutor": "አልተመዘገበም",
+      "defenceCounsel": "ጠበቃ",
+      "noDefenceCounsel": "አልተመዘገበም",
+      "notes": "ማስታወሻ",
+      "noNotes": "ምንም ማስታወሻ የለም።",
+      "chargeCount": "{count} ክስ(ቾ)",
+      "editButton": "የፍርድ ቤት ጉዳይ አርም",
+      "hearingsSectionTitle": "የቤት ቀናት"
+    },
+    "status": {
+      "PENDING": "በመጠባበቅ ላይ",
+      "ACTIVE": "ንቁ",
+      "CONCLUDED": "የተጠናቀቀ",
+      "DISMISSED": "ውድቅ"
+    },
+    "outcome": {
+      "GUILTY": "ጥፋተኛ",
+      "NOT_GUILTY": "ጥፋተኛ አይደለም",
+      "DISMISSED": "ውድቅ ተደርጓል",
+      "MISTRIAL": "ሚስትሪያል",
+      "PLEA_DEAL": "ስምምነት"
+    },
+    "hearingType": {
+      "PRELIMINARY": "ቅድመ ችሎት",
+      "TRIAL": "ፍርድ",
+      "SENTENCING": "ቅጣት",
+      "APPEAL": "ይግባኝ",
+      "ARRAIGNMENT": "ክስ ማቅረቢያ"
+    },
+    "create": {
+      "drawerTitle": "የፍርድ ቤት ጉዳይ ፍጠር",
+      "drawerDescription": "ይህን የምርመራ ጉዳይ ከፍርድ ቤት ሂደት ጋር ያጣምሩ።",
+      "section1Title": "የፍርድ ቤት ዝርዝሮች",
+      "section2Title": "ዋና ሰዎች",
+      "section3Title": "የቤት ቀናት (አማራጭ)",
+      "section4Title": "ተጨማሪ ማስታወሻዎች",
+      "courtLabel": "የፍርድ ቤት ስም",
+      "courtPlaceholder": "ለምሳሌ የፌደራል ከፍተኛ ፍርድ ቤት — ልደታ ምድብ",
+      "filedAtLabel": "የቀረበበት ቀን",
+      "presidingJudgeLabel": "ሊቀ-ዳኛ (አማራጭ)",
+      "presidingJudgePlaceholder": "የዳኛ ሙሉ ስም",
+      "prosecutorLabel": "አቃቤ ሕግ (አማራጭ)",
+      "prosecutorPlaceholder": "የአቃቤ ሕግ ሙሉ ስም",
+      "defenceCounselLabel": "ጠበቃ (አማራጭ)",
+      "defenceCounselPlaceholder": "የጠበቃ ሙሉ ስም",
+      "addHearingButton": "የቤት ቀን ጨምር",
+      "hearingDateLabel": "ቀን",
+      "hearingTypeLabel": "የቤት አይነት",
+      "hearingLocationLabel": "ቦታ",
+      "hearingLocationPlaceholder": "ለምሳሌ አዳራሽ 4፣ ልደታ ፍርድ ቤቶች",
+      "hearingNotesLabel": "ማስታወሻ (አማራጭ)",
+      "removeHearingButton": "አስወግድ",
+      "notesLabel": "ማስታወሻ (አማራጭ)",
+      "notesPlaceholder": "ስለ ፍርድ ቤቱ ጉዳይ ማናቸውም ተጨማሪ ማስታወሻ...",
+      "submitButton": "የፍርድ ቤት ጉዳይ ፍጠር",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የፍርድ ቤት ጉዳይ በተሳካ ሁኔታ ተፈጥሮ ተጣምሯል።",
+      "errorMessage": "የፍርድ ቤት ጉዳይ ለመፍጠር አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "update": {
+      "drawerTitle": "የፍርድ ቤት ጉዳይ አርም",
+      "drawerDescription": "የፍርድ ቤት ጉዳዩን ዝርዝሮች፣ ሁኔታ፣ ወይም የቤት ቀናት ያዘምኑ።",
+      "courtLabel": "የፍርድ ቤት ስም",
+      "statusLabel": "ሁኔታ",
+      "outcomeLabel": "ውጤት",
+      "outcomeHint": "ሁኔታው 'ተጠናቋል' ሲሆን ውጤት ያስፈልጋል።",
+      "presidingJudgeLabel": "ሊቀ-ዳኛ",
+      "prosecutorLabel": "አቃቤ ሕግ",
+      "defenceCounselLabel": "ጠበቃ",
+      "hearingsSectionTitle": "የቤት ቀናት",
+      "addHearingButton": "የቤት ቀን ጨምር",
+      "notesLabel": "ማስታወሻ",
+      "submitButton": "ለውጦች ያስቀምጡ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የፍርድ ቤት ጉዳይ በተሳካ ሁኔታ ተዘምኗል።",
+      "errorMessage": "የፍርድ ቤት ጉዳይ ለማዘምን አልተሳካም። እንደገና ይሞክሩ።"
+    }
+  },
+  "charges": {
+    "sectionTitle": "ክሶች",
+    "addChargeButton": "ክስ ጨምር",
+    "entityCount": "{count} ክስ(ቾ)",
     "filters": {
-      "search": "በተጠያቂ ስም ፈልግ...",
+      "search": "በተጠርጣሪ ወይም ወንጀል አይነት ፈልግ...",
+      "status": "ሁኔታ",
+      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+    },
+    "loading": "ክሶቾ እየጫነ ነው...",
+    "empty": {
+      "title": "ምንም ክስ አልቀረበም",
+      "description": "ለዚህ የፍርድ ቤት ጉዳይ ምንም ክስ ገና አልቀረበም።",
+      "cta": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ክስ ያቅርቡ።"
+    },
+    "emptyFiltered": "ምንም ክሶቾ ከማጣሪያዎ ጋር አይዛመዱም።",
+    "columns": {
+      "suspect": "ተጠርጣሪ",
+      "crimeType": "የወንጀል አይነት",
+      "status": "ሁኔታ",
+      "filedAt": "የቀረበ",
+      "sentence": "ቅጣት",
+      "actions": "ድርጊቶች"
+    },
+    "sentenceIndicator": {
+      "recorded": "ተመዝግቧል",
+      "pending": "በጥበቃ ላይ"
+    },
+    "rowActions": {
+      "updateStatus": "ሁኔታ አዘምን",
+      "viewSentence": "ቅጣት ተመልከት",
+      "dropCharge": "ክስ ዝቅ አድርግ"
+    },
+    "status": {
+      "FILED": "ቀርቧል",
+      "ACTIVE": "ንቁ",
+      "CONVICTED": "ጥፋተኛ ተብሏል",
+      "ACQUITTED": "ነጻ ተለቋል",
+      "DROPPED": "ውድቅ"
+    },
+    "create": {
+      "drawerTitle": "ክስ ጨምር",
+      "drawerDescription": "ለዚህ ፍርድ ቤት ጉዳይ አዲስ ክስ ያቅርቡ።",
+      "section1Title": "የክስ ዝርዝሮች",
+      "suspectLabel": "ተጠርጣሪ",
+      "suspectPlaceholder": "ለዚህ ጉዳይ ተጠርጣሪዎችን ፈልግ...",
+      "suspectHint": "ለዚህ ምርመራ ጉዳይ ተጠርጣሪ ሆነው የተጣበቁ ሰዎች ብቻ ይታያሉ።",
+      "crimeTypeLabel": "የወንጀል አይነት",
+      "crimeTypePlaceholder": "የወንጀል አይነቶችን ፈልግ...",
+      "notesLabel": "ማስታወሻ (አማራጭ)",
+      "notesPlaceholder": "ስለዚህ ክስ ተጨማሪ ማስታወሻዎች...",
+      "submitButton": "ክስ አቅርብ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ክሱ በተሳካ ሁኔታ ቀርቧል።",
+      "errorMessage": "ክስ ለማቅረብ አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "update": {
+      "drawerTitle": "የክስ ሁኔታ አዘምን",
+      "drawerDescription": "የዚህን ክስ ሁኔታ ይቀይሩ።",
+      "currentStatusLabel": "አሁናዊ ሁኔታ",
+      "newStatusLabel": "አዲስ ሁኔታ",
+      "newStatusPlaceholder": "አዲስ ሁኔታ ይምረጡ...",
+      "terminalNotice": "ይህ ክስ የመጨረሻ ሁኔታ ላይ ደርሷል እና ሊቀየር አይችልም።",
+      "convictSection": "ጥፋተኛ ያስመዝጉ",
+      "convictNotice": "'ጥፋተኛ' መምረጥ ይህን ክስ ጥፋተኛ ሆኖ ያሰፍረዋል። የቅጣት ዝርዝሮችንም ማስቀመጥ ያለቦት። ይህ ድርጊት ሊቀለበስ አይችልም።",
+      "convictButton": "ጥፋተኛ & ቅጣት ይመዝግቡ",
+      "submitButton": "ሁኔታ አዘምን",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የክስ ሁኔታ በተሳካ ሁኔታ ተዘምኗል።",
+      "errorMessage": "የክስ ሁኔታ ለማዘምን አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "drop": {
+      "confirmTitle": "ይህን ክስ ዝቅ ያድርጉ?",
+      "confirmDescription": "{suspectName} ({crimeType}) ላይ የቀረበ ክስ ቋሚ ሆኖ ውድቅ ይሆናል። ይህ ድርጊት ሊቀለበስ አይችልም።",
+      "confirmButton": "ክስ ዝቅ አድርግ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ክሱ በተሳካ ሁኔታ ውድቅ ሆኗል።"
+    },
+    "sentence": {
+      "drawerTitle": "ቅጣት ይምዝግቡ",
+      "drawerDescription": "ለዚህ ጥፋተኛ ፍርድ የቅጣት ዝርዝሮች ያስቀምጡ።",
+      "convictionNotice": "ቅጣት መሰወር ይህን ክስ ቋሚ ሆኖ ጥፋተኛ ያስቀምጠዋል። ሊቀለበስ አይችልም።",
+      "section1Title": "የቅጣት ዝርዝሮች",
+      "sentenceTypeLabel": "የቅጣት አይነት",
+      "durationMonthsLabel": "ቆይታ (ወራት)",
+      "durationMonthsPlaceholder": "ለምሳሌ 5 ዓመት = 60",
+      "durationMonthsHint": "ጠቅላላ የቅጣት ቆይታ በወራት ያስገቡ።",
+      "fineAmountLabel": "የቅጣት መጠን (ብር)",
+      "fineAmountPlaceholder": "መጠን በኢትዮጵያ ብር ያስገቡ",
+      "issuedAtLabel": "የቅጣት ቀን",
+      "issuedByJudgeLabel": "ቅጣቱ የተሰጠ ዳኛ (አማራጭ)",
+      "issuedByJudgePlaceholder": "የዳኛ ሙሉ ስም",
+      "notesLabel": "የቅጣት ማስታወሻ (አማራጭ)",
+      "notesPlaceholder": "ስለ ቅጣቱ ተጨማሪ ማስታወሻዎች...",
+      "submitButton": "ቅጣት ይምዝገቡ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ቅጣቱ በተሳካ ሁኔታ ተሰፍሯል። ክሱ አሁን ጥፋተኛ ሆኗል።",
+      "errorMessage": "ቅጣቱን ለማስፈር አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "viewSentence": {
+      "drawerTitle": "የቅጣት ዝርዝሮች",
+      "immutableNotice": "ይህ የቅጣት መዝገብ ቋሚ ነው እና ሊቀየር አይችልም።",
+      "sentenceType": "የቅጣት አይነት",
+      "duration": "ቆይታ",
+      "fineAmount": "የቅጣት መጠን",
+      "issuedAt": "የቅጣት ቀን",
+      "issuedByJudge": "ቅጣቱ ያሰጠ",
+      "noJudge": "አልተመዘገበም",
+      "notes": "ማስታወሻ",
+      "noNotes": "ምንም ማስታወሻ የለም።",
+      "closeButton": "ዝጋ"
+    },
+    "sentenceType": {
+      "IMPRISONMENT": "እስር",
+      "FINE": "ቅጣት",
+      "COMMUNITY_SERVICE": "ማህበረሰብ አገልግሎት",
+      "SUSPENDED": "የተቋረጠ ፍርድ",
+      "DEATH_PENALTY": "ሞት ቅጣት",
+      "LIFE_IMPRISONMENT": "የዕድሜ ልክ እስር"
+    }
+  },
+  "courtCasesList": {
+    "pageTitle": "የፍርድ ቤት ጉዳዮች",
+    "entityCount": "{count} ጉዳይ(ዎች)",
+    "filters": {
+      "search": "በጉዳይ ርዕስ ወይም ቁጥር ፈልግ...",
+      "status": "ሁኔታ",
       "dateRange": "የቀን ክልል",
       "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
     },
-    "loading": "የምርምራ መዝገቦች እየጫነ ነው...",
-    "empty": "ለዚህ ጉዳይ ምንም የምርምራ መዝገብ የለም።",
-    "emptyDescription": "ከላይ ያለውን አዝራር ተጠቅሞ የመጀመሪያ ምርምራ ይምዝግቡ።",
-    "emptyFiltered": "ምንም መዝገብ ከማጣሪያዎ ጋር አይዛመድም።",
+    "loading": "የፍርድ ቤት ጉዳዮች እየጫነ ነው...",
+    "empty": {
+      "title": "ምንም የፍርድ ቤት ጉዳዮች የሉም",
+      "description": "ምንም የፍርድ ቤት ጉዳዮች አልተገኙም። ጉዳዮቹ ከምርመራ ፋይሎቹ ውስጥ ይፈጠራሉ።"
+    },
+    "emptyFiltered": "ምንም ጉዳዮቾ ከማጣሪያዎ ጋር አይዛመዱም።",
     "columns": {
-      "interrogationNumber": "መዝገብ ቁ.",
-      "subject": "ተጠያቂ",
-      "conductingOfficer": "ያካሄደ",
-      "interrogationDate": "ቀን እና ሰዓት",
-      "location": "ቦታ",
-      "duration": "ቆይታ",
-      "legalRep": "ጠበቃ",
+      "courtCaseNumber": "የፍርድ ቤት ቁ.",
+      "investigationCase": "የምርመራ ጉዳይ",
+      "court": "ፍርድ ቤት",
+      "status": "ሁኔታ",
+      "outcome": "ውጤት",
+      "filedAt": "የቀረበ",
+      "nextHearing": "ቀጣይ ቤት",
+      "chargeCount": "ክሶቾ",
       "actions": "ድርጊቶች"
     },
-    "durationValue": "{minutes} ደቂቃ",
-    "durationUnknown": "—",
-    "legalRepYes": "ተገኝቷል",
-    "legalRepNo": "አልተገኘም",
     "rowActions": {
-      "view": "መዝገብ ተመልከት"
+      "viewCase": "የምርመራ ጉዳዩ ተመልከት"
     }
-  },
-  "roleOnCase": {
-    "SUSPECT": "ተጠርጣሪ",
-    "VICTIM": "ተጎጂ",
-    "WITNESS": "ምስክር"
-  },
-  "create": {
-    "drawerTitle": "የምርምራ መዝገብ ጨምር",
-    "drawerDescription": "ለዚህ ጉዳይ አዲስ የምርምራ ስብሰባ ይምዝገቡ።",
-    "section1Title": "የስብሰባ ዝርዝሮች",
-    "section2Title": "የህጋዊ ወኪል",
-    "section3Title": "ማጠቃለያ",
-    "subjectLabel": "ተጠያቂ",
-    "subjectPlaceholder": "ለዚህ ጉዳይ የተያያዙ ሰዎች ፈልግ...",
-    "conductingOfficerLabel": "ምርምራ ያካሄደ ፖሊስ",
-    "conductingOfficerPlaceholder": "ፖሊስ ፈልግ...",
-    "interrogationDateLabel": "ቀን እና ሰዓት",
-    "locationLabel": "ቦታ",
-    "locationPlaceholder": "ለምሳሌ ቃለ መጠይቅ ክፍል 3፣ ቦሌ ክፍለ ከተማ ፖሊስ ጣቢያ",
-    "durationLabel": "ቆይታ (ደቂቃ፣ አማራጭ)",
-    "durationPlaceholder": "ለምሳሌ 90",
-    "legalRepresentativePresentLabel": "ጠበቃ ተገኝቷል",
-    "legalRepresentativeNameLabel": "የጠበቃ ስም",
-    "legalRepresentativeNamePlaceholder": "የህጋዊ ወኪሉ ሙሉ ስም",
-    "summaryLabel": "የምርምራ ማጠቃለያ",
-    "summaryPlaceholder": "ዋና ርዕሶቹን፣ ቃሎቹን እና ውጤቶቹን ይግለጹ...",
-    "summaryHint": "ይህ ማጠቃለያ ቋሚ ሆኖ ይመዘገባል እና ለፍርድ ቤት ሰነድ ሊያገለግል ይችላል።",
-    "recordingReferenceLabel": "የቅጂ ማጣቀሻ (አማራጭ)",
-    "recordingReferencePlaceholder": "ለምሳሌ VID-2026-INT-0042",
-    "submitButton": "መዝገብ አስቀምጥ",
-    "cancelButton": "ሰርዝ",
-    "successMessage": "የምርምራ መዝገብ በተሳካ ሁኔታ ተቀምጧል።",
-    "errorMessage": "የምርምራ መዝገብ ለማስቀመጥ አልተሳካም። እንደገና ይሞክሩ።"
-  },
-  "detail": {
-    "drawerTitle": "የምርምራ መዝገብ",
-    "immutableNotice": "ይህ መዝገብ ቋሚ ነው፣ ሊቀናጀጥ ወይም ሊሰረዝ አይችልም።",
-    "interrogationNumber": "የመዝገብ ቁጥር",
-    "subject": "ተጠያቂ",
-    "subjectRole": "በጉዳዩ ሚና",
-    "conductingOfficer": "ያካሄደ",
-    "interrogationDate": "ቀን እና ሰዓት",
-    "location": "ቦታ",
-    "duration": "ቆይታ",
-    "durationValue": "{minutes} ደቂቃ",
-    "durationUnknown": "አልተመዘገበም።",
-    "legalRepSection": "የህጋዊ ወኪል",
-    "legalRepPresent": "ተገኝቷል",
-    "legalRepAbsent": "አልተገኘም",
-    "legalRepName": "ወኪል",
-    "noLegalRepName": "ስም አልተመዘገበም።",
-    "summarySection": "ማጠቃለያ",
-    "recordingReference": "የቅጂ ማጣቀሻ",
-    "noRecordingReference": "ምንም የቅጂ ማጣቀሻ የለም።",
-    "immutableTooltip": "የምርምራ መዝገቦች ሊቀናጁ ወይም ሊሰረዙ አይችሉም።"
   }
 }
 ```
 
 ---
 
-# 14. UI Implementation — Arrests Tab
+# 11. caseKeys Update
 
-## 14.1 Route: `src/app/(dashboard)/cases/[caseId]/arrests/page.tsx`
+## 11.1 Verify and extend `src/services/query/keys/caseKeys.ts`
 
-Replace the Phase 3 skeleton. Server Component rendering `<ArrestsTab caseId={params.caseId} />`.
+Open the existing `caseKeys.ts` file. Verify these sub-resource keys exist. If any are missing, add them:
+
+```typescript
+// Add to caseKeys factory if not already present:
+charges: (caseId: string) =>
+  [...caseKeys.detail(caseId), 'charges'] as const,
+
+courtCase: (caseId: string) =>
+  [...caseKeys.detail(caseId), 'courtCase'] as const,
+```
+
+These are used by the case overview tab's count cards (already rendered in Phase 3). Every `useCreateCharge` success must invalidate `caseKeys.summary(caseId)` and `caseKeys.charges(caseId)` so the overview tab count refreshes without a page reload.
+
+---
+
+# 12. Route Page — Legal Tab
+
+## 12.1 `src/app/(dashboard)/cases/[caseId]/legal/page.tsx`
+
+Replace the Phase 3 skeleton:
 
 ```typescript
 import { getTranslations } from 'next-intl/server'
-import { ArrestsTab } from '@features/arrests/components/ArrestsTab'
+import { LegalTab } from '@features/legal/components/LegalTab'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('arrests')
+  const t = await getTranslations('legal')
   return { title: t('pageTitle') }
 }
 
-export default function CaseArrestsPage({
+export default function CaseLegalPage({
   params,
 }: {
   params: { caseId: string }
 }) {
-  return <ArrestsTab caseId={params.caseId} />
+  return <LegalTab caseId={params.caseId} />
 }
 ```
 
-## 14.2 `ArrestsTab.tsx` — Component Architecture
+> **Note:** `LegalTab` is not listed in the §3 component tree because it is a thin orchestration wrapper rendered by the page. Create it as `src/features/legal/components/LegalTab.tsx` — a Client Component that composes `CourtCaseCard` and `ChargesTable` together with the drawer states.
 
-Client Component. Manages filter state (URL-driven via `nuqs`), and three drawer states: `createOpen`, `detailOpen/selectedArrestId`, `updateOpen/updateArrestId`.
+---
 
-### 14.2.1 Filter state (URL-driven)
+# 13. Route Page — Court Cases List
+
+## 13.1 `src/app/(dashboard)/legal/court-cases/page.tsx`
+
+Replace the Phase 3 skeleton:
 
 ```typescript
-const [filters, setFilters] = useQueryStates({
-  search: parseAsString.withDefault(''),
-  detentionStatus: parseAsArrayOf(parseAsString).withDefault([]),
-  dateFrom: parseAsString.withDefault(''),
-  dateTo: parseAsString.withDefault(''),
-  page: parseAsInteger.withDefault(1),
-  pageSize: parseAsInteger.withDefault(25),
-  sortField: parseAsString.withDefault('arrestDate'),
-  sortDirection: parseAsString.withDefault('desc'),
+import { getTranslations } from 'next-intl/server'
+import { CourtCasesList } from '@features/legal/components/CourtCasesList'
+import type { Metadata } from 'next'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('legal')
+  return { title: t('courtCasesList.pageTitle') }
+}
+
+export default function CourtCasesPage() {
+  return <CourtCasesList />
+}
+```
+
+---
+
+# 14. UI Implementation — LegalTab (Orchestration Wrapper)
+
+## 14.1 `LegalTab.tsx`
+
+Client Component. Manages all drawer open/close states for the legal tab.
+
+### 14.1.1 State
+
+```typescript
+const [createCourtCaseOpen, setCreateCourtCaseOpen] = useState(false)
+const [updateCourtCaseOpen, setUpdateCourtCaseOpen] = useState(false)
+const [addChargeOpen, setAddChargeOpen] = useState(false)
+const [selectedChargeId, setSelectedChargeId] = useState<string | null>(null)
+const [updateChargeOpen, setUpdateChargeOpen] = useState(false)
+const [dropChargeOpen, setDropChargeOpen] = useState(false)
+const [viewSentenceOpen, setViewSentenceOpen] = useState(false)
+```
+
+### 14.1.2 Data
+
+```typescript
+const {
+  data: courtCase,
+  isLoading,
+  isError,
+  error,
+} = useCourtCaseByCase(caseId)
+```
+
+### 14.1.3 Render tree
+
+```
+LegalTab
+├── [isLoading] → <Skeleton> (full panel skeleton matching card + table dimensions)
+├── [isError] → <ErrorState> with retry
+├── [courtCase === null] → <CourtCaseEmptyState> (see §15)
+└── [courtCase exists]
+    ├── <CourtCaseCard courtCase={courtCase} onEdit={() => setUpdateCourtCaseOpen(true)} />
+    ├── <ChargesTable
+    │     courtCaseId={courtCase.id}
+    │     caseId={caseId}
+    │     onAddCharge={() => setAddChargeOpen(true)}
+    │     onUpdateStatus={(id) => { setSelectedChargeId(id); setUpdateChargeOpen(true) }}
+    │     onDropCharge={(id) => { setSelectedChargeId(id); setDropChargeOpen(true) }}
+    │     onViewSentence={(id) => { setSelectedChargeId(id); setViewSentenceOpen(true) }}
+    │   />
+    ├── <CreateCourtCaseDrawer open={createCourtCaseOpen} caseId={caseId} ... />
+    ├── <UpdateCourtCaseDrawer open={updateCourtCaseOpen} courtCase={courtCase} caseId={caseId} ... />
+    ├── <AddChargeDrawer open={addChargeOpen} courtCaseId={courtCase.id} caseId={caseId} ... />
+    ├── <UpdateChargeStatusDrawer open={updateChargeOpen} chargeId={selectedChargeId} ... />
+    ├── <DropChargeDialog open={dropChargeOpen} chargeId={selectedChargeId} ... />
+    └── <ViewSentenceDrawer open={viewSentenceOpen} chargeId={selectedChargeId} ... />
+```
+
+---
+
+# 15. UI Implementation — Court Case Empty State
+
+## 15.1 `CourtCaseEmptyState`
+
+Inline (not a separate file — render within `LegalTab`):
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                                                                    │
+│                    [Scale icon — 48px, muted]                      │
+│                                                                    │
+│                    No Court Case Linked                            │
+│              (muted, base font, centred)                           │
+│                                                                    │
+│    This investigation case has not yet been linked to a court      │
+│    case. A Legal Officer can create and link one.                  │
+│              (foreground-muted, sm font, centred)                  │
+│                                                                    │
+│              [Create Court Case]  ← Primary button                 │
+│              (PermissionGuard: legal:manage)                        │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+Use the `EmptyState` shared component from `shared/components/display/EmptyState.tsx`. Pass:
+- `icon`: `Scale` (from lucide-react) — the scales of justice icon
+- `title`: `t('courtCase.empty.title')`
+- `description`: `t('courtCase.empty.description')`
+- `action`: a `PermissionGuard`-wrapped `Button` for `legal:manage`
+
+---
+
+# 16. UI Implementation — CourtCaseCard
+
+## 16.1 `CourtCaseCard.tsx`
+
+Client Component. Receives the full `CourtCase` object as a prop.
+
+### 16.1.1 Layout
+
+```
+CourtCaseCard
+──────────────────────────────────────────────────────────────────────
+  Court Case                            [Edit Court Case button — PermissionGuard]
+──────────────────────────────────────────────────────────────────────
+ ┌── Primary Info (two-column grid) ──────────────────────────────────┐
+ │  Court Case No.   CC-2026-0047          Status    [Active badge]   │
+ │  Court            Federal High Court    Outcome   —               │
+ │  Filed            14 Jan 2026           Charges   3               │
+ └─────────────────────────────────────────────────────────────────────┘
+
+ ┌── Key Personnel (three columns) ───────────────────────────────────┐
+ │  Presiding Judge     Prosecutor          Defence Counsel           │
+ │  Hon. Abebe Tadesse  Ato Daniel Girma    Ato Samuel Haile          │
+ └─────────────────────────────────────────────────────────────────────┘
+
+ ┌── Hearing Dates ────────────────────────────────────────────────────┐
+ │  <HearingDatesList hearingDates={courtCase.hearingDates} />        │
+ └─────────────────────────────────────────────────────────────────────┘
+
+ ┌── Notes ────────────────────────────────────────────────────────────┐
+ │  ...notes text if present, muted if absent...                      │
+ └─────────────────────────────────────────────────────────────────────┘
+```
+
+### 16.1.2 Status badge variant mapping
+
+```typescript
+const COURT_CASE_STATUS_VARIANTS: Record<CourtCaseStatus, BadgeVariant> = {
+  PENDING:    'muted',       // Slate — not yet active
+  ACTIVE:     'warning',     // Amber — proceedings in progress
+  CONCLUDED:  'success',     // Green — concluded
+  DISMISSED:  'destructive', // Red — dismissed
+}
+```
+
+### 16.1.3 Edit button
+
+```tsx
+<PermissionGuard permission={Permission.LEGAL_MANAGE}>
+  <Button variant="outline" size="sm" onClick={onEdit}>
+    <Pencil className="mr-2 h-3.5 w-3.5" />
+    {t('courtCase.card.editButton')}
+  </Button>
+</PermissionGuard>
+```
+
+`Permission.LEGAL_MANAGE` is the existing permission enum constant from `shared/permissions`. Use the constant — never hardcode the string.
+
+---
+
+# 17. UI Implementation — HearingDatesList
+
+## 17.1 `HearingDatesList.tsx`
+
+Client Component. Renders all hearing dates as a compact chronological list.
+
+### 17.1.1 Layout (each hearing date)
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  [Calendar icon]  Preliminary Hearing                         │
+│                   14 Mar 2026 — Courtroom 4, Lideta Courts   │
+│                   (notes if present, muted)                  │
+│                   (outcome if present, amber italic)         │
+└──────────────────────────────────────────────────────────────┘
+```
+
+Sort hearing dates ascending by `date` (oldest first). If `hearingDates` is empty: render `t('courtCase.card.noNextHearing')` in muted text.
+
+Upcoming hearings (date in the future) render with a subtle `primary` left-border accent. Past hearings render without the accent. Use `date-fns/isFuture` to determine this.
+
+---
+
+# 18. UI Implementation — CreateCourtCaseDrawer
+
+## 18.1 `CreateCourtCaseDrawer.tsx`
+
+Client Component wrapping `SlideOverDrawer` (480px).
+
+### 18.1.1 Layout
+
+```
+CreateCourtCaseDrawer (480px)
+──────────────────────────────────────────────
+  Create Court Case
+  Link this investigation case to court proceedings.
+──────────────────────────────────────────────
+ ┌── Section 1: Court Details ─────────────────┐
+ │  Court Name *         [Input]               │
+ │  Date Filed *         [DatePicker]          │
+ └─────────────────────────────────────────────┘
+
+ ┌── Section 2: Key Personnel ─────────────────┐
+ │  Presiding Judge      [Input, optional]     │
+ │  Prosecutor           [Input, optional]     │
+ │  Defence Counsel      [Input, optional]     │
+ └─────────────────────────────────────────────┘
+
+ ┌── Section 3: Hearing Dates ─────────────────┐
+ │  [+ Add Hearing Date]                       │
+ │                                             │
+ │  ┌─ Hearing 1 ──────────────────────────┐  │
+ │  │  Date *      [DatePicker]            │  │
+ │  │  Type *      [Select]                │  │
+ │  │  Location *  [Input]                 │  │
+ │  │  Notes       [Input, optional]       │  │
+ │  │  [Remove]                            │  │
+ │  └──────────────────────────────────────┘  │
+ └─────────────────────────────────────────────┘
+
+ ┌── Section 4: Notes ────────────────────────┐
+ │  Notes          [Textarea, optional]       │
+ └────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Cancel]                  [Create Court Case]
+```
+
+### 18.1.2 Hearing Dates — Dynamic Field Array
+
+Use `useFieldArray` from React Hook Form to manage the `hearingDates` array:
+
+```typescript
+const { fields, append, remove } = useFieldArray({
+  control,
+  name: 'hearingDates',
 })
 ```
 
-### 14.2.2 Drawer state (component-local)
+"Add Hearing Date" button appends a blank hearing object. Each hearing entry renders in a card with a remove button. Maximum 20 hearing dates.
+
+### 18.1.3 Submit logic
 
 ```typescript
-const [createOpen, setCreateOpen] = useState(false)
-const [selectedArrestId, setSelectedArrestId] = useState<string | null>(null)
-const [updateArrestId, setUpdateArrestId] = useState<string | null>(null)
+const onSubmit = async (values: CreateCourtCaseValues) => {
+  await createCourtCaseMutation.mutateAsync(values)
+  onClose()
+  form.reset()
+}
 ```
 
-Do not store drawer IDs in Zustand. Local `useState` is correct here.
+Dirty state guard: if `formState.isDirty` and the officer closes the drawer, show `ConfirmDialog`: "Discard changes? The court case will not be created."
 
-### 14.2.3 PageHeader
+---
+
+# 19. UI Implementation — UpdateCourtCaseDrawer
+
+## 19.1 `UpdateCourtCaseDrawer.tsx`
+
+Client Component wrapping `SlideOverDrawer` (480px).
+
+Pre-populate all fields with the current `CourtCase` data using `defaultValues` in `useForm`. The update form mirrors the create form in structure, with two additions:
+
+1. **Status field** — `Select` showing `CourtCaseStatus` values, labelled via `t('courtCase.status.*')`
+2. **Outcome field** — `Select` showing `CourtCaseOutcome` values, labelled via `t('courtCase.outcome.*')`. Conditionally required: show a `(Required when Concluded)` hint and validate at schema level.
+
+The Outcome select is always rendered (not conditionally shown), but the Zod schema validation rejects submission when `status === CONCLUDED && !outcome`.
+
+Uses `useUpdateCourtCase(courtCase.id, caseId)`. On success: drawer closes, toast confirms.
+
+---
+
+# 20. UI Implementation — ChargesTable
+
+## 20.1 `ChargesTable.tsx`
+
+Client Component. Manages filter state (URL-driven) and delegates row action events upward to `LegalTab`.
+
+### 20.1.1 Filter state
+
+```typescript
+const [filters, setFilters] = useQueryStates({
+  chargeSearch: parseAsString.withDefault(''),
+  chargeStatus: parseAsArrayOf(parseAsString).withDefault([]),
+  chargePage: parseAsInteger.withDefault(1),
+  chargePageSize: parseAsInteger.withDefault(25),
+  chargeSortField: parseAsString.withDefault('filedAt'),
+  chargeSortDirection: parseAsString.withDefault('desc'),
+})
+```
+
+> Use a unique URL param prefix (`charge*`) to avoid collisions with any other filter state on the same page.
+
+### 20.1.2 PageHeader
 
 ```tsx
-<PageHeader
-  title={t('tab.heading')}
-  description={`${data?.total ?? 0} ${t('tab.entityCount', { count: data?.total ?? 0 })}`}
+<SectionHeader
+  title={t('charges.sectionTitle')}
+  description={`${data?.total ?? 0} ${t('charges.entityCount', { count: data?.total ?? 0 })}`}
   actions={
-    <PermissionGuard permission={Permission.ARRESTS_MANAGE}>
-      <Button onClick={() => setCreateOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" />
-        {t('tab.recordArrest')}
+    <PermissionGuard permission={Permission.LEGAL_MANAGE}>
+      <Button onClick={onAddCharge} size="sm">
+        <Plus className="mr-2 h-3.5 w-3.5" />
+        {t('charges.addChargeButton')}
       </Button>
     </PermissionGuard>
   }
 />
 ```
 
-### 14.2.4 Filter Bar
+Use `SectionHeader` (not `PageHeader`) — the charges table is a section within the legal tab page, not a top-level page.
 
-Rendered below the PageHeader. Contains:
-- Search input (`Search` icon, placeholder from `t('tab.filters.search')`) — debounced 300ms before updating URL
-- Detention status multi-select filter — uses `DetentionStatus` enum values, each labelled via `t('detentionStatus.*')`
-- Date range picker (From/To date fields)
-- "Clear all filters" link button — visible only when any filter is active
-
-Active filter chips appear below the filter bar in a `flex flex-wrap gap-2` row. Each chip: label, `×` remove button. Removing a chip updates the corresponding URL param.
-
-### 14.2.5 DataTable Column Definitions
-
-Define in `src/features/arrests/components/ArrestsTab.tsx` or a co-located `arrests-columns.tsx`:
+### 20.1.3 DataTable Column Definitions
 
 | Column Key | Renderer | Sortable | Min Width |
 |---|---|---|---|
-| `arrestNumber` | Monospace text, `xs` font | Yes | 110px |
-| `arrestedPerson` | `firstName lastName` linked (or plain if role < dept head) | No | 160px |
-| `arrestingOfficer` | `firstName lastName (badgeNumber)` | No | 160px |
-| `arrestDate` | `dd MMM yyyy HH:mm` | Yes | 130px |
-| `location` | Truncated to 40 chars, full on tooltip | No | 150px |
-| `detentionStatus` | `DetentionStatusBadge` | Yes | 120px |
-| `bailStatus` | `BailStatusBadge` | No | 100px |
+| `suspect` | `firstName lastName` (plain text) | No | 150px |
+| `crimeType` | `crimeType.name` (plain text) | No | 150px |
+| `status` | `ChargeStatusBadge` (see §20.1.4) | Yes | 110px |
+| `filedAt` | `dd MMM yyyy` | Yes | 100px |
+| `sentence` | Sentence indicator chip (see §20.1.5) | No | 100px |
 | `actions` | Kebab menu | No | 48px |
 
-**Row click behaviour:** Clicking any row (not the kebab) opens `ArrestDetailDrawer` for that arrest ID.
+**Row click behaviour:** Clicking any row (not the kebab) opens `UpdateChargeStatusDrawer` for non-terminal charges, or `ViewSentenceDrawer` for terminal `CONVICTED` charges.
 
-**Kebab actions:**
-- `t('tab.rowActions.view')` → opens `ArrestDetailDrawer`
-- `t('tab.rowActions.updateStatus')` → opens `UpdateArrestDrawer` (investigator+)
-- Separator
-- `t('tab.rowActions.delete')` (destructive, red label) → `DestructiveConfirmDialog` (dept head+ only)
+**Kebab actions** (rendered conditionally per charge state):
+- `t('charges.rowActions.updateStatus')` — rendered when charge is NOT terminal (`isChargeTerminal(charge.status) === false`); guarded by `legal:manage`
+- `t('charges.rowActions.viewSentence')` — rendered when `charge.status === CONVICTED`; no permission guard (read action)
+- Separator (rendered when both above are visible)
+- `t('charges.rowActions.dropCharge')` — rendered when charge is NOT terminal; destructive (red label, `Trash2` icon); guarded by `legal:manage`
 
-### 14.2.6 Status Badge Variants
+### 20.1.4 Charge Status Badge Variant
 
-**Detention Status badge variant mapping:**
 ```typescript
-const DETENTION_STATUS_VARIANTS: Record<DetentionStatus, BadgeVariant> = {
-  IN_CUSTODY:       'warning',     // Amber — person is currently held
-  RELEASED_ON_BAIL: 'accent',      // Indigo — released with conditions
-  RELEASED:         'success',     // Green — fully released
-  TRANSFERRED:      'primary',     // Blue — moved elsewhere
+const CHARGE_STATUS_VARIANTS: Record<ChargeStatus, BadgeVariant> = {
+  FILED:      'primary',       // Blue — filed
+  ACTIVE:     'warning',       // Amber — in active proceedings
+  CONVICTED:  'destructive',   // Red — convicted
+  ACQUITTED:  'success',       // Green — acquitted
+  DROPPED:    'muted',         // Slate — dropped
 }
 ```
 
-**Bail Status badge variant mapping:**
-```typescript
-const BAIL_STATUS_VARIANTS: Record<BailStatus, BadgeVariant> = {
-  NOT_SET:  'muted',        // Slate — not yet determined
-  DENIED:   'destructive',  // Red — bail denied
-  GRANTED:  'success',      // Green — bail approved
-  POSTED:   'accent',       // Indigo — bail has been paid
-}
-```
+### 20.1.5 Sentence Indicator Chip
+
+For the `sentence` column:
+
+- `CONVICTED` + `hasSentence === true`: render a small `success` badge — `t('charges.sentenceIndicator.recorded')` with a `CheckCircle2` icon (12px)
+- `CONVICTED` + `hasSentence === false`: render a `warning` badge — `t('charges.sentenceIndicator.pending')` with a `Clock` icon (12px)
+- All other statuses: render `—` in muted text
+
+### 20.1.6 Empty state
+
+Two variants:
+- No charges, no filters active: `EmptyState` with title `t('charges.empty.title')`, description `t('charges.empty.description')`, and a CTA `t('charges.empty.cta')` as a text hint (not a button — the Add Charge button in the header serves as the CTA)
+- Filters active but no results: `TableEmptyState` with `t('charges.emptyFiltered')` (no CTA)
 
 ---
 
-# 15. UI Implementation — Create Arrest Drawer
+# 21. UI Implementation — AddChargeDrawer
 
-## 15.1 `CreateArrestDrawer.tsx`
+## 21.1 `AddChargeDrawer.tsx`
 
 Client Component wrapping `SlideOverDrawer` (480px).
 
-### 15.1.1 Layout
+### 21.1.1 Layout
 
 ```
-CreateArrestDrawer (480px)
+AddChargeDrawer (480px)
 ──────────────────────────────────────────────
-  Record Arrest
-  Record a new arrest linked to this case.
+  Add Charge
+  File a new charge in this court case.
 ──────────────────────────────────────────────
- ┌── Section 1: Arrest Details ──────────────┐
- │  Arrested Person *    [SearchableSelect]   │
- │  (hint: suspects on this case only)        │
+ ┌── Section 1: Charge Details ───────────────┐
+ │  Suspect *        [SearchableSelect]        │
+ │  (hint: suspects linked to this case only) │
  │                                            │
- │  Arresting Officer *  [SearchableSelect]   │
- │  Date & Time *        [DatePicker]         │
- │  Location *           [Input]              │
- │  Warrant Number       [Input, optional]    │
+ │  Crime Type *     [SearchableSelect]       │
  │                                            │
- │  Charges at Time of Arrest *              │
- │  ┌──────────────────────────────────────┐ │
- │  │  [Chip] Robbery  [×]                 │ │  ← Tag-style input
- │  │  [Chip] Assault  [×]                 │ │
- │  │  [+Add charge input + Enter]         │ │
- │  └──────────────────────────────────────┘ │
- │  Notes                [Textarea, optional] │
- └────────────────────────────────────────────┘
-
- ┌── Section 2: Bail Information ─────────────┐
- │  Bail Status          [Select]             │
- │  Bail Amount (ETB)    [Input, conditional] │  ← Only shown when GRANTED or POSTED
+ │  Notes            [Textarea, optional]     │
  └────────────────────────────────────────────┘
 
  ────────────────────────────────────────────
- [Cancel]                     [Record Arrest]
+ [Cancel]                       [File Charge]
 ```
 
-### 15.1.2 Person SearchableSelect (suspects on this case)
-
-Use `SearchableSelect` with server-side search. The query function:
+### 21.1.2 Suspect SearchableSelect
 
 ```typescript
 const searchSuspects = async (searchTerm: string): Promise<SelectOption[]> => {
@@ -1720,725 +2342,622 @@ const searchSuspects = async (searchTerm: string): Promise<SelectOption[]> => {
 }
 ```
 
-Include the hint text `t('create.arrestedPersonHint')` as a `<FormField>` helper below the select. If the case has no suspects, show an empty state inside the dropdown: "No suspects are linked to this case. Add suspects via the Personnel module first."
+If the case has no suspects, render an inline empty state inside the dropdown: "No suspects are linked to this case. Add suspects from the Personnel module first." — and disable the submit button with a tooltip.
 
-### 15.1.3 Charges at Arrest — tag-style input
-
-This field is not a standard `Input` or `Textarea`. It functions as a **tag input**:
-- An `<input>` field at the bottom of the charges area allows the officer to type a charge and press `Enter` (or Tab) to add it as a chip.
-- Each chip shows the charge text with a `×` remove button.
-- The chip list is managed in local state: `const [charges, setCharges] = useState<string[]>([])`
-- React Hook Form value is registered via `setValue('chargesAtArrest', charges)` whenever charges change.
-- Pressing `Backspace` on an empty input removes the last chip.
-- Maximum 20 charges; if at max, disable the input and show "Maximum charges reached."
-
-Chip styles: `background: var(--color-card-hover)`, `border: 1px solid var(--color-border)`, `border-radius: var(--radius-sm)`, `padding: 2px 8px`, `font-size: 12px`.
-
-### 15.1.4 Conditional bail amount field
-
-Watch `bailStatus` via `useWatch`. When `GRANTED` or `POSTED`:
-- Show the bail amount `<Input type="number" min="0" step="0.01" />` with the label `t('create.bailAmountLabel')`
-- Animate with `max-height` expand (150ms ease-out) — same technique as evidence media section
-- When bail status changes to `NOT_SET` or `DENIED`, collapse and clear the amount field
+### 21.1.3 Crime Type SearchableSelect
 
 ```typescript
-const selectedBailStatus = watch('bailStatus')
-const showBailAmount = BAIL_STATUSES_WITH_AMOUNT.includes(selectedBailStatus as BailStatus)
+const searchCrimeTypes = async (searchTerm: string): Promise<SelectOption[]> => {
+  // Use the existing reference data endpoint
+  const crimeTypes = await getCrimeTypes({ search: searchTerm })
+  return crimeTypes.map((ct) => ({ value: ct.id, label: ct.name }))
+}
 ```
 
-### 15.1.5 Submit logic
+`getCrimeTypes` is already implemented in the admin/reference data service (Phase 1 foundation). Import from `@services/domain/admin.service`.
+
+### 21.1.4 Submit logic
 
 ```typescript
-const onSubmit = async (values: CreateArrestValues) => {
-  await createArrestMutation.mutateAsync({
-    ...values,
-    chargesAtArrest: charges,
-  })
-  // onSuccess handled by hook — toast + invalidation
+const onSubmit = async (values: CreateChargeValues) => {
+  await createChargeMutation.mutateAsync(values)
   onClose()
   form.reset()
-  setCharges([])
 }
 ```
 
-On mutation error (from hook `onError`): toast is shown by the hook; drawer stays open.
-
-Dirty state guard: if `formState.isDirty || charges.length > 0` and the officer closes the drawer, show `ConfirmDialog`: "Discard arrest record? You have unsaved changes."
+On mutation error: drawer stays open; toast shown by hook.
 
 ---
 
-# 16. UI Implementation — Arrest Detail Drawer
+# 22. UI Implementation — UpdateChargeStatusDrawer
 
-## 16.1 `ArrestDetailDrawer.tsx`
+## 22.1 `UpdateChargeStatusDrawer.tsx`
 
-Client Component wrapping `SlideOverDrawer` (480px).
+Client Component wrapping `SlideOverDrawer` (480px). This is the most complex drawer in the legal module.
 
-Uses `useArrest(selectedArrestId)`. Shows a `<Skeleton>` version while loading.
+### 22.1.1 Data fetching
 
-### 16.1.1 Layout
+The drawer receives `chargeId`, `courtCaseId`, and `caseId` as props. It fetches the charge detail from the list cache — find by ID from `useChargeList` data already in cache. If the charge needs a dedicated detail endpoint, add `useChargeDetail(chargeId)` fetching from `GET /api/v1/charges/{chargeId}`.
+
+### 22.1.2 Layout — Non-terminal charge
 
 ```
-ArrestDetailDrawer (480px)
+UpdateChargeStatusDrawer (480px)
 ──────────────────────────────────────────────
-  Arrest Details                  ARR-2026-00018
+  Update Charge Status
+  Change the status of this charge.
 ──────────────────────────────────────────────
- ┌── Arrest Metadata ──────────────────────────┐
- │  Arrested Person   John Bekele               │
- │  Arresting Officer Insp. Sara Haile (BD-082) │
- │  Date & Time       14 Jun 2026  09:23 UTC    │
- │  Location          Bole Road, near Edna Mall │
- │  Warrant No.       WRN-2026-00041            │
- └────────────────────────────────────────────┘
+ ┌── Current Status ───────────────────────────┐
+ │  Status: [Filed badge]                      │
+ │  Suspect: John Bekele                       │
+ │  Crime: Robbery with Violence               │
+ └─────────────────────────────────────────────┘
 
- ┌── Status ───────────────────────────────────┐
- │  Detention    [In Custody badge]             │
- │  Bail         [Not Set badge]                │
- └────────────────────────────────────────────┘
+ ┌── Update Status ─────────────────────────────┐
+ │  New Status *   [Select — available options] │
+ └─────────────────────────────────────────────┘
 
- ┌── Charges at Time of Arrest ───────────────┐
- │  [Chip] Robbery  [Chip] Assault             │
- └────────────────────────────────────────────┘
-
- ┌── Court Appearance ────────────────────────┐
- │  "Not yet scheduled."  (or date if set)    │
- └────────────────────────────────────────────┘
-
- ┌── Notes ────────────────────────────────────┐
- │  ...notes text...                          │
- └────────────────────────────────────────────┘
+ ┌── Record Conviction (appears only when CONVICTED is selected) ────┐
+ │  [Amber notice bar — see §22.1.3]                                │
+ │                                                                  │
+ │  Sentence Type *    [Select]                                     │
+ │  Duration (months)  [Input, conditional]                         │
+ │  Fine Amount (ETB)  [Input, conditional]                         │
+ │  Sentence Date *    [DatePicker]                                 │
+ │  Issued By Judge    [Input, optional]                            │
+ │  Notes              [Textarea, optional]                         │
+ └──────────────────────────────────────────────────────────────────┘
 
  ────────────────────────────────────────────
- [🗑 Delete (destructive)]   [Update Status]
+ [Cancel]              [Record Conviction & Sentence] or [Update Status]
 ```
 
-### 16.1.2 Action buttons
+### 22.1.3 Conviction flow inline
 
-- **Update Status** button: `PermissionGuard` requiring `arrests:manage`. Closes this drawer and opens `UpdateArrestDrawer` for the same arrest ID.
-- **Delete** button: `PermissionGuard` requiring `arrests:delete` (dept head+ only). Destructive styling. Opens `DestructiveConfirmDialog` with:
-  - Title: `t('delete.confirmTitle')`
-  - Description: `t('delete.confirmDescription', { arrestNumber })`
-  - Confirm phrase: `t('delete.confirmPhrase', { arrestNumber })`
-  - On confirm: calls `useDeleteArrest` mutation; on success, both the confirm dialog and the detail drawer close
+The `UpdateChargeStatusDrawer` handles two distinct flows depending on which status is selected:
 
-### 16.1.3 Charges display
+**Non-CONVICTED selection** (e.g. ACTIVE, ACQUITTED):
+- Submit button label: `t('charges.update.submitButton')` ("Update Status")
+- On submit: calls `useUpdateCharge` mutation with `{ status }` payload
 
-Render charges as chips using the same style defined in Section 15.1.3. These chips have no `×` button (read-only context). If `chargesAtArrest` is empty, render `t('detail.noCharges')` in muted text.
-
----
-
-# 17. UI Implementation — Update Arrest Drawer
-
-## 17.1 `UpdateArrestDrawer.tsx`
-
-Client Component wrapping `SlideOverDrawer` (480px).
-
-### 17.1.1 Purpose and scope
-
-This drawer's sole purpose is updating `detentionStatus`, `bailStatus`, and `bailAmount`. It does not expose other arrest fields. This mirrors the case status transition drawer pattern established in Phase 3.
-
-### 17.1.2 Form fields and layout
+**CONVICTED selection**:
+- The sentencing fields section expands (animate with `max-height` expand, 150ms ease-out)
+- Display the amber conviction notice bar:
 
 ```
-UpdateArrestDrawer (480px)
-──────────────────────────────────────────────
-  Update Detention Status       ARR-2026-00018
-  Update the detention and bail status.
-──────────────────────────────────────────────
- ┌── Current Status (read-only display) ──────┐
- │  Detention:  [In Custody badge]            │
- │  Bail:       [Not Set badge]               │
- └────────────────────────────────────────────┘
-
- ┌── Update ───────────────────────────────────┐
- │  Detention Status *   [Select]              │
- │  Bail Status *        [Select]              │
- │  Bail Amount (ETB)    [Input, conditional]  │
- │  Notes                [Textarea, optional]  │
- └────────────────────────────────────────────┘
-
- ────────────────────────────────────────────
- [Cancel]                      [Save Changes]
+┌─────────────────────────────────────────────────────────────────────┐
+│  ⚠  Recording a sentence will permanently set this charge to       │
+│     Convicted. This cannot be reversed.                            │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-Uses `useUpdateArrest(arrestId, caseId)`. On success: drawer closes, arrest detail and list queries invalidated automatically by the hook, toast confirms the update.
+Style: `background: rgba(245, 158, 11, 0.08)`, `border: 1px solid var(--color-warning)`, `border-radius: var(--radius-sm)`, `padding: 8px 12px`. `AlertTriangle` icon (14px, warning colour).
 
-The `useArrest(arrestId)` data is used to pre-populate the current status display section and as default values for the form fields.
+- Submit button label changes to: `t('charges.update.convictButton')` ("Record Conviction & Sentence")
+- On submit: calls `useRecordSentence` mutation (NOT `useUpdateCharge`) — `recordSentence` sets the status to CONVICTED and records the sentence in one atomic backend operation
+- The `updateChargeStatusSchema` is used for the status field; the `recordSentenceSchema` is used for the sentence fields; combine them using `z.object({}).merge()` or validate conditionally
 
----
+### 22.1.4 Available status options in the Select
 
-# 18. UI Implementation — Interrogations Tab
-
-## 18.1 Route: `src/app/(dashboard)/cases/[caseId]/interrogations/page.tsx`
-
-Replace the Phase 3 skeleton. Server Component rendering `<InterrogationsTab caseId={params.caseId} />`.
-
-```typescript
-import { getTranslations } from 'next-intl/server'
-import { InterrogationsTab } from '@features/interrogations/components/InterrogationsTab'
-import type { Metadata } from 'next'
-
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('interrogations')
-  return { title: t('pageTitle') }
-}
-
-export default function CaseInterrogationsPage({
-  params,
-}: {
-  params: { caseId: string }
-}) {
-  return <InterrogationsTab caseId={params.caseId} />
-}
-```
-
-## 18.2 `InterrogationsTab.tsx` — Component Architecture
-
-Client Component. Manages filter state (URL-driven) and two drawer states: `createOpen` and `selectedInterrogationId`.
-
-### 18.2.1 Filter state
-
-```typescript
-const [filters, setFilters] = useQueryStates({
-  search: parseAsString.withDefault(''),
-  dateFrom: parseAsString.withDefault(''),
-  dateTo: parseAsString.withDefault(''),
-  page: parseAsInteger.withDefault(1),
-  pageSize: parseAsInteger.withDefault(25),
-  sortField: parseAsString.withDefault('interrogationDate'),
-  sortDirection: parseAsString.withDefault('desc'),
-})
-```
-
-### 18.2.2 PageHeader
+Use `getAvailableChargeStatuses(charge.status)` from `chargeUtils.ts` to populate the options. This function returns `[]` for terminal statuses. Always include `CONVICTED` as a separate option in the UI, below the regular options, separated by a divider — it triggers the sentencing section, not the regular status update flow.
 
 ```tsx
-<PageHeader
-  title={t('tab.heading')}
-  description={`${data?.total ?? 0} ${t('tab.entityCount', { count: data?.total ?? 0 })}`}
-  actions={
-    <PermissionGuard permission={Permission.INTERROGATIONS_MANAGE}>
-      <Button onClick={() => setCreateOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" />
-        {t('tab.addInterrogation')}
-      </Button>
-    </PermissionGuard>
-  }
-/>
+// In the Select options:
+[
+  ...getAvailableChargeStatuses(charge.status).map(status => ({
+    value: status,
+    label: t(`charges.status.${status}`),
+  })),
+  { type: 'separator' },
+  {
+    value: ChargeStatus.CONVICTED,
+    label: t(`charges.status.CONVICTED`),
+    // Render with a subtle red label to communicate significance
+    className: 'text-destructive',
+  },
+]
 ```
 
-### 18.2.3 DataTable Column Definitions
+### 22.1.5 Terminal charge state
 
-| Column Key | Renderer | Sortable | Min Width |
-|---|---|---|---|
-| `interrogationNumber` | Monospace, `xs` | Yes | 100px |
-| `subject` | `firstName lastName` + role badge | No | 160px |
-| `conductingOfficer` | `firstName lastName (badgeNumber)` | No | 160px |
-| `interrogationDate` | `dd MMM yyyy HH:mm` | Yes | 130px |
-| `location` | Truncated to 40 chars | No | 150px |
-| `durationMinutes` | `{n} min` or `—` if null | No | 80px |
-| `legalRepresentativePresent` | Yes/No badge | No | 90px |
-| `actions` | Kebab menu | No | 48px |
-
-**Subject role badge:** Render a small badge next to the subject's name indicating their role on the case: `t('roleOnCase.SUSPECT')` / `t('roleOnCase.VICTIM')` / `t('roleOnCase.WITNESS')`. Use `accent` variant for SUSPECT, `muted` for VICTIM/WITNESS.
-
-**Legal rep badge:**
-- Present: `success` variant, label `t('tab.legalRepYes')`
-- Absent: `muted` variant, label `t('tab.legalRepNo')`
-
-**Row click behaviour:** Clicking any row opens `InterrogationDetailDrawer`. There is no destructive row action. The only kebab action is `t('tab.rowActions.view')`.
-
----
-
-# 19. UI Implementation — Create Interrogation Drawer
-
-## 19.1 `CreateInterrogationDrawer.tsx`
-
-Client Component wrapping `SlideOverDrawer` (480px).
-
-### 19.1.1 Layout
+If `isChargeTerminal(charge.status) === true`:
 
 ```
-CreateInterrogationDrawer (480px)
+UpdateChargeStatusDrawer (480px)
 ──────────────────────────────────────────────
-  Add Interrogation Record
-  Log a new interrogation session for this case.
+  Update Charge Status
 ──────────────────────────────────────────────
- ┌── Section 1: Session Details ──────────────┐
- │  Subject *             [SearchableSelect]   │
- │  Conducting Officer *  [SearchableSelect]   │
- │  Date & Time *         [DatePicker]         │
- │  Location *            [Input]              │
- │  Duration (minutes)    [Input, optional]    │
- └────────────────────────────────────────────┘
-
- ┌── Section 2: Legal Representation ─────────┐
- │  Legal Rep Present?    [Toggle switch]      │
- │  Legal Rep Name        [Input, conditional] │  ← Only shown when toggle is ON
- └────────────────────────────────────────────┘
-
- ┌── Section 3: Summary ──────────────────────┐
- │  Interrogation Summary * [Textarea, tall]   │
- │  (hint: permanent record / court use)       │
- │  Recording Reference     [Input, optional]  │
- └────────────────────────────────────────────┘
-
- ────────────────────────────────────────────
- [Cancel]                       [Save Record]
-```
-
-### 19.1.2 Subject SearchableSelect (all persons on this case)
-
-```typescript
-const searchPersons = async (searchTerm: string): Promise<SelectOption[]> => {
-  const persons = await getCasePersons(caseId, { search: searchTerm })
-  // No role filter — all linked persons (suspects, victims, witnesses) are shown
-  return persons.map((p) => ({
-    value: p.id,
-    label: `${p.firstName} ${p.lastName}`,
-  }))
-}
-```
-
-The dropdown option renders the person's name with their role (if known), e.g. "Alem Tadesse — Suspect". This requires the `getCasePersons` response to include a `roleOnCase` field. Adjust the type if the API provides it.
-
-### 19.1.3 Legal representative conditional field
-
-```typescript
-const legalRepPresent = watch('legalRepresentativePresent')
-```
-
-When `legalRepPresent === true`: animate the `legalRepresentativeName` input into view (same `max-height` expand as bail amount). When toggled off: collapse and clear the name.
-
-Use a `<Switch>` (Radix-based, from shadcn/ui) for the toggle. Its value is registered via `Controller` in React Hook Form.
-
-### 19.1.4 Summary textarea
-
-The summary `<Textarea>` should be taller than the standard field: `min-height: 160px` (approximately 6 rows). It has a character counter in the bottom-right corner (current / 5000). Render the counter in `xs` muted text.
-
-Below the textarea, render the helper text `t('create.summaryHint')` in `xs` `var(--color-warning)` (amber) — this emphasises the permanence of the record. Use `AlertTriangle` icon (12px) before the text.
-
-### 19.1.5 Submit logic
-
-```typescript
-const onSubmit = async (values: CreateInterrogationValues) => {
-  await createInterrogationMutation.mutateAsync(values)
-  onClose()
-  form.reset()
-}
-```
-
-No dirty state guard is needed for the decision to cancel — interrogation records are created in a single operation and there is no multi-step flow.
-
----
-
-# 20. UI Implementation — Interrogation Detail Drawer
-
-## 20.1 `InterrogationDetailDrawer.tsx`
-
-Client Component wrapping `SlideOverDrawer` (480px). This is a **read-only** drawer. No edit or delete buttons.
-
-### 20.1.1 Immutability indicator
-
-Immediately below the drawer title/subtitle area, render a notice bar:
-
-```
-┌────────────────────────────────────────────────────────────┐
-│  🔒  This record is permanent and cannot be edited.        │
-└────────────────────────────────────────────────────────────┘
-```
-
-Style: `background: var(--color-card-hover)`, `border: 1px solid var(--color-border)`, `border-radius: var(--radius-sm)`, `padding: 8px 12px`, `font-size: 12px`, `color: var(--color-foreground-muted)`. `Lock` icon (14px, muted).
-
-In the drawer header, place a `Lock` icon tooltip next to the record number with text `t('detail.immutableTooltip')`.
-
-### 20.1.2 Layout
-
-```
-InterrogationDetailDrawer (480px)
-──────────────────────────────────────────────
-  Interrogation Record     🔒  INT-2026-00007
-  [Immutability notice bar]
-──────────────────────────────────────────────
- ┌── Record Metadata ─────────────────────────┐
- │  Subject          Alem Tadesse [Suspect]    │
- │  Conducted By     Insp. Dawit (BD-00142)    │
- │  Date & Time      14 Jun 2026  14:30 UTC    │
- │  Location         Interview Room 3          │
- │  Duration         90 minutes                │
- └────────────────────────────────────────────┘
-
- ┌── Legal Representation ────────────────────┐
- │  Present?        [Present badge]           │
- │  Representative  Ato Haile Gebre (Lawyer)  │
- └────────────────────────────────────────────┘
-
- ┌── Summary ──────────────────────────────────┐
- │  [Full summary text, whitespace-preserved] │
- └────────────────────────────────────────────┘
-
- ┌── Recording ────────────────────────────────┐
- │  Reference:  VID-2026-INT-0042             │
- └────────────────────────────────────────────┘
+ ┌── Terminal Notice ───────────────────────────┐
+ │  [Lock icon]  This charge has reached a      │
+ │  final status and cannot be changed.         │
+ │  Status: [CONVICTED badge]                  │
+ └─────────────────────────────────────────────┘
 
  ────────────────────────────────────────────
  [Close]
 ```
 
-The Summary section uses `whitespace-pre-wrap` to preserve line breaks entered by the investigator. The text is rendered as `plain text` — never as HTML. The `monospace` font is NOT used here (the summary is narrative text). Use `var(--font-sans)` at `base` size.
-
-The data is fetched from `useInterrogationList` data already in the cache — for the detail drawer, find the matching item by ID from the list. If additional fields (summary, recordingReference) are not in the list response, add `useInterrogationDetail(interrogationId)` as a separate hook fetching from `GET /api/v1/cases/{caseId}/interrogations/{id}` — only if the backend supports it. If the backend does not provide a detail endpoint, all necessary fields must be included in the list response.
+No form fields are rendered. The drawer is read-only. The "Update Status" button in the kebab should not open this drawer for terminal charges — instead, for `CONVICTED` it opens `ViewSentenceDrawer`. The `onUpdateStatus` callback in `LegalTab` should guard against terminal statuses before opening this drawer.
 
 ---
 
-# 21. caseKeys Update
+# 23. UI Implementation — DropChargeDialog
 
-## 21.1 Verify and extend `caseKeys.ts`
+## 23.1 `DropChargeDialog.tsx`
 
-Open `src/services/query/keys/caseKeys.ts`. Verify these sub-resource keys exist under the `caseKeys` factory. If any are missing, add them:
+Thin wrapper around the existing `DestructiveConfirmDialog` shared component.
 
-```typescript
-// Sub-resource keys (add if missing)
-arrests: (caseId: string) =>
-  [...caseKeys.detail(caseId), 'arrests'] as const,
-interrogations: (caseId: string) =>
-  [...caseKeys.detail(caseId), 'interrogations'] as const,
+```tsx
+<DestructiveConfirmDialog
+  open={open}
+  onClose={onClose}
+  title={t('charges.drop.confirmTitle')}
+  description={t('charges.drop.confirmDescription', {
+    suspectName: `${charge.suspect.firstName} ${charge.suspect.lastName}`,
+    crimeType: charge.crimeType.name,
+  })}
+  confirmLabel={t('charges.drop.confirmButton')}
+  cancelLabel={t('charges.drop.cancelButton')}
+  onConfirm={async () => {
+    await dropChargeMutation.mutateAsync()
+    onClose()
+  }}
+  isLoading={dropChargeMutation.isPending}
+  error={dropChargeMutation.isError ? t('charges.update.errorMessage') : undefined}
+/>
 ```
 
-These keys are used by the case overview tab count cards (established in Phase 3). After mutations in this phase, both `caseKeys.arrests(caseId)` and `caseKeys.interrogations(caseId)` are invalidated so the count numbers update without a page refresh.
+No confirm phrase required (blueprint pattern: confirm phrase is optional, used for "highest-consequence actions such as case deletion"). Dropping a charge is serious but not as irreversible as case deletion.
 
 ---
 
-# 22. Permission Guard Matrix
+# 24. UI Implementation — ViewSentenceDrawer
 
-| Action | Required Permission / Role | Guard Type |
-|---|---|---|
-| View arrests tab | Any authenticated | Route access check (investigator+) |
-| See "Record Arrest" button | `arrests:manage` | `PermissionGuard` |
-| Open arrest detail drawer | Any authenticated (tab access) | No guard |
-| Open "Update Status" button | `arrests:manage` | `PermissionGuard` |
-| Delete arrest | `arrests:delete` (dept head+) | `PermissionGuard` |
-| View interrogations tab | Any authenticated | Route access check (investigator+) |
-| See "Add Interrogation" button | `interrogations:manage` | `PermissionGuard` |
-| Open interrogation detail drawer | Any authenticated (tab access) | No guard |
-| Delete interrogation | Not available — records are immutable | N/A |
+## 24.1 `ViewSentenceDrawer.tsx`
 
-**Tab disabled state:** The Arrests and Interrogations tabs are accessible to `investigator+`. For roles below investigator (e.g. `legal officer` without investigator rights), both tabs render as disabled (grey, lock icon) in the case tab navigation. They are not hidden. This matches the blueprint's disabled-vs-hidden policy.
+Client Component wrapping `SlideOverDrawer` (480px). Read-only.
 
----
+### 24.1.1 Immutability indicator
 
-# 23. Design Specifications
+Immediately below the drawer title, render the immutability notice bar (same pattern as `InterrogationDetailDrawer`):
 
-## 23.1 Arrest detail — bail amount display
-
-When bail amount is set, render it with currency formatting:
-
-```typescript
-const formatBailAmount = (amount: number, locale: string): string =>
-  new Intl.NumberFormat(locale === 'am' ? 'am-ET' : 'en-ET', {
-    style: 'decimal',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount) + ' ETB'
+```
+┌────────────────────────────────────────────────────────────────────┐
+│  🔒  This sentence record is permanent and cannot be modified.     │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
-Render as `t('detail.bailAmountValue', { amount: formattedAmount })`. Do not use the browser's Intl currency formatter with `style: 'currency'` — ETB support varies.
+### 24.1.2 Layout
 
-## 23.2 Duration display — interrogations
+```
+ViewSentenceDrawer (480px)
+──────────────────────────────────────────────
+  Sentence Details               🔒
+  [Immutability notice bar]
+──────────────────────────────────────────────
+ ┌── Charge Context ───────────────────────────┐
+ │  Suspect    John Bekele                     │
+ │  Charge     Robbery with Violence           │
+ │  Status     [Convicted badge]               │
+ └─────────────────────────────────────────────┘
 
-When `durationMinutes` is set, convert for display:
+ ┌── Sentence Details ─────────────────────────┐
+ │  Type        Imprisonment                   │
+ │  Duration    5 years (60 months)            │
+ │  Fine        —                              │
+ │  Sentenced   14 Jun 2026                    │
+ │  By Judge    Hon. Abebe Tadesse             │
+ └─────────────────────────────────────────────┘
 
-```typescript
-function formatDuration(minutes: number, t: TranslateFunction): string {
-  if (minutes < 60) return t('tab.durationValue', { minutes })
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return m > 0 ? `${h}h ${m}min` : `${h}h`
-}
+ ┌── Notes ────────────────────────────────────┐
+ │  ...sentence notes text...                 │
+ └─────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Close]
 ```
 
-When `durationMinutes` is null, display `t('tab.durationUnknown')` (`—`).
+Duration rendering: use `formatDurationMonths(sentence.durationMonths)` from `chargeUtils.ts`. If `durationMonths === null`, render `—`.
 
-## 23.3 Charges chips — consistent styling
+Fine rendering: use `formatFineAmount(sentence.fineAmountETB)` from `chargeUtils.ts`. If `fineAmountETB === null`, render `—`.
 
-Both the create form and the detail drawer must render charge chips identically:
-- `background: var(--color-card-hover)`
-- `border: 1px solid var(--color-border)`
-- `border-radius: var(--radius-sm)` (4px)
-- `padding: 2px 8px`
-- `font-size: 12px` (`sm` scale)
-- `color: var(--color-foreground-muted)` in the detail view
-- `color: var(--color-foreground)` in the create form (editable context)
-
-## 23.4 Empty states
-
-Both tabs must render meaningful empty states using `<EmptyState>`.
-
-**Arrests empty state:**
-- Icon: `UserX` from Lucide
-- Title: `t('tab.empty')`
-- Description: `t('tab.emptyDescription')` — shown only when `arrests:manage` permission exists
-- CTA button: "Record Arrest" — `PermissionGuard` wrapping, same as the PageHeader button
-
-**Interrogations empty state:**
-- Icon: `MessageSquareOff` from Lucide
-- Title: `t('tab.empty')`
-- Description: `t('tab.emptyDescription')` — shown only when `interrogations:manage` permission exists
-- CTA button: "Add Interrogation" — `PermissionGuard` wrapping
-
-**Filtered empty state** (when filters are active and no results):
-- Icon: `SearchX` from Lucide
-- Title: `t('tab.emptyFiltered')`
-- No CTA button — a "Clear filters" link instead
-
-## 23.5 Loading skeletons
-
-Both tabs render `<TableSkeleton>` on initial load matching the column count of their respective tables. Use `placeholderData: (prev) => prev` in React Query to keep existing rows visible during background refetches (no skeleton on refetch — only on initial load when `data === undefined`).
-
-## 23.6 Information density
-
-The arrests and interrogations tabs follow the same compact row density as the evidence table: `56px` standard row height (not compact mode). The `detentionStatus` and `bailStatus` badges must align vertically within cells. Both status badges render in a single `<td>` column each — they are not stacked.
+The `Sentence` object is passed as a prop. If the charge is `CONVICTED` but `sentence === null` (sentence not yet recorded — edge case), show a `warning` state instead: "Sentence details have not been recorded yet."
 
 ---
 
-# 24. Testing Requirements
+# 25. UI Implementation — Court Cases List Page
 
-## 24.1 Schema tests — `src/features/arrests/schemas/`
+## 25.1 `CourtCasesList.tsx`
 
-**`create-arrest.schema.test.ts`:**
-- Valid payload passes
-- Missing `arrestedPersonId` fails with required message
-- Missing `arrestingOfficerId` fails
-- `chargesAtArrest` empty array fails with "at least one charge"
-- `bailStatus: GRANTED` with `bailAmount: null` fails the refinement
-- `bailStatus: POSTED` with `bailAmount: undefined` fails the refinement
-- `bailStatus: DENIED` with `bailAmount` undefined passes
-- `bailStatus: NOT_SET` with `bailAmount` undefined passes
+Client Component. Full list page for `/legal/court-cases`.
 
-**`update-arrest.schema.test.ts`:**
-- Valid update payload passes
-- `bailStatus: GRANTED` without `bailAmount` fails
-- Partial payload with only `detentionStatus` passes
+### 25.1.1 Filter state
 
-## 24.2 Schema tests — `src/features/interrogations/schemas/`
+```typescript
+const [filters, setFilters] = useQueryStates({
+  search: parseAsString.withDefault(''),
+  status: parseAsArrayOf(parseAsString).withDefault([]),
+  dateFrom: parseAsString.withDefault(''),
+  dateTo: parseAsString.withDefault(''),
+  page: parseAsInteger.withDefault(1),
+  pageSize: parseAsInteger.withDefault(25),
+  sortField: parseAsString.withDefault('filedAt'),
+  sortDirection: parseAsString.withDefault('desc'),
+})
+```
 
-**`create-interrogation.schema.test.ts`:**
-- Valid payload passes
-- `summary` shorter than 10 chars fails
-- Missing `subjectId` fails
-- Missing `conductingOfficerId` fails
-- `durationMinutes: 0` fails (must be positive)
-- `durationMinutes: null` passes (optional)
+### 25.1.2 PageHeader
 
-## 24.3 Hook tests — `src/features/arrests/hooks/`
+```tsx
+<PageHeader
+  title={t('courtCasesList.pageTitle')}
+  description={`${data?.total ?? 0} ${t('courtCasesList.entityCount', { count: data?.total ?? 0 })}`}
+/>
+```
 
-**`useCreateArrest.test.ts`:**
-- On success: `arrestKeys.caseArrests(caseId)`, `caseKeys.arrests(caseId)`, and `caseKeys.summary(caseId)` are all invalidated
-- On success: `addToast` is called with `variant: 'success'`
-- On API error: `addToast` is called with `variant: 'error'`
+No "New Court Case" button — court cases are created from within individual case files (legal tab), not from this global list.
 
-**`useDeleteArrest.test.ts`:**
-- On success: arrest list and case summary are invalidated
-- On success: success toast is shown
+### 25.1.3 DataTable Column Definitions
 
-## 24.4 Hook tests — `src/features/interrogations/hooks/`
+| Column Key | Renderer | Sortable | Min Width |
+|---|---|---|---|
+| `courtCaseNumber` | Monospace, `xs` | Yes | 120px |
+| `investigationCaseTitle` | Plain text, truncated | No | 200px |
+| `court` | Plain text, truncated | No | 160px |
+| `status` | `CourtCaseStatusBadge` | Yes | 110px |
+| `outcome` | `OutcomeBadge` or `—` | No | 110px |
+| `filedAt` | `dd MMM yyyy` | Yes | 100px |
+| `nextHearingDate` | `dd MMM yyyy` or `—` | No | 110px |
+| `chargeCount` | Number | No | 80px |
+| `actions` | Kebab menu | No | 48px |
 
-**`useCreateInterrogation.test.ts`:**
-- On success: `interrogationKeys.caseInterrogations(caseId)`, `caseKeys.interrogations(caseId)`, and `caseKeys.summary(caseId)` are invalidated
-- On success: success toast shown
+**Row click behaviour:** Clicking a row navigates to the linked investigation case's legal tab: `router.push(\`/cases/${row.original.investigationCaseId}/legal\`)`.
 
-## 24.5 Component tests — `src/features/arrests/components/`
+**Kebab actions:**
+- `t('courtCasesList.rowActions.viewCase')` → `router.push(\`/cases/${row.investigationCaseId}/legal\`)`
 
-**`ArrestsTab.test.tsx`:**
-- "Record Arrest" button is visible for officers with `arrests:manage` permission
-- "Record Arrest" button is absent for officers without `arrests:manage` permission
-- Search filter updates the URL `search` param on debounce
-- Detention status filter chips appear and can be dismissed
-- Clicking a row opens `ArrestDetailDrawer`
-- Loading skeleton renders on initial load
-- Empty state renders when `data.total === 0` and no filters are active
-- Filtered empty state renders when `data.total === 0` and a filter is active
+### 25.1.4 Court Case Status Badge Variant
 
-**`CreateArrestDrawer.test.tsx`:**
-- Renders without the bail amount field when `bailStatus === NOT_SET`
-- Bail amount field appears when `bailStatus` changed to `GRANTED`
-- Bail amount field disappears when `bailStatus` changed back to `NOT_SET`
-- Adding a charge chip and pressing Enter updates the `chargesAtArrest` list
-- Pressing `Backspace` on empty input removes the last charge chip
-- Submitting without charges shows validation error
+Same as §16.1.2 (`CourtCaseCard`). Define in `chargeUtils.ts` and import from there.
 
-**`ArrestDetailDrawer.test.tsx`:**
-- Charges are rendered as read-only chips (no `×` button)
-- "Update Detention Status" button is visible for `arrests:manage` permission
-- "Delete" button is visible for `arrests:delete` permission
-- "Delete" button triggers `DestructiveConfirmDialog`
+### 25.1.5 Outcome Badge
 
-## 24.6 Component tests — `src/features/interrogations/components/`
-
-**`InterrogationsTab.test.tsx`:**
-- "Add Interrogation" button is visible with `interrogations:manage` permission
-- "Add Interrogation" button is absent without that permission
-- Legal rep badge "Present" renders green for `legalRepresentativePresent: true`
-- Duration column shows "—" for `durationMinutes: null`
-- Clicking a row opens `InterrogationDetailDrawer`
-
-**`CreateInterrogationDrawer.test.tsx`:**
-- Legal rep name input is hidden when toggle is off
-- Legal rep name input appears when toggle is switched on
-- Summary character counter shows correct count
-- Submitting without summary shows validation error
-
-**`InterrogationDetailDrawer.test.tsx`:**
-- Immutability notice bar is visible
-- No edit or delete buttons are rendered
-- Summary is rendered with `whitespace-pre-wrap`
+When `outcome` is not null, render a `muted` variant badge with the outcome label from `t('courtCase.outcome.*')`. When null, render `—` in muted text.
 
 ---
 
-# 25. Anti-Patterns Specific to This Phase
+# 26. Role-Based Access
 
-**Form and mutation violations:**
-- Storing the create/detail/update drawer open state in Zustand — use local `useState` in the tab component
-- Storing arrest IDs or interrogation IDs in Zustand — same, local state only
-- Storing `chargesAtArrest` only in React Hook Form without tracking it in separate `useState` — you need a parallel `charges: string[]` state because the tag input is not a standard HTML input element. Sync both on every change
-- Starting the arrest create mutation before Zod schema validation — `handleSubmit` from React Hook Form validates first; never call `mutateAsync` directly outside of `handleSubmit`
-- Closing the create drawer on mutation error — always keep it open so the officer's data is preserved
+## 26.1 Access control for the Legal Tab
 
-**Evidence-specific patterns incorrectly applied:**
-- Using a `FileUploadZone` in the arrest or interrogation forms — these modules do not support file attachments
-- Using `uploadState` phase tracking — there is no multi-step upload in this phase
-- Optimistic updates on arrest status — the blueprint explicitly prohibits this for case status transitions and the same rule applies here. The `detentionStatus` and `bailStatus` are legal states that the server must validate
+The legal tab is visible but locked for non-legal roles (established in Phase 3's tab navigation). Phase 6 only needs to guard the content within the tab.
 
-**Interrogation immutability violations:**
-- Adding an edit button to `InterrogationDetailDrawer` — interrogation records are immutable once created
-- Adding a delete action to interrogation rows — not permitted. There is no `useDeleteInterrogation` hook; do not create one
-- Using `useUpdateInterrogation` — do not create this hook in this phase
+At the top of `LegalTab.tsx`, add:
 
-**Query key violations:**
-- Not invalidating `caseKeys.arrests(caseId)` after an arrest mutation — this is the key the case overview tab arrest count card uses
-- Not invalidating `caseKeys.interrogations(caseId)` after creating an interrogation — same
-- Not invalidating `caseKeys.summary(caseId)` after mutations — the overview tab's count cards depend on this
+```tsx
+return (
+  <PermissionGuard
+    permission={Permission.LEGAL_READ}
+    fallback={
+      <ForbiddenState
+        message={t('tab.lockedTooltip')}
+      />
+    }
+  >
+    {/* rest of the legal tab content */}
+  </PermissionGuard>
+)
+```
+
+## 26.2 Action guards
+
+All mutative actions are guarded with `Permission.LEGAL_MANAGE`. `PermissionGuard` renders `null` (not a disabled button) for non-legal roles — the button is entirely absent, consistent with the blueprint's "Action not permitted by role → Button/menu item hidden entirely" policy.
+
+## 26.3 Court Cases List page guard
+
+The `/legal/court-cases` page route already has a middleware-level role check (legal_officer+) from Phase 1. No additional page-level guard is needed. However, the `PageHeader` should not show a "Create" button at any point on this page — court case creation is intentionally scoped to the case detail legal tab only.
+
+---
+
+# 27. `src/features/legal/index.ts`
+
+Public barrel export:
+
+```typescript
+// Types
+export * from './types/legal.types'
+
+// Hooks
+export {
+  useCourtCaseByCase,
+  useCourtCaseList,
+  useCreateCourtCase,
+  useUpdateCourtCase,
+  useChargeList,
+  useCreateCharge,
+  useUpdateCharge,
+  useDropCharge,
+  useRecordSentence,
+} from './hooks'
+
+// Components (export only those consumed outside the module)
+export { LegalTab } from './components/LegalTab'
+export { CourtCasesList } from './components/CourtCasesList'
+
+// Utils
+export {
+  CHARGE_STATUS_VARIANTS,
+  COURT_CASE_STATUS_VARIANTS,
+  isChargeTerminal,
+  getAvailableChargeStatuses,
+  formatDurationMonths,
+  formatFineAmount,
+} from './utils/chargeUtils'
+```
+
+---
+
+# 28. Testing Requirements
+
+## 28.1 Unit Tests — `chargeUtils.ts`
+
+Create `src/features/legal/utils/chargeUtils.test.ts`:
+
+- `isChargeTerminal('FILED')` → `false`
+- `isChargeTerminal('ACTIVE')` → `false`
+- `isChargeTerminal('CONVICTED')` → `true`
+- `isChargeTerminal('ACQUITTED')` → `true`
+- `isChargeTerminal('DROPPED')` → `true`
+- `getAvailableChargeStatuses('CONVICTED')` → `[]`
+- `getAvailableChargeStatuses('FILED')` → `['ACTIVE', 'ACQUITTED']`
+- `getAvailableChargeStatuses('ACTIVE')` → `['ACQUITTED']`
+- `formatDurationMonths(6)` → `"6 months"`
+- `formatDurationMonths(12)` → `"1 year"`
+- `formatDurationMonths(18)` → `"1 year, 6 months"`
+- `formatDurationMonths(60)` → `"5 years"`
+- `formatFineAmount(5000)` → `"5,000.00 ETB"`
+
+## 28.2 Unit Tests — Zod Schemas
+
+Create `src/features/legal/schemas/legal-schemas.test.ts`:
+
+**`createCourtCaseSchema`:**
+- Valid payload → no error
+- Missing `court` → validation error on `court`
+- Missing `filedAt` → validation error on `filedAt`
+- Invalid `hearingDates[0].type` → validation error on `hearingDates[0].type`
+
+**`recordSentenceSchema`:**
+- `IMPRISONMENT` + `durationMonths: 60` → valid
+- `IMPRISONMENT` + `durationMonths: null` → error on `durationMonths`
+- `FINE` + `fineAmountETB: 5000` → valid
+- `FINE` + `fineAmountETB: null` → error on `fineAmountETB`
+- `DEATH_PENALTY` → valid with no duration or fine
+- `LIFE_IMPRISONMENT` → valid with no duration or fine
+
+**`updateCourtCaseSchema`:**
+- `status: CONCLUDED` + `outcome: GUILTY` → valid
+- `status: CONCLUDED` + `outcome: null` → validation error on `outcome`
+- `status: ACTIVE` + no outcome → valid
+
+## 28.3 Component Tests
+
+Create `src/features/legal/components/ChargesTable.test.tsx`:
+- Loading state renders skeleton rows
+- Empty state renders when no charges and no filters
+- Filtered empty state renders when filters active and no results
+- "Add Charge" button is visible when `legal:manage` permission is present
+- "Add Charge" button is absent when `legal:manage` permission is absent
+- Terminal charge row: kebab menu does NOT show "Update Status" or "Drop Charge"
+- `CONVICTED` charge row: kebab menu shows "View Sentence"
+- Non-terminal charge row: kebab shows "Update Status" and "Drop Charge"
+
+Create `src/features/legal/components/UpdateChargeStatusDrawer.test.tsx`:
+- Terminal charge renders the lock/read-only state, not the status select
+- Selecting CONVICTED reveals the sentencing fields section
+- Selecting ACQUITTED does NOT reveal sentencing fields
+- Form does not submit when CONVICTED is selected but sentencing fields are empty
+- Submit button label changes to "Record Conviction & Sentence" when CONVICTED is selected
+
+## 28.4 i18n Completeness
+
+Extend the existing i18n completeness test to cover the `legal` namespace. All keys in `en/legal.json` must have corresponding keys in `am/legal.json`. Test runner: `pnpm test`.
+
+---
+
+# 29. Anti-Pattern Reference
+
+The following patterns are strictly forbidden. The agent must not implement any of them.
+
+**Terminal status violations:**
+- Rendering "Update Status" in the kebab menu for a `CONVICTED`, `ACQUITTED`, or `DROPPED` charge
+- Allowing `UpdateChargeStatusDrawer` to show a status select when `isChargeTerminal(charge.status) === true`
+- Creating a mutation that can change a charge FROM `CONVICTED` to any other status
+- Calling `useUpdateCharge` for a conviction — conviction is always via `useRecordSentence`
+- Adding a delete button to any charge row — charges cannot be deleted from the frontend
+
+**Sentence immutability violations:**
+- Adding an edit button to `ViewSentenceDrawer` — sentences are permanent once recorded
+- Calling `recordSentence` without the amber conviction notice visible to the officer
+- Omitting the immutability notice bar from `ViewSentenceDrawer`
+
+**Court case creation violations:**
+- Adding a "Create Court Case" button to the `/legal/court-cases` list page — creation is scoped to the individual case's legal tab
+- Showing the "Create Court Case" CTA when `courtCase !== null` — exactly one court case per investigation case
+- Allowing `createCourtCase` to be called more than once for the same `caseId` — the backend enforces this, but the frontend must also hide the CTA once the court case is created
+
+**Query invalidation violations:**
+- Not invalidating `caseKeys.summary(caseId)` after `useCreateCharge` — the case overview tab charge count card will not update
+- Not invalidating `legalKeys.courtCaseByCase(caseId)` after `useCreateCharge` — the `CourtCaseCard`'s charge count will not update
+- Not invalidating `legalKeys.chargeList(courtCaseId)` after `useDropCharge` — the charge table will not reflect the dropped status
+- Not invalidating `legalKeys.courtCaseByCase(caseId)` after `useUpdateCourtCase` — the `CourtCaseCard` will show stale data
 
 **DataTable violations:**
-- Using client-side filtering on the arrests or interrogations tables — all filtering must translate to API query parameters, exactly as in Phase 4 (evidence)
-- Not syncing filter params to URL — the `useQueryStates` (nuqs) pattern from Phase 4 must be applied identically here. All list filters must survive page refresh
+- Using client-side filtering on the charges table — all filters must translate to API query parameters
+- Not syncing filter params to URL — the `useQueryStates` (nuqs) pattern from Phase 4 and 5 must be applied identically. All charge list filters must survive page refresh.
+- Using the same URL param names as other filter state on the page — use the `charge*` prefix to namespace charge filter params
 
 **i18n violations:**
-- Hardcoding detention status labels in components instead of using `t('detentionStatus.*')`
-- Hardcoding role labels (SUSPECT/VICTIM/WITNESS) in the interrogations subject column instead of `t('roleOnCase.*')`
+- Hardcoding charge status labels (e.g. `"Convicted"`) in components instead of `t('charges.status.CONVICTED')`
+- Hardcoding court case status labels instead of `t('courtCase.status.*')`
+- Hardcoding sentence type labels instead of `t('charges.sentenceType.*')`
 
-**Bail amount display:**
-- Rendering raw numbers (`5000`) instead of formatted currency (`5,000.00 ETB`)
-- Rendering bail amount when `bailAmount === null` — always check for null before displaying; render `t('detail.noBailAmount')` (`—`) otherwise
+**Optimistic update violations:**
+- Adding optimistic updates for charge status changes — the blueprint explicitly prohibits optimistic updates for status transitions with legal significance
+- Adding optimistic updates for `useDropCharge` — terminal state changes must be confirmed by the server
+
+**Form field visibility violations:**
+- Showing sentencing fields in `UpdateChargeStatusDrawer` when the selected status is NOT `CONVICTED`
+- Leaving sentencing field values in the form state when the officer switches from CONVICTED to a different status — clear them on status change: `setValue('durationMonths', null)` etc.
+
+**Sentence type conditional rendering violations:**
+- Showing the `durationMonths` field for `FINE` sentence type
+- Showing the `fineAmountETB` field for `IMPRISONMENT` sentence type
+- Not clearing hidden conditional fields when sentence type changes
+
+**Permission violations:**
+- Hardcoding role strings (`'legal_officer'`) in guard components — use `Permission.*` constants only
+- Skipping `PermissionGuard` on the "Add Charge" button — this guard is mandatory
+- Using `RoleGuard` instead of `PermissionGuard` for the "Add Charge" and "Edit Court Case" actions — permission-based guards are required, not role-based
 
 ---
 
-# 26. Final Verification Checklist
+# 30. Final Verification Checklist
 
-## 26.1 Arrests Tab
+## 30.1 Legal Tab — Court Case Panel
 
-- [ ] `/cases/[caseId]/arrests` renders the full DataTable (not the Phase 3 skeleton)
-- [ ] "Record Arrest" button is visible for `arrests:manage` permission
-- [ ] "Record Arrest" button is absent for lower roles
-- [ ] Search filter updates the URL `search` param and refetches
-- [ ] Detention status filter chips appear and can be dismissed
-- [ ] Filter state survives page refresh
-- [ ] Clicking a row opens `ArrestDetailDrawer`
-- [ ] Loading skeleton renders on first load
-- [ ] Empty state with CTA renders when no arrests exist
-- [ ] Filtered empty state (no CTA) renders when filters yield no results
-- [ ] Detention status badge colours are correct per the variant mapping
+- [ ] `/cases/[caseId]/legal` renders the real legal tab for `legal_officer` (not the Phase 3 skeleton)
+- [ ] Empty state (no court case) renders with `Scale` icon, title, description, and "Create Court Case" button
+- [ ] "Create Court Case" button is absent for roles without `legal:manage`
+- [ ] "Create Court Case" button is absent once a court case is linked
+- [ ] `CreateCourtCaseDrawer` opens and shows all sections
+- [ ] Hearing date can be added and removed via field array in the drawer
+- [ ] Submitting with missing required fields (court, filedAt) shows inline validation errors
+- [ ] Successful creation: drawer closes, `CourtCaseCard` appears, toast confirms
+- [ ] `CourtCaseCard` displays all metadata fields: court case number, court, status badge, outcome, filed date, charge count
+- [ ] Status badge colours match `COURT_CASE_STATUS_VARIANTS` mapping
+- [ ] `HearingDatesList` renders hearing dates chronologically, oldest first
+- [ ] Upcoming hearings have a `primary` left-border accent
+- [ ] Past hearings have no accent
+- [ ] Empty hearing dates list renders the "No hearing scheduled" fallback
+- [ ] "Edit Court Case" button is visible for `legal:manage`
+- [ ] "Edit Court Case" button is absent for roles without `legal:manage`
+- [ ] `UpdateCourtCaseDrawer` opens pre-populated with current court case data
+- [ ] Selecting `CONCLUDED` status without an outcome shows validation error
+- [ ] Successful update: drawer closes, `CourtCaseCard` refreshes, toast confirms
 
-## 26.2 Create Arrest
+## 30.2 Legal Tab — Charges Table
 
-- [ ] Opening the create drawer shows a clean empty form
-- [ ] Person search shows only suspects linked to this case
-- [ ] Charges tag input: pressing Enter adds a chip
-- [ ] Charges tag input: pressing Backspace on empty input removes last chip
-- [ ] Charges validation: submitting with no charges shows inline error
-- [ ] Bail amount field is hidden when `bailStatus` is `NOT_SET` or `DENIED`
-- [ ] Bail amount field appears when `bailStatus` is `GRANTED` or `POSTED`
-- [ ] Bail amount validation: submitting `GRANTED` with no amount shows error
-- [ ] Closing a dirty form shows the unsaved-changes confirmation dialog
-- [ ] On success: drawer closes, arrests list refreshes, case overview arrest count updates
-- [ ] On mutation error: drawer stays open, error toast is shown
+- [ ] `ChargesTable` renders below `CourtCaseCard` when a court case exists
+- [ ] Filter bar: search input updates `chargeSearch` URL param and refetches
+- [ ] Status filter chips appear and can be dismissed
+- [ ] Filter state survives page refresh (URL params persist)
+- [ ] "Add Charge" button is visible for `legal:manage`
+- [ ] "Add Charge" button is absent for non-`legal:manage` roles
+- [ ] Loading skeleton renders on initial load
+- [ ] Empty state (no charges, no filters) shows title, description, and text CTA
+- [ ] Filtered empty state (no results) shows filtered empty message without CTA
+- [ ] Charge rows render: suspect name, crime type, status badge, filed date
+- [ ] `FILED` badge: blue (`primary`)
+- [ ] `ACTIVE` badge: amber (`warning`)
+- [ ] `CONVICTED` badge: red (`destructive`)
+- [ ] `ACQUITTED` badge: green (`success`)
+- [ ] `DROPPED` badge: slate (`muted`)
+- [ ] Non-terminal charge kebab: shows "Update Status" and "Drop Charge"
+- [ ] `CONVICTED` charge kebab: shows "View Sentence" only (no "Update Status", no "Drop Charge")
+- [ ] `ACQUITTED` charge kebab: no actions (terminal — no update, no drop)
+- [ ] `DROPPED` charge kebab: no actions (terminal)
+- [ ] Sentence indicator: `CONVICTED` + `hasSentence === true` → green "Recorded" chip
+- [ ] Sentence indicator: `CONVICTED` + `hasSentence === false` → amber "Pending" chip
+- [ ] Sentence indicator: other statuses → `—`
+- [ ] Pagination controls render and function correctly
 
-## 26.3 Arrest Detail Drawer
+## 30.3 Add Charge Drawer
 
-- [ ] Opens on row click showing all arrest fields
-- [ ] Charges render as read-only chips (no remove button)
-- [ ] Bail amount renders as formatted currency when set
-- [ ] Bail amount renders as `—` when null
-- [ ] "Update Detention Status" button is visible for `arrests:manage`
-- [ ] "Update Detention Status" opens the `UpdateArrestDrawer`
-- [ ] "Delete" button is visible for `arrests:delete`
-- [ ] "Delete" opens `DestructiveConfirmDialog` with the correct confirm phrase
-- [ ] Confirming delete removes the arrest, closes both dialogs, refreshes the list
-
-## 26.4 Update Arrest Drawer
-
-- [ ] Opens showing current detention and bail status
-- [ ] Current status section reflects live data from the arrest record
-- [ ] Bail amount field appears/disappears based on selected bail status
-- [ ] On success: drawer closes, arrest detail and list queries refresh
-
-## 26.5 Interrogations Tab
-
-- [ ] `/cases/[caseId]/interrogations` renders the full DataTable (not the Phase 3 skeleton)
-- [ ] "Add Interrogation" button is visible for `interrogations:manage`
-- [ ] "Add Interrogation" button is absent for lower roles
-- [ ] Subject column shows person name + role badge
-- [ ] Duration column shows formatted time or `—` for null
-- [ ] Legal rep column shows "Present" (green) or "Absent" (muted) badge
-- [ ] Clicking a row opens `InterrogationDetailDrawer`
-- [ ] Search filter updates URL and refetches
-- [ ] Empty state renders correctly
-
-## 26.6 Create Interrogation
-
-- [ ] Subject search shows all persons linked to the case (suspects + victims + witnesses)
-- [ ] Legal rep name input is hidden when toggle is OFF
-- [ ] Legal rep name input appears when toggle is switched ON
-- [ ] Summary character counter increments as user types
-- [ ] Submitting with summary shorter than 10 chars shows validation error
-- [ ] On success: drawer closes, interrogations list refreshes, case overview count updates
+- [ ] `AddChargeDrawer` opens and shows suspect and crime type selects
+- [ ] Suspect search shows only suspects linked to this case
+- [ ] If no suspects exist, dropdown shows the "No suspects" empty state
+- [ ] Crime type `SearchableSelect` fetches from reference data endpoint
+- [ ] Submitting with no suspect selected shows validation error
+- [ ] Submitting with no crime type selected shows validation error
+- [ ] On success: drawer closes, charges table refreshes, case overview charge count updates
 - [ ] On error: drawer stays open, error toast shown
 
-## 26.7 Interrogation Detail Drawer
+## 30.4 Update Charge Status Drawer
 
+- [ ] `UpdateChargeStatusDrawer` opens for non-terminal charges showing the current status
+- [ ] Status select shows available options based on `getAvailableChargeStatuses()`
+- [ ] `CONVICTED` option is always shown, separated by a divider, with red label
+- [ ] Selecting `CONVICTED` expands the sentencing fields section with amber notice bar
+- [ ] Selecting any other status does NOT show sentencing fields
+- [ ] Switching from `CONVICTED` to another status collapses sentencing fields and clears values
+- [ ] `IMPRISONMENT` sentence type: `durationMonths` field is required and visible; `fineAmountETB` is hidden
+- [ ] `FINE` sentence type: `fineAmountETB` field is required and visible; `durationMonths` is hidden
+- [ ] `DEATH_PENALTY` sentence type: neither duration nor fine fields are shown
+- [ ] `LIFE_IMPRISONMENT` sentence type: neither duration nor fine fields are shown
+- [ ] Submit button label: "Update Status" for non-CONVICTED, "Record Conviction & Sentence" for CONVICTED
+- [ ] Submitting CONVICTED without sentencing required fields shows inline errors
+- [ ] On non-CONVICTED success: drawer closes, charge status badge updates in the table
+- [ ] On CONVICTED success: drawer closes, charge badge becomes red CONVICTED, sentence indicator shows "Pending" (until sentence detail is separately confirmed)
+- [ ] Terminal charge opens the drawer in read-only terminal state (no select, lock icon visible)
+
+## 30.5 Drop Charge Dialog
+
+- [ ] `DropChargeDialog` shows the suspect name and crime type in the description
+- [ ] Confirm button is labelled "Drop Charge"
+- [ ] Confirm button shows loading spinner during mutation
+- [ ] On success: dialog closes, charge status badge becomes DROPPED in the table, toast confirms
+- [ ] On error: dialog stays open, error shown inline
+
+## 30.6 View Sentence Drawer
+
+- [ ] `ViewSentenceDrawer` opens for CONVICTED charges with `hasSentence === true`
 - [ ] Immutability notice bar is visible at the top of the drawer
-- [ ] Lock icon with tooltip is visible in the drawer header
-- [ ] No edit or delete buttons are rendered anywhere in this drawer
-- [ ] Summary is rendered with whitespace-preserve (line breaks preserved)
-- [ ] Legal rep section shows representative's name when present
-- [ ] Legal rep section shows "Name not recorded" when absent
+- [ ] Lock icon is visible in the drawer header with tooltip
+- [ ] No edit or delete buttons rendered anywhere in this drawer
+- [ ] Duration renders as human-readable: "5 years" / "6 months" / "2 years, 3 months"
+- [ ] Duration renders as `—` when `durationMonths === null`
+- [ ] Fine amount renders as formatted currency: "5,000.00 ETB"
+- [ ] Fine amount renders as `—` when `fineAmountETB === null`
+- [ ] Judge name renders or falls back to "Not recorded"
 
-## 26.8 Case Overview Tab — Count Cards
+## 30.7 Court Cases List Page
 
-- [ ] After creating an arrest: Arrests count card on the case overview tab increments
-- [ ] After deleting an arrest: Arrests count card decrements
-- [ ] After creating an interrogation: Interrogations count card increments
+- [ ] `/legal/court-cases` renders the full DataTable (not the Phase 3 skeleton)
+- [ ] Filter bar: search, status filter, date range all functional
+- [ ] Row click navigates to `/cases/{investigationCaseId}/legal`
+- [ ] Kebab "View Investigation Case" also navigates to the legal tab
+- [ ] No "Create Court Case" button exists on this page
+- [ ] Outcome column renders outcome badge for concluded cases and `—` for others
+- [ ] `nextHearingDate` column renders the date or `—`
+- [ ] Pagination controls function correctly
 
-## 26.9 i18n
+## 30.8 Case Overview Tab — Count Card
 
-- [ ] All arrests UI text is retrieved from message files (no hardcoded English)
-- [ ] Switching to Amharic updates all text in the arrests tab, create drawer, detail drawer, update drawer
-- [ ] Switching to Amharic updates all text in the interrogations tab, create drawer, detail drawer
-- [ ] i18n completeness test passes with zero missing keys in `arrests` namespace
-- [ ] i18n completeness test passes with zero missing keys in `interrogations` namespace
-- [ ] Detention status labels render in the selected locale
-- [ ] Bail status labels render in the selected locale
-- [ ] Role-on-case labels (SUSPECT/VICTIM/WITNESS) render in the selected locale
+- [ ] After filing a charge: charge count card on the case overview tab increments
+- [ ] After dropping a charge: charge count card reflects the updated total on next render
 
-## 26.10 Tooling
+## 30.9 i18n
+
+- [ ] All legal UI text is retrieved from message files (no hardcoded English)
+- [ ] Switching to Amharic updates all text in the legal tab, court case card, all drawers, and the court cases list page
+- [ ] i18n completeness test passes with zero missing keys in the `legal` namespace
+- [ ] Charge status labels render in the selected locale
+- [ ] Court case status and outcome labels render in the selected locale
+- [ ] Sentence type labels render in the selected locale
+- [ ] Hearing type labels render in the selected locale
+
+## 30.10 Tooling
 
 - [ ] `pnpm type-check` exits with zero errors
 - [ ] `pnpm lint` exits with zero warnings
-- [ ] `pnpm test` — all arrests and interrogations tests pass
+- [ ] `pnpm test` — all legal module tests pass (unit tests for schemas, chargeUtils, component tests)
 - [ ] `pnpm build` — production build succeeds without errors
 
 ---
 
-*End of CCMS Phase 5 Instruction — Arrests & Interrogations Module*
+*End of CCMS Phase 6 Instruction — Legal Module*
 *Prepared for AI Agent execution — 2026 production-grade engineering standards*
 *Package manager: pnpm throughout*
-*Next phase: Phase 6 will implement the Legal module (Legal tab, court case panel, charges table, charge filing drawer, sentencing)*
+*Next phase: Phase 7 will implement the Personnel module (person list, person detail, officer list, officer detail, role promotion drawers)*

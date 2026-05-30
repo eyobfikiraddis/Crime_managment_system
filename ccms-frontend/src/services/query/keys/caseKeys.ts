@@ -16,6 +16,8 @@ export const caseKeys = {
   evidence: (id: string) => [...caseKeys.detail(id), 'evidence'] as const,
   arrests: (id: string) => [...caseKeys.detail(id), 'arrests'] as const,
   interrogations: (id: string) => [...caseKeys.detail(id), 'interrogations'] as const,
+  charges: (id: string) => [...caseKeys.detail(id), 'charges'] as const,
+  courtCase: (id: string) => [...caseKeys.detail(id), 'courtCase'] as const,
   permissions: (id: string) => [...caseKeys.detail(id), 'permissions'] as const,
 
   // Reference data
