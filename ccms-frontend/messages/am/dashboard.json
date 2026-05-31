@@ -1,11 +1,171 @@
 {
   "pageTitle": "ዳሽቦርድ",
-  "heading": "አጠቃላይ እይታ",
-  "skeleton": "ዳሽቦርድ በመጫን ላይ...",
-  "sections": {
-    "activity": {
-      "title": "ቅርብ እንቅስቃሴ",
-      "skeleton": "እንቅስቃሴ በመጫን ላይ..."
+
+  "investigator": {
+    "welcome": "እንኳን ደህና መጡ",
+    "kpis": {
+      "openCases": "ክፍት ጉዳዮች",
+      "underInvestigation": "በምርመራ ላይ",
+      "referredToCourt": "ለፍርድ ቤት ተጠቁሟል",
+      "overdueActions": "ዘገዩ ድርጊቶች"
+    },
+    "recentCasesWidget": {
+      "title": "የቅርብ ጉዳዮቼ",
+      "viewAll": "ሁሉም ጉዳዮቼ ተመልከት →",
+      "empty": "ቅርብ ጊዜ የተዘመኑ ጉዳዮች የሉዎትም።",
+      "loading": "ጉዳዮችን እየጫነ ነው...",
+      "columns": {
+        "caseNumber": "ጉዳይ #",
+        "title": "ርዕስ",
+        "status": "ሁኔታ",
+        "crimeType": "የወንጀል ዓይነት",
+        "lastUpdated": "መጨረሻ ዝማኔ"
+      }
+    },
+    "evidenceWidget": {
+      "title": "የቅርብ ጊዜ ማስረጃ",
+      "viewAll": "ሁሉም ማስረጃ ተመልከት →",
+      "empty": "ቅርብ ጊዜ የተመዘገበ ማስረጃ የለም።",
+      "loading": "ማስረጃ እየጫነ ነው...",
+      "columns": {
+        "case": "ጉዳይ",
+        "type": "ዓይነት",
+        "collectedAt": "የተሰበሰበበት"
+      }
+    },
+    "pendingActionsWidget": {
+      "title": "በመጠባበቅ ላይ ያሉ ድርጊቶች",
+      "evidenceMissingCustody": "የቁጥጥር ክስተቶች የጎደሏቸው ማስረጃዎች",
+      "casesWithoutUpdate": "ዝማኔ ሳይኖር ከ30 ቀናት በላይ ክፍት ጉዳዮች",
+      "allClear": "ምንም ጊዜ ያለፈ ድርጊት የለም። ወቅቱ ደርሰዋል።",
+      "viewEvidence": "ማስረጃ ተገምግም →",
+      "viewCases": "ጉዳዮች ተገምግም →"
     }
+  },
+
+  "deptHead": {
+    "kpis": {
+      "activeCases": "ንቁ ጉዳዮች",
+      "resolutionRate": "የመፍቻ ፍጥነት",
+      "avgCaseAge": "አማካይ የጉዳይ ዕድሜ",
+      "avgCaseAgeSuffix": "ቀናት",
+      "openArrests": "ክፍት ቁያዎች"
+    },
+    "caseStatusWidget": {
+      "title": "ጉዳዮች በሁኔታ",
+      "total": "ጠቅላላ",
+      "loading": "ቻርት እየጫነ ነው...",
+      "empty": "የጉዳይ ዳታ የለም።"
+    },
+    "workloadWidget": {
+      "title": "የፖሊስ ሥራ ጫና",
+      "subtitle": "ንቁ ጉዳዮች በፖሊስ",
+      "loading": "የሥራ ጫና ዳታ እየጫነ ነው...",
+      "empty": "በዚህ ክፍል ምንም ፖሊሶች አልተገኙም።",
+      "activeCasesLabel": "ንቁ ጉዳዮች"
+    },
+    "activityWidget": {
+      "title": "የቅርብ ጊዜ የክፍል ተግባር",
+      "viewTimeline": "ሙሉ የጊዜ ሰሌዳ ተመልከት →",
+      "loading": "ተግባር እየጫነ ነው...",
+      "empty": "በዚህ ክፍል ቅርብ ጊዜ ምንም ተግባር የለም።"
+    },
+    "quickLinksWidget": {
+      "title": "ሪፖርቶች",
+      "caseReport": "የጉዳይ ሪፖርቶች",
+      "officerReport": "የፖሊስ ሥራ ጫና",
+      "legalReport": "የሕጋዊ ሪፖርቶች",
+      "viewAll": "ሁሉም ሪፖርቶች →"
+    }
+  },
+
+  "admin": {
+    "kpis": {
+      "totalCases": "ጠቅላላ ጉዳዮች",
+      "totalOfficers": "ጠቅላላ ፖሊሶች",
+      "totalEvidence": "የማስረጃ ዕቃዎች",
+      "systemHealth": "የስርዓት ጤና"
+    },
+    "healthStatus": {
+      "healthy": "ጤናማ",
+      "degraded": "ደካማ",
+      "down": "ወድቋል"
+    },
+    "trendWidget": {
+      "title": "የጉዳይ መጠን — መጨረሻ 30 ቀናት",
+      "yAxisLabel": "ጉዳዮች",
+      "loading": "አዝማሚያ እየጫነ ነው...",
+      "empty": "የጉዳይ መጠን ዳታ የለም።"
+    },
+    "securityWidget": {
+      "title": "የጸጥታ ክስተቶች",
+      "viewAll": "የኦዲት ምዝገባ ተመልከት →",
+      "loading": "ክስተቶች እየጫነ ነው...",
+      "empty": "ቅርብ ጊዜ የጸጥታ ክስተቶች የሉም።",
+      "severity": {
+        "low": "ዝቅተኛ",
+        "medium": "መካከለኛ",
+        "high": "ከፍተኛ"
+      }
+    },
+    "deptOverviewWidget": {
+      "title": "የክፍሎች አጠቃላይ ዕይታ",
+      "loading": "ክፍሎችን እየጫነ ነው...",
+      "empty": "ምንም ክፍሎች አልተገኙም።",
+      "columns": {
+        "department": "ክፍል",
+        "activeCases": "ንቁ ጉዳዮች",
+        "officers": "ፖሊሶች"
+      },
+      "viewAll": "ሁሉም ክፍሎች ተመልከት →"
+    },
+    "pendingTasksWidget": {
+      "title": "ጊዜ ያለፈ ሥራዎች",
+      "officersAwaitingActivation": "ፖሊስ(ዎች) ማንቃት በመጠበቅ",
+      "departmentsWithoutHead": "ያለ ኃላፊ ክፍል(ዎች)",
+      "allClear": "ምንም ጊዜ ያለፈ አስተዳደር ሥራዎች የሉም።",
+      "viewOfficers": "ፖሊሶች ተገምግም →",
+      "viewDepartments": "ክፍሎች ተገምግም →"
+    }
+  },
+
+  "legal": {
+    "kpis": {
+      "openCourtCases": "ክፍት የፍርድ ቤት ጉዳዮች",
+      "chargesThisMonth": "በወር የቀረቡ ክሶች",
+      "upcomingHearings": "ቀጣይ ችሎቶች",
+      "convictionRate": "የጥፋተኝነት ፍጥነት"
+    },
+    "hearingsWidget": {
+      "title": "ቀጣይ ችሎቶች",
+      "viewAll": "ሁሉም ችሎቶች ተመልከት →",
+      "loading": "ችሎቶችን እየጫነ ነው...",
+      "empty": "በቀጣዮቹ 30 ቀናት ምንም ቀጣይ ችሎቶች የሉም።",
+      "columns": {
+        "case": "ጉዳይ",
+        "court": "ፍርድ ቤት",
+        "hearingDate": "ቀን",
+        "type": "ዓይነት"
+      }
+    },
+    "chargesWidget": {
+      "title": "የቅርብ ጊዜ ክሶች",
+      "viewAll": "ሁሉም የፍርድ ቤት ጉዳዮች ተመልከት →",
+      "loading": "ክሶችን እየጫነ ነው...",
+      "empty": "ቅርብ ጊዜ የቀረቡ ክሶች የሉም።",
+      "columns": {
+        "crimeType": "የወንጀል ዓይነት",
+        "suspect": "ተጠርጣሪ",
+        "status": "ሁኔታ",
+        "filedAt": "ቀን"
+      }
+    }
+  },
+
+  "widgetError": "ይህን ዊጀት ለመጫን አልተሳካም። {retryLink}",
+  "retryLink": "እንደገና ሞክር",
+  "fallback": {
+    "title": "ዳሽቦርድ አይገኝም",
+    "description": "ለሚናዎ ምንም ዳሽቦርድ አልተዋቀረም።"
   }
 }

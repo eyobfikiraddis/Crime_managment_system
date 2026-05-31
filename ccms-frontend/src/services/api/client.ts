@@ -100,9 +100,8 @@ const processQueue = (error?: unknown) => {
   failedQueue = []
 }
 
-apiClient.interceptors.response.use(
-  (response) => response.data,
-  async (error: AxiosError) => {
+const createResponseErrorInterceptor = (instance: typeof apiClient) => {
+  return async (error: AxiosError) => {
     const apiError = ApiError.fromAxiosError(error)
     const statusCode = apiError.statusCode
     const notify = useNotificationStore.getState().addToast
@@ -136,7 +135,7 @@ apiClient.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
         })
-          .then(() => apiClient(originalRequest))
+          .then(() => instance(originalRequest))
           .catch((queueError) => {
             throw queueError
           })
@@ -148,7 +147,7 @@ apiClient.interceptors.response.use(
       try {
         await refreshClient.post('/api/v1/auth/refresh')
         processQueue()
-        return apiClient(originalRequest)
+        return instance(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError)
         useAuthStore.getState().clearSession()
@@ -180,8 +179,39 @@ apiClient.interceptors.response.use(
     }
 
     throw apiError
-  },
+  }
+}
+
+apiClient.interceptors.response.use(
+  (response) => response.data,
+  createResponseErrorInterceptor(apiClient),
 )
 
-export { apiClient }
+const axiosInstance = axios.create({
+  baseURL: envClient.NEXT_PUBLIC_API_URL,
+  timeout: 30_000,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+  withCredentials: true,
+})
+
+axiosInstance.interceptors.request.use((config) => {
+  config.headers = config.headers ?? {}
+  config.headers['X-Request-ID'] = createRequestId()
+  const method = (config.method ?? 'get').toLowerCase()
+  if (['post', 'put', 'patch', 'delete'].includes(method)) {
+    config.headers['X-Requested-With'] = 'XMLHttpRequest'
+  }
+  return config
+})
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  createResponseErrorInterceptor(axiosInstance),
+)
+
+export { apiClient, axiosInstance }
 export default apiClient
+

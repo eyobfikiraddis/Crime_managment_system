@@ -1,11 +1,171 @@
 {
   "pageTitle": "Dashboard",
-  "heading": "Overview",
-  "skeleton": "Loading dashboard...",
-  "sections": {
-    "activity": {
-      "title": "Recent Activity",
-      "skeleton": "Loading activity..."
+
+  "investigator": {
+    "welcome": "Welcome back",
+    "kpis": {
+      "openCases": "Open Cases",
+      "underInvestigation": "Under Investigation",
+      "referredToCourt": "Referred to Court",
+      "overdueActions": "Overdue Actions"
+    },
+    "recentCasesWidget": {
+      "title": "My Recent Cases",
+      "viewAll": "View all my cases →",
+      "empty": "You have no recently updated cases.",
+      "loading": "Loading cases...",
+      "columns": {
+        "caseNumber": "Case #",
+        "title": "Title",
+        "status": "Status",
+        "crimeType": "Crime Type",
+        "lastUpdated": "Last Updated"
+      }
+    },
+    "evidenceWidget": {
+      "title": "Recent Evidence Logged",
+      "viewAll": "View all evidence →",
+      "empty": "No evidence items logged recently.",
+      "loading": "Loading evidence...",
+      "columns": {
+        "case": "Case",
+        "type": "Type",
+        "collectedAt": "Collected"
+      }
+    },
+    "pendingActionsWidget": {
+      "title": "Pending Actions",
+      "evidenceMissingCustody": "Evidence items missing custody events",
+      "casesWithoutUpdate": "Cases open >30 days without update",
+      "allClear": "No pending actions. You're up to date.",
+      "viewEvidence": "Review evidence →",
+      "viewCases": "Review cases →"
     }
+  },
+
+  "deptHead": {
+    "kpis": {
+      "activeCases": "Active Cases",
+      "resolutionRate": "Resolution Rate",
+      "avgCaseAge": "Avg Case Age",
+      "avgCaseAgeSuffix": "days",
+      "openArrests": "Open Arrests"
+    },
+    "caseStatusWidget": {
+      "title": "Cases by Status",
+      "total": "Total",
+      "loading": "Loading chart...",
+      "empty": "No case data available."
+    },
+    "workloadWidget": {
+      "title": "Officer Workload",
+      "subtitle": "Active cases per officer",
+      "loading": "Loading workload data...",
+      "empty": "No officers found in this department.",
+      "activeCasesLabel": "Active Cases"
+    },
+    "activityWidget": {
+      "title": "Recent Department Activity",
+      "viewTimeline": "View full timeline →",
+      "loading": "Loading activity...",
+      "empty": "No recent activity in this department."
+    },
+    "quickLinksWidget": {
+      "title": "Reports",
+      "caseReport": "Case Reports",
+      "officerReport": "Officer Workload",
+      "legalReport": "Legal Reports",
+      "viewAll": "All Reports →"
+    }
+  },
+
+  "admin": {
+    "kpis": {
+      "totalCases": "Total Cases",
+      "totalOfficers": "Total Officers",
+      "totalEvidence": "Evidence Items",
+      "systemHealth": "System Health"
+    },
+    "healthStatus": {
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "down": "Down"
+    },
+    "trendWidget": {
+      "title": "Case Volume — Last 30 Days",
+      "yAxisLabel": "Cases",
+      "loading": "Loading trend...",
+      "empty": "No case volume data available."
+    },
+    "securityWidget": {
+      "title": "Security Events",
+      "viewAll": "View audit log →",
+      "loading": "Loading events...",
+      "empty": "No recent security events.",
+      "severity": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      }
+    },
+    "deptOverviewWidget": {
+      "title": "Department Overview",
+      "loading": "Loading departments...",
+      "empty": "No departments found.",
+      "columns": {
+        "department": "Department",
+        "activeCases": "Active Cases",
+        "officers": "Officers"
+      },
+      "viewAll": "View all departments →"
+    },
+    "pendingTasksWidget": {
+      "title": "Pending Tasks",
+      "officersAwaitingActivation": "Officer(s) awaiting activation",
+      "departmentsWithoutHead": "Department(s) without a head officer",
+      "allClear": "No pending administrative tasks.",
+      "viewOfficers": "Review officers →",
+      "viewDepartments": "Review departments →"
+    }
+  },
+
+  "legal": {
+    "kpis": {
+      "openCourtCases": "Open Court Cases",
+      "chargesThisMonth": "Charges Filed (Month)",
+      "upcomingHearings": "Upcoming Hearings",
+      "convictionRate": "Conviction Rate"
+    },
+    "hearingsWidget": {
+      "title": "Upcoming Hearings",
+      "viewAll": "View all hearings →",
+      "loading": "Loading hearings...",
+      "empty": "No upcoming hearings in the next 30 days.",
+      "columns": {
+        "case": "Case",
+        "court": "Court",
+        "hearingDate": "Date",
+        "type": "Type"
+      }
+    },
+    "chargesWidget": {
+      "title": "Recent Charges",
+      "viewAll": "View all court cases →",
+      "loading": "Loading charges...",
+      "empty": "No recent charges filed.",
+      "columns": {
+        "crimeType": "Crime Type",
+        "suspect": "Suspect",
+        "status": "Status",
+        "filedAt": "Filed"
+      }
+    }
+  },
+
+  "widgetError": "Unable to load this widget. {retryLink}",
+  "retryLink": "Retry",
+  "fallback": {
+    "title": "Dashboard Unavailable",
+    "description": "Your role does not have a configured dashboard."
   }
 }

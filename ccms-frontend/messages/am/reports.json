@@ -1,5 +1,189 @@
 {
   "pageTitle": "ሪፖርቶች",
-  "heading": "ሪፖርቶች",
-  "skeleton": "ሪፖርቶች በመጫን ላይ..."
+  "nav": {
+    "cases": "የጉዳይ ሪፖርቶች",
+    "evidence": "የማስረጃ ሪፖርቶች",
+    "arrests": "የቁያ ሪፖርቶች",
+    "officers": "የፖሊስ ሥራ ጫና",
+    "legal": "የሕጋዊ ሪፖርቶች",
+    "departments": "የክፍሎች ሪፖርቶች"
+  },
+  "filters": {
+    "dateRangeLabel": "የቀን ክልል",
+    "fromLabel": "ከ",
+    "toLabel": "እስከ",
+    "presets": {
+      "last7Days": "መጨረሻ 7 ቀናት",
+      "last30Days": "መጨረሻ 30 ቀናት",
+      "lastQuarter": "ያለፈ ሩብ ዓመት",
+      "custom": "ብጁ"
+    },
+    "departmentLabel": "ክፍል",
+    "departmentAll": "ሁሉም ክፍሎች",
+    "departmentPlaceholder": "በክፍል አጣራ..."
+  },
+  "export": {
+    "button": "CSV ወርዶ አውርድ",
+    "downloading": "እያወረደ ነው...",
+    "successMessage": "ሪፖርቱ ወርዶ ተጫነ።",
+    "errorMessage": "ሪፖርቱን ለማውረድ አልተሳካም። እንደገና ይሞክሩ።"
+  },
+  "periodLabel": "ጊዜ: {dateFrom} – {dateTo}",
+  "noData": "ለተመረጡ ማጣሪያዎች ምንም ዳታ የለም።",
+  "loading": "ሪፖርት እየጫነ ነው...",
+  "error": "የሪፖርት ዳታ ለመጫን አልተሳካም።",
+  "retryButton": "እንደገና ሞክር",
+
+  "cases": {
+    "pageTitle": "የጉዳይ ሪፖርቶች",
+    "statusSummary": {
+      "title": "የጉዳይ ሁኔታ ክፍፍል",
+      "description": "በተመረጠ ጊዜ ውስጥ ሁሉም ጉዳዮች በሁኔታ።",
+      "totalLabel": "ጠቅላላ ጉዳዮች"
+    },
+    "volumeTrend": {
+      "title": "አዳዲስ ጉዳዮች ለጊዜ",
+      "description": "በተመረጠ ጊዜ ውስጥ የተከፈቱ ጉዳዮች ዕለታዊ ቁጥር።",
+      "yAxisLabel": "አዳዲስ ጉዳዮች",
+      "totalLabel": "ጠቅላላ የተከፈቱ"
+    },
+    "resolution": {
+      "title": "የጉዳይ መፍቻ መለኪያዎች",
+      "description": "የተዘጉ ጉዳዮች፣ የመፍቻ ፍጥነት፣ አማካይ ዕድሜ።",
+      "totalClosed": "የተዘጉ ጉዳዮች",
+      "resolutionRate": "የመፍቻ ፍጥነት",
+      "avgAge": "አማካይ የጉዳይ ዕድሜ",
+      "medianAge": "መካከለኛ ዕድሜ",
+      "ageSuffix": "ቀናት",
+      "noRate": "—"
+    }
+  },
+
+  "evidence": {
+    "pageTitle": "የማስረጃ ሪፖርቶች",
+    "typeBreakdown": {
+      "title": "ማስረጃ በዓይነት",
+      "description": "በተመረጠ ጊዜ በዓይነት የተከፋፈሉ ማስረጃዎች።",
+      "totalLabel": "ጠቅላላ ዕቃዎች"
+    },
+    "volumeTrend": {
+      "title": "የማስረጃ መጠን ለጊዜ",
+      "description": "ዕለታዊ ቁጥር ማስረጃ ዕቃዎች።",
+      "yAxisLabel": "የተመዘገቡ ዕቃዎች",
+      "totalLabel": "ጠቅላላ"
+    },
+    "unreviewed": {
+      "title": "ያልተገመገሙ ማስረጃዎች",
+      "description": "በጊዜ ውስጥ የተሰበሰቡ ያልተገመገሙ ዕቃዎች።",
+      "countLabel": "{count} ዕቃ(ዎች) ግምገማ ይፈልጋሉ",
+      "allReviewed": "ሁሉም ማስረጃዎች ተገምግመዋል።",
+      "columns": {
+        "case": "ጉዳይ",
+        "type": "ዓይነት",
+        "collectedAt": "የተሰበሰበበት",
+        "daysUnreviewed": "ያልተገመገሙ ቀናት"
+      }
+    }
+  },
+
+  "arrests": {
+    "pageTitle": "የቁያ ሪፖርቶች",
+    "summary": {
+      "title": "የቁያ ማጠቃለያ",
+      "totalLabel": "ቁያዎች በጊዜ ውስጥ",
+      "changeLabel": "ያለፈ ጊዜ ጋር ሲነፃፀር",
+      "noComparison": "ምንም ማነፃፀሪያ ዳታ የለም"
+    },
+    "monthlyTrend": {
+      "title": "ወርሃዊ የቁያ አዝማሚያ",
+      "description": "ወርሃዊ ቁያዎች ቁጥር።",
+      "yAxisLabel": "ቁያዎች",
+      "monthAxisLabel": "ወር"
+    }
+  },
+
+  "officers": {
+    "pageTitle": "የፖሊስ ሥራ ጫና ሪፖርቶች",
+    "workload": {
+      "title": "ንቁ ጉዳዮች ጫና",
+      "description": "በፖሊስ ንቁ ጉዳዮች ቁጥር።",
+      "columns": {
+        "officer": "ፖሊስ",
+        "badge": "ባጅ",
+        "activeCases": "ንቁ ጉዳዮች",
+        "totalInPeriod": "የተከፈቱ",
+        "closedInPeriod": "የተዘጉ"
+      }
+    },
+    "activity": {
+      "title": "የፖሊስ ተግባር መለኪያዎች",
+      "description": "ማስረጃ፣ ምርመራ፣ ቁያ በፖሊስ።",
+      "columns": {
+        "officer": "ፖሊስ",
+        "badge": "ባጅ",
+        "evidenceLogged": "ማስረጃ",
+        "interrogations": "ምርመራዎች",
+        "arrests": "ቁያዎች"
+      }
+    }
+  },
+
+  "legal": {
+    "pageTitle": "የሕጋዊ ሪፖርቶች",
+    "chargeOutcomes": {
+      "title": "የክስ ውጤቶች",
+      "description": "በጊዜ ውስጥ የክሶች ውጤቶች ክፍፍል።",
+      "totalLabel": "ጠቅላላ ክሶች",
+      "outcomes": {
+        "convicted": "ጥፋተኛ ተብሏል",
+        "acquitted": "ነፃ ተለቋል",
+        "dropped": "ተሰርዟል",
+        "pending": "በጠባቂ"
+      }
+    },
+    "convictionTrend": {
+      "title": "የጥፋተኝነት ፍጥነት አዝማሚያ",
+      "description": "ወርሃዊ ፍጥነት።",
+      "yAxisLabel": "ፍጥነት (%)",
+      "overallRate": "አጠቃላይ ፍጥነት",
+      "noRate": "በቂ ዳታ የለም"
+    },
+    "upcomingHearings": {
+      "title": "ቀጣይ ችሎቶች",
+      "description": "በተመረጠ ጊዜ ውስጥ ዝግጁ ችሎቶች።",
+      "totalLabel": "{count} ችሎት(ዎች) ዝግጁ",
+      "empty": "በተመረጠ ጊዜ ምንም ችሎቶች የሉም።",
+      "columns": {
+        "case": "ጉዳይ",
+        "court": "ፍርድ ቤት",
+        "hearingDate": "ቀን",
+        "type": "ዓይነት",
+        "officer": "ፖሊስ"
+      }
+    }
+  },
+
+  "departments": {
+    "pageTitle": "የክፍሎች ሪፖርቶች",
+    "accessDenied": "የክፍሎች ሪፖርቶች ለአስተዳዳሪዎች ብቻ ናቸው።",
+    "comparison": {
+      "title": "የክፍሎች ማነፃፀሪያ",
+      "description": "ሁሉም ክፍሎች ጎን ለጎን።",
+      "columns": {
+        "department": "ክፍል",
+        "activeCases": "ንቁ ጉዳዮች",
+        "closedCases": "የተዘጉ",
+        "officers": "ፖሊሶች",
+        "resolutionRate": "የመፍቻ ፍጥነት",
+        "avgAge": "አማካይ ዕድሜ"
+      },
+      "noRate": "—",
+      "ageSuffix": "ቀ"
+    },
+    "caseDistribution": {
+      "title": "የጉዳዮች ክፍፍል በክፍሎች",
+      "description": "ጠቅላላ ጉዳዮች ድርሻ በክፍሎች።",
+      "totalLabel": "ጠቅላላ ጉዳዮች"
+    }
+  }
 }

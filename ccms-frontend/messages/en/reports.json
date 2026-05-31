@@ -1,5 +1,189 @@
 {
   "pageTitle": "Reports",
-  "heading": "Reports",
-  "skeleton": "Loading reports..."
+  "nav": {
+    "cases": "Case Reports",
+    "evidence": "Evidence Reports",
+    "arrests": "Arrest Reports",
+    "officers": "Officer Workload",
+    "legal": "Legal Reports",
+    "departments": "Department Reports"
+  },
+  "filters": {
+    "dateRangeLabel": "Date Range",
+    "fromLabel": "From",
+    "toLabel": "To",
+    "presets": {
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "lastQuarter": "Last Quarter",
+      "custom": "Custom"
+    },
+    "departmentLabel": "Department",
+    "departmentAll": "All Departments",
+    "departmentPlaceholder": "Filter by department..."
+  },
+  "export": {
+    "button": "Export CSV",
+    "downloading": "Downloading...",
+    "successMessage": "Report downloaded.",
+    "errorMessage": "Failed to download report. Please try again."
+  },
+  "periodLabel": "Period: {dateFrom} – {dateTo}",
+  "noData": "No data available for the selected filters.",
+  "loading": "Loading report...",
+  "error": "Failed to load report data.",
+  "retryButton": "Retry",
+
+  "cases": {
+    "pageTitle": "Case Reports",
+    "statusSummary": {
+      "title": "Case Status Distribution",
+      "description": "Breakdown of all cases by current status within the selected period.",
+      "totalLabel": "Total Cases"
+    },
+    "volumeTrend": {
+      "title": "New Cases Over Time",
+      "description": "Daily count of new cases opened within the selected period.",
+      "yAxisLabel": "New Cases",
+      "totalLabel": "Total Opened"
+    },
+    "resolution": {
+      "title": "Case Resolution Metrics",
+      "description": "Closed case count, resolution rate, and average case age within the selected period.",
+      "totalClosed": "Cases Closed",
+      "resolutionRate": "Resolution Rate",
+      "avgAge": "Average Case Age",
+      "medianAge": "Median Case Age",
+      "ageSuffix": "days",
+      "noRate": "—"
+    }
+  },
+
+  "evidence": {
+    "pageTitle": "Evidence Reports",
+    "typeBreakdown": {
+      "title": "Evidence by Type",
+      "description": "Distribution of evidence items logged by type within the selected period.",
+      "totalLabel": "Total Items"
+    },
+    "volumeTrend": {
+      "title": "Evidence Volume Over Time",
+      "description": "Daily count of evidence items logged within the selected period.",
+      "yAxisLabel": "Items Logged",
+      "totalLabel": "Total Logged"
+    },
+    "unreviewed": {
+      "title": "Unreviewed Evidence",
+      "description": "Evidence items collected within the period that have not yet been reviewed.",
+      "countLabel": "{count} item(s) require review",
+      "allReviewed": "All evidence within the period has been reviewed.",
+      "columns": {
+        "case": "Case",
+        "type": "Type",
+        "collectedAt": "Collected",
+        "daysUnreviewed": "Days Unreviewed"
+      }
+    }
+  },
+
+  "arrests": {
+    "pageTitle": "Arrest Reports",
+    "summary": {
+      "title": "Arrest Summary",
+      "totalLabel": "Arrests in Period",
+      "changeLabel": "vs. previous period",
+      "noComparison": "No comparison data"
+    },
+    "monthlyTrend": {
+      "title": "Monthly Arrest Trend",
+      "description": "Arrest count aggregated by month within the selected period.",
+      "yAxisLabel": "Arrests",
+      "monthAxisLabel": "Month"
+    }
+  },
+
+  "officers": {
+    "pageTitle": "Officer Workload Reports",
+    "workload": {
+      "title": "Active Case Load",
+      "description": "Current active case count per officer, plus cases opened and closed within the period.",
+      "columns": {
+        "officer": "Officer",
+        "badge": "Badge",
+        "activeCases": "Active Cases",
+        "totalInPeriod": "Opened",
+        "closedInPeriod": "Closed"
+      }
+    },
+    "activity": {
+      "title": "Officer Activity Metrics",
+      "description": "Evidence logged, interrogations conducted, and arrests recorded per officer within the period.",
+      "columns": {
+        "officer": "Officer",
+        "badge": "Badge",
+        "evidenceLogged": "Evidence Logged",
+        "interrogations": "Interrogations",
+        "arrests": "Arrests"
+      }
+    }
+  },
+
+  "legal": {
+    "pageTitle": "Legal Reports",
+    "chargeOutcomes": {
+      "title": "Charge Outcomes",
+      "description": "Breakdown of charge outcomes (conviction, acquittal, dropped, pending) within the period.",
+      "totalLabel": "Total Charges",
+      "outcomes": {
+        "convicted": "Convicted",
+        "acquitted": "Acquitted",
+        "dropped": "Dropped",
+        "pending": "Pending"
+      }
+    },
+    "convictionTrend": {
+      "title": "Conviction Rate Trend",
+      "description": "Monthly conviction rate percentage within the selected period.",
+      "yAxisLabel": "Rate (%)",
+      "overallRate": "Overall Rate",
+      "noRate": "Insufficient data"
+    },
+    "upcomingHearings": {
+      "title": "Upcoming Hearings",
+      "description": "Scheduled court hearings within the selected date range.",
+      "totalLabel": "{count} hearing(s) scheduled",
+      "empty": "No hearings scheduled in the selected period.",
+      "columns": {
+        "case": "Case",
+        "court": "Court",
+        "hearingDate": "Hearing Date",
+        "type": "Type",
+        "officer": "Assigned Officer"
+      }
+    }
+  },
+
+  "departments": {
+    "pageTitle": "Department Reports",
+    "accessDenied": "Department reports are available to administrators only.",
+    "comparison": {
+      "title": "Department Comparison",
+      "description": "Side-by-side performance metrics for all departments within the selected period.",
+      "columns": {
+        "department": "Department",
+        "activeCases": "Active Cases",
+        "closedCases": "Closed",
+        "officers": "Officers",
+        "resolutionRate": "Resolution Rate",
+        "avgAge": "Avg Case Age"
+      },
+      "noRate": "—",
+      "ageSuffix": "d"
+    },
+    "caseDistribution": {
+      "title": "Case Distribution by Department",
+      "description": "Proportion of total cases assigned to each department within the period.",
+      "totalLabel": "Total Cases"
+    }
+  }
 }

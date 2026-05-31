@@ -1,7 +1,7 @@
 export const dashboardKeys = {
-  all: ['dashboard'] as const,
-  lists: () => [...dashboardKeys.all, 'list'] as const,
-  list: (filters: Record<string, unknown>) => [...dashboardKeys.lists(), filters] as const,
-  details: () => [...dashboardKeys.all, 'detail'] as const,
-  detail: (id: string) => [...dashboardKeys.details(), id] as const,
+  all: () => ['dashboard'] as const,
+  investigator: () => [...dashboardKeys.all(), 'investigator'] as const,
+  deptHead:     () => [...dashboardKeys.all(), 'dept-head'] as const,
+  admin:        () => [...dashboardKeys.all(), 'admin'] as const,
+  legal:        () => [...dashboardKeys.all(), 'legal'] as const,
 } as const
