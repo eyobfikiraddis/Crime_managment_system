@@ -18,6 +18,7 @@ export const Permission = {
   REPORTS_VIEW: 'reports:view',
   REPORTS_EXPORT: 'reports:export',
   AUDIT_VIEW: 'audit:view',
+  PII_REVEAL: 'personnel:pii_reveal',
   ADMIN_ACCESS: 'admin:access',
   ADMIN_MANAGE: 'admin:manage',
   DASHBOARD_VIEW: 'dashboard:view',

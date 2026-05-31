@@ -10,9 +10,10 @@ interface SensitiveFieldProps {
   value: string
   maskedValue: string
   canReveal: boolean
+  onReveal?: () => void
 }
 
-export function SensitiveField({ value, maskedValue, canReveal }: SensitiveFieldProps) {
+export function SensitiveField({ value, maskedValue, canReveal, onReveal }: SensitiveFieldProps) {
   const [revealed, setRevealed] = useState(false)
   const addToast = useNotificationStore((state) => state.addToast)
 
@@ -23,6 +24,12 @@ export function SensitiveField({ value, maskedValue, canReveal }: SensitiveField
     const nextValue = !revealed
     setRevealed(nextValue)
     if (nextValue) {
+      // Notify parent that a reveal happened (audit logging hook)
+      try {
+        ;(onReveal && onReveal())
+      } catch (e) {
+        // swallow — audit must not break UX
+      }
       addToast({
         message: 'Sensitive data revealed.',
         variant: 'warning',

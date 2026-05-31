@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
+import OfficerDetail from '@features/personnel/components/officers/OfficerDetail'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('personnel')
-  return { title: t('pageTitle') }
+  return { title: t('officers.pageTitle') }
 }
 
 type PageProps = {
@@ -19,7 +20,7 @@ export default async function OfficerDetailPage({ params, searchParams }: PagePr
 
   return (
     <div>
-      <h1>{t('officers.detailHeading')}</h1>
+      <OfficerDetail officerId={params.officerId} />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-# CCMS Frontend — Phase 6: Legal Module
+# CCMS Frontend — Phase 7: Personnel Module
 ## Execution Specification for AI Agent
 ### Year: 2026 | Runtime: Modern 2026 Ecosystem | Package Manager: pnpm | Target: Production-Grade Enterprise Frontend
 
@@ -8,38 +8,43 @@
 
 ## 1.1 Current Project State
 
-Phases 1 through 5 are complete. The following is fully operational:
+Phases 1 through 6 are complete. The following is fully operational:
 
 - **Foundation & Infrastructure**: Project scaffold, design tokens, Tailwind v4, all three Zustand stores, Axios client with 401 refresh queue, React Query with all 12 key factories, App Shell (Sidebar, TopBar, Breadcrumb), middleware, all shared components, i18n (EN + AM)
 - **Auth Module**: Login, logout, forgot-password, reset-password, idle session timeout, silent token refresh
-- **Cases Module**: Cases list, multi-step case creation wizard, case detail layout (header card, interactive status badge, nine-tab navigation), case overview tab, case timeline tab (30s polling, add-note, diff viewer, print), status transition drawer
-- **Evidence Module**: Evidence tab (DataTable + gallery toggle), evidence upload drawer (Cloudinary three-step flow), evidence detail drawer with chain of custody timeline, lightbox viewer, record custody event drawer
+- **Cases Module**: Cases list, multi-step case creation wizard, case detail layout (header card, interactive status badge, nine-tab navigation), case overview tab, case timeline tab, status transition drawer
+- **Evidence Module**: Evidence tab, upload drawer (Cloudinary three-step flow), chain of custody timeline, lightbox viewer
 - **Arrests Module**: Arrests tab (DataTable + filter bar), create arrest drawer, arrest detail drawer, update detention/bail status drawer
 - **Interrogations Module**: Interrogations tab (DataTable + filter bar), create interrogation drawer, read-only interrogation detail drawer
-- **Route coverage**: All nine case tab skeletons render; `/legal/court-cases` skeleton is in place; `/403`, admin, settings, and dashboard skeleton routes all render
-- **i18n completeness**: Passes for `common`, `auth`, `navigation`, `errors`, `accessibility`, `cases`, `evidence`, `arrests`, and `interrogations` namespaces
+- **Legal Module**: Legal tab (court case panel + charges table), create/update court case drawers, add/update/drop charge drawers, record/view sentence drawers, court cases list page
+- **Route coverage**: All nine case tab skeletons replaced with real content; `/personnel/persons`, `/personnel/persons/[personId]`, `/personnel/officers`, `/personnel/officers/[officerId]` skeleton routes are in place; admin and settings skeletons render
+- **i18n completeness**: Passes for `common`, `auth`, `navigation`, `errors`, `accessibility`, `cases`, `evidence`, `arrests`, `interrogations`, and `legal` namespaces
 
-## 1.2 Phase 6 Objective
+## 1.2 Phase 7 Objective
 
-Phase 6 delivers the **Legal Module** — the system's judicial proceedings interface. It sits at the intersection of law enforcement and the court system, accessible exclusively to `legal_officer`, `admin`, and `superadmin` roles. A non-legal officer who opens the Legal tab in a case sees the tab rendered but locked (established in Phase 3); Phase 6 replaces the skeleton content that appears behind that lock for authorised roles.
+Phase 7 delivers the **Personnel Module** — the system's directory of persons (civilians linked to investigations) and officers (authenticated users of the system). It is the authoritative source for identities referenced throughout every other module.
 
-The legal module introduces a **two-level entity hierarchy**: one CourtCase per investigation case, and multiple Charges under that CourtCase. This is architecturally distinct from the flat lists in arrests and interrogations. It also introduces **terminal status states** — a charge that reaches `CONVICTED` or `ACQUITTED` cannot revert. Sentencing data is only recorded after conviction and is immutable once saved.
+The personnel module introduces two concepts absent from prior phases:
 
-**Phase 6 delivers five sub-systems:**
+1. **PII Field Masking** — Personally Identifiable Information (national ID, date of birth, phone number) is masked by default for officers below `dept_head` rank. An admin-level reveal mechanism shows full values and logs an audit event.
+2. **Role Promotion Workflow** — A civilian person record starts neutral. It is promoted into specific investigative roles (Suspect, Victim, Witness) via dedicated drawers. Each promotion is permanent and role-specific; de-promotion is a backend-only admin action not exposed in this phase's UI.
 
-1. **Legal Tab (Case Detail)** — Replaces the Phase 3 skeleton at `/cases/[caseId]/legal`. Full judicial proceedings workspace for legal officers.
-2. **Court Case Panel** — Displays the court case linked to the investigation case. Includes `CreateCourtCaseDrawer` for the empty state and `UpdateCourtCaseDrawer` for editing.
-3. **Charges Table & Management** — DataTable of all charges within the court case. Row-level actions to update status, drop, and view sentencing.
-4. **Charge Drawers** — `AddChargeDrawer`, `UpdateChargeStatusDrawer`, `DropChargeDialog`, `RecordSentenceDrawer`, and `ViewSentenceDrawer`.
-5. **Court Cases List Page** — Replaces the Phase 3 skeleton at `/legal/court-cases`. Global list of court cases for the authenticated legal officer.
+**Phase 7 delivers six sub-systems:**
+
+1. **Person List Page** — Replaces the Phase 1 skeleton at `/personnel/persons`. Full DataTable with role filter, risk level filter, PII-masked national ID column.
+2. **Person Detail Page** — Replaces the Phase 1 skeleton at `/personnel/persons/[personId]`. Single-column page (NOT tabbed) with identity card (PII masking), role cards, promotion action buttons, and associated cases table.
+3. **Person Management Drawers** — `CreatePersonDrawer`, `PromoteToSuspectDrawer`, `PromoteToVictimDrawer`, `PromoteToWitnessDrawer`.
+4. **Officer List Page** — Replaces the Phase 1 skeleton at `/personnel/officers`. Full DataTable with status, department, and role filters.
+5. **Officer Detail Page** — Replaces the Phase 1 skeleton at `/personnel/officers/[officerId]`. Identity card, assigned cases summary, department info, activation status.
+6. **Officer Management Dialogs** — `CreateOfficerDrawer` (admin only), `DeactivateOfficerDialog`, `ActivateOfficerDialog`, `ResetPasswordDialog`.
 
 **Also in scope:**
 
-- `legal` feature module: full type definitions, Zod schemas, service implementation, React Query hooks
-- Full population of `messages/en/legal.json` and `messages/am/legal.json`
-- `legalKeys` query key factory at `src/services/query/keys/legalKeys.ts`
-- Case overview tab charge count card query invalidation after charge mutations (the count card at `/cases/[caseId]` already renders using `caseKeys.summary(caseId)`; the Legal module must invalidate it after every charge mutation)
-- Sidebar navigation `Legal` section already renders; verify `/legal/court-cases` route is wired and accessible to `legal_officer+`
+- `personnel` feature module: full type definitions, Zod schemas, service implementation, React Query hooks
+- Full population of `messages/en/personnel.json` and `messages/am/personnel.json`
+- `personnelKeys` query key factory at `src/services/query/keys/personnelKeys.ts`
+- `personnel.service.ts` replacing all stubs with real Axios calls (all 21 endpoints)
+- The `SensitiveField` shared component is already built in Phase 1. Personnel module consumes it — do not rebuild it.
 
 ## 1.3 Package Manager
 
@@ -47,80 +52,75 @@ All commands use **pnpm**. No npm or yarn.
 
 ## 1.4 What Must Be Completed
 
-**Legal service (`src/services/domain/legal.service.ts`):**
+**Personnel service (`src/services/domain/personnel.service.ts`):**
 - Replace all stubs with real Axios calls
-- All 7 endpoints covering court cases and charges (see §8)
+- All 21 endpoints across persons and officers (see §8)
 - Response validation via Zod `.parse()` on every response
 - Typed return values throughout — no `any`
 
-**Legal types and schemas:**
-- All TypeScript types: `CourtCase`, `CourtCaseSummary`, `CourtCaseStatus`, `CourtCaseOutcome`, `HearingDate`, `HearingType`, `Charge`, `ChargeListItem`, `ChargeStatus`, `SentenceType`, `Sentence`, `CourtCaseFilters`, `ChargeFilters`, `CreateCourtCasePayload`, `UpdateCourtCasePayload`, `CreateChargePayload`, `UpdateChargePayload`, `RecordSentencePayload`
-- All Zod schemas: create/update form schemas, API response schemas, filter schemas
+**Types and schemas:**
+- All person types: `Person`, `PersonListItem`, `PersonRole`, `RiskLevel`, `SuspectProfile`, `VictimProfile`, `WitnessProfile`, `PersonFilters`, `CreatePersonPayload`, `UpdatePersonPayload`, `PromoteToSuspectPayload`, `PromoteToVictimPayload`, `PromoteToWitnessPayload`, `PersonCaseSummary`
+- All officer types: `Officer`, `OfficerListItem`, `OfficerRole`, `OfficerStatus`, `OfficerFilters`, `CreateOfficerPayload`, `UpdateOfficerPayload`, `ResetPasswordPayload`, `OfficerCaseSummary`
+- All Zod schemas: create/update/promotion form schemas, API response schemas, filter schemas
 
-**Legal query hooks:**
-- `useCourtCaseByCase(caseId)` — fetches the single court case linked to an investigation case
-- `useCourtCaseList(filters)` — paginated list for the standalone `/legal/court-cases` page
-- `useCreateCourtCase(caseId)` — create mutation
-- `useUpdateCourtCase(courtCaseId, caseId)` — update mutation
-- `useChargeList(courtCaseId, caseId, filters)` — paginated charges for a given court case
-- `useCreateCharge(courtCaseId, caseId)` — file a new charge mutation
-- `useUpdateCharge(chargeId, courtCaseId, caseId)` — update charge status mutation
-- `useDropCharge(chargeId, courtCaseId, caseId)` — destructive mutation: set status to `DROPPED`
-- `useRecordSentence(chargeId, courtCaseId, caseId)` — record sentencing for a convicted charge
+**React Query hooks — Persons:**
+- `usePersonList(filters)` — paginated list
+- `usePersonDetail(personId)` — single person detail
+- `useCreatePerson()` — create mutation
+- `usePromoteToSuspect(personId)` — promotion mutation
+- `usePromoteToVictim(personId)` — promotion mutation
+- `usePromoteToWitness(personId)` — promotion mutation
+- `usePersonCases(personId)` — cases linked to this person
+
+**React Query hooks — Officers:**
+- `useOfficerList(filters)` — paginated list
+- `useOfficerDetail(officerId)` — single officer detail
+- `useCreateOfficer()` — create mutation (admin+)
+- `useActivateOfficer(officerId)` — activate mutation (admin+)
+- `useDeactivateOfficer(officerId)` — deactivate mutation (admin+)
+- `useResetOfficerPassword(officerId)` — reset password mutation (admin+)
+- `useOfficerCases(officerId)` — recent cases assigned to this officer
 
 **i18n messages:**
-- Fully populate `messages/en/legal.json`
-- Fully populate `messages/am/legal.json`
-
-**Legal Tab (`/cases/[caseId]/legal/page.tsx`):**
-- Replace Phase 3 skeleton
-- Empty state when no court case is linked: EmptyState component with "Create Court Case" CTA (legal_officer+)
-- When court case exists: `CourtCaseCard` + `ChargesTable` + filter bar + "Add Charge" button
-
-**Court Cases List Page (`/legal/court-cases/page.tsx`):**
-- Replace Phase 3 skeleton
-- Full DataTable with filter bar, loading, empty, and error states
-
-**All drawers and dialogs** as listed in §1.2
+- Fully populate `messages/en/personnel.json`
+- Fully populate `messages/am/personnel.json`
 
 ## 1.5 What Must NOT Be Implemented
 
-- **Charge reversal** — a charge that reaches `CONVICTED` or `ACQUITTED` cannot change status. The `UpdateChargeStatusDrawer` must not present these as options when the charge is in a terminal state.
-- **Sentence editing or deletion** — once a sentence is recorded via `RecordSentenceDrawer`, it is immutable. No edit button, no delete button.
-- **Court case deletion** — legal records are permanent. No delete action on court cases.
-- **Bulk charge operations** — deferred to Phase 11.
-- **Hearing date calendar integration** — hearing dates are recorded as data fields only; no calendar booking or external scheduling.
-- **Court case duplication** — each investigation case has exactly one linked court case. The "Create Court Case" CTA must be hidden once a court case exists.
-- **PDF/print export of court documents** — deferred to Phase 11.
-- **Appeal workflow** — reversing or appealing CONVICTED/ACQUITTED charges is not in scope.
+- **Person de-promotion** — removing a role (SUSPECT/VICTIM/WITNESS) from a person is a backend-only admin action. No UI for it in this phase.
+- **Updating suspect/victim/witness profiles after promotion** — e.g., changing a suspect's risk level after the initial promotion. Deferred to Phase 11.
+- **Full audit history timeline on person/officer detail** — the full `AuditTimeline` component is a Phase 11 deliverable. Include only a compact "Recent Activity" section (last 5 audit entries as a simple list) for admin+ on the person and officer detail pages, using a lightweight separate endpoint.
+- **Bulk person or officer operations** — deferred to Phase 11.
+- **Person or officer CSV export** — deferred to Phase 11.
+- **Department management** — department list/detail/create/edit is Phase 8.
+- **Officer profile editing by the officer themselves** — that is handled by `/settings/profile` (already stubbed in Phase 1). The officer management in this phase is admin-level management only.
 - **MSW mocking** — still deferred.
-- **Legal Officer Dashboard widgets** — deferred to Phase 9 (Dashboards & Reports).
 
 ## 1.6 Handoff Standard
 
-When Phase 6 finishes:
-- Navigating to `/cases/[caseId]/legal` as a `legal_officer` shows the real legal tab (not the Phase 3 skeleton)
-- If no court case is linked: `EmptyState` with "Create Court Case" button is visible; clicking opens `CreateCourtCaseDrawer`
-- If a court case exists: `CourtCaseCard` shows the court metadata, `HearingDatesList` shows upcoming hearings, `ChargesTable` below shows all charges
-- "Add Charge" button (legal_officer+) opens `AddChargeDrawer`; submitting files the charge, closes the drawer, and refreshes the charges list
-- Charge row kebab menu renders: "Update Status" → `UpdateChargeStatusDrawer`, "Drop Charge" → `DropChargeDialog`, "View Sentence" (only when `CONVICTED`) → `ViewSentenceDrawer`
-- "Drop Charge" triggers `DestructiveConfirmDialog` with the confirm phrase pattern
-- In `UpdateChargeStatusDrawer`, selecting `CONVICTED` expands a sentencing inline form; submitting records the sentence
-- Navigating to `/legal/court-cases` shows the full DataTable of court cases (not the skeleton)
-- Case overview tab charge count card increments after every successful `useCreateCharge` mutation
+When Phase 7 finishes:
+- Navigating to `/personnel/persons` shows the full persons DataTable (not the skeleton)
+- Persons list shows masked national IDs in the table for roles below `dept_head`
+- Clicking a person row navigates to `/personnel/persons/[personId]` which shows the single-column detail page
+- PII fields on person detail are masked for non-admin; admin+ sees a "Reveal" button that shows the full value after clicking
+- "Promote to Suspect" button (if role not yet assigned) opens `PromoteToSuspectDrawer`; completing it adds the suspect card to the detail page
+- Navigating to `/personnel/officers` shows the full officers DataTable
+- Officer rows show badge number, name, role badge, department, status badge; `dept_head` sees their own department only, `admin+` sees all
+- Clicking an officer row navigates to `/personnel/officers/[officerId]` showing the detail page
+- Admin-only "Deactivate" button on officer detail opens `DeactivateOfficerDialog`; confirming deactivates the officer and refreshes the list
+- Admin-only "Reset Password" button opens `ResetPasswordDialog`; confirming sends the reset
 - `pnpm type-check` — zero errors
 - `pnpm lint` — zero warnings
 - `pnpm build` — production build succeeds
-- i18n completeness test passes for the `legal` namespace in both EN and AM
+- i18n completeness test passes for the `personnel` namespace in both EN and AM
 
 ---
 
 # 2. Dependencies
 
-No new packages are required. All dependencies are already installed from prior phases:
+No new packages are required. All dependencies from prior phases are already installed:
 
 ```bash
-# Verify core dependencies are present
 pnpm why @tanstack/react-query
 pnpm why react-hook-form
 pnpm why zod
@@ -129,638 +129,669 @@ pnpm why date-fns
 pnpm why lucide-react
 ```
 
-If any of the above are missing, install them:
-```bash
-pnpm add @tanstack/react-query react-hook-form @hookform/resolvers zod nuqs date-fns lucide-react
-```
-
 ---
 
 # 3. File & Directory Structure
 
-Create the following new directories and files. All stubs from Phase 3 are replaced.
-
 ```
 src/
 ├── features/
-│   └── legal/
+│   └── personnel/
 │       ├── components/
-│       │   ├── CourtCaseCard.tsx            # Displays linked court case metadata
-│       │   ├── HearingDatesList.tsx          # Chronological list of hearing dates
-│       │   ├── CreateCourtCaseDrawer.tsx     # SlideOverDrawer — create court case form
-│       │   ├── UpdateCourtCaseDrawer.tsx     # SlideOverDrawer — edit court case
-│       │   ├── ChargesTable.tsx              # DataTable of charges within court case
-│       │   ├── AddChargeDrawer.tsx           # SlideOverDrawer — file a new charge
-│       │   ├── UpdateChargeStatusDrawer.tsx  # SlideOverDrawer — update status + sentencing
-│       │   ├── DropChargeDialog.tsx          # DestructiveConfirmDialog wrapper
-│       │   ├── RecordSentenceDrawer.tsx      # SlideOverDrawer — sentence details (CONVICTED)
-│       │   ├── ViewSentenceDrawer.tsx        # SlideOverDrawer — read-only sentence view
-│       │   └── CourtCasesList.tsx            # Main component for /legal/court-cases page
+│       │   ├── persons/
+│       │   │   ├── PersonsList.tsx              # List page component
+│       │   │   ├── PersonDetail.tsx             # Detail page orchestration wrapper
+│       │   │   ├── PersonIdentityCard.tsx       # PII-aware identity metadata card
+│       │   │   ├── PersonRoleCards.tsx          # Suspect / Victim / Witness role cards
+│       │   │   ├── PersonCasesTable.tsx         # Associated cases compact DataTable
+│       │   │   ├── CreatePersonDrawer.tsx       # SlideOverDrawer — create person
+│       │   │   ├── PromoteToSuspectDrawer.tsx   # SlideOverDrawer — promote to suspect
+│       │   │   ├── PromoteToVictimDrawer.tsx    # SlideOverDrawer — promote to victim
+│       │   │   └── PromoteToWitnessDrawer.tsx   # SlideOverDrawer — promote to witness
+│       │   └── officers/
+│       │       ├── OfficersList.tsx             # List page component
+│       │       ├── OfficerDetail.tsx            # Detail page orchestration wrapper
+│       │       ├── OfficerIdentityCard.tsx      # Officer identity metadata card
+│       │       ├── OfficerCasesSummary.tsx      # Compact recent cases list
+│       │       ├── CreateOfficerDrawer.tsx      # SlideOverDrawer — create officer (admin+)
+│       │       ├── DeactivateOfficerDialog.tsx  # DestructiveConfirmDialog wrapper
+│       │       ├── ActivateOfficerDialog.tsx    # ConfirmDialog wrapper
+│       │       └── ResetPasswordDialog.tsx      # ConfirmDialog wrapper (admin+)
 │       ├── hooks/
-│       │   ├── useCourtCaseByCase.ts
-│       │   ├── useCourtCaseList.ts
-│       │   ├── useCreateCourtCase.ts
-│       │   ├── useUpdateCourtCase.ts
-│       │   ├── useChargeList.ts
-│       │   ├── useCreateCharge.ts
-│       │   ├── useUpdateCharge.ts
-│       │   ├── useDropCharge.ts
-│       │   ├── useRecordSentence.ts
+│       │   ├── usePersonList.ts
+│       │   ├── usePersonDetail.ts
+│       │   ├── useCreatePerson.ts
+│       │   ├── usePromoteToSuspect.ts
+│       │   ├── usePromoteToVictim.ts
+│       │   ├── usePromoteToWitness.ts
+│       │   ├── usePersonCases.ts
+│       │   ├── useOfficerList.ts
+│       │   ├── useOfficerDetail.ts
+│       │   ├── useCreateOfficer.ts
+│       │   ├── useActivateOfficer.ts
+│       │   ├── useDeactivateOfficer.ts
+│       │   ├── useResetOfficerPassword.ts
+│       │   ├── useOfficerCases.ts
 │       │   └── index.ts
 │       ├── schemas/
-│       │   ├── court-case.schema.ts
-│       │   ├── charge.schema.ts
-│       │   ├── sentence.schema.ts
-│       │   ├── legal-api.schema.ts
-│       │   └── legal-filters.schema.ts
+│       │   ├── person.schema.ts
+│       │   ├── officer.schema.ts
+│       │   ├── personnel-api.schema.ts
+│       │   └── personnel-filters.schema.ts
 │       ├── types/
-│       │   ├── legal.types.ts
+│       │   ├── personnel.types.ts
 │       │   └── index.ts
 │       ├── utils/
-│       │   └── chargeUtils.ts
+│       │   └── personnelUtils.ts
 │       └── index.ts
 
 ├── services/
 │   └── query/
 │       └── keys/
-│           └── legalKeys.ts                  # New — query key factory
+│           └── personnelKeys.ts                # New — query key factory
 
 └── app/
     └── (dashboard)/
-        ├── cases/
-        │   └── [caseId]/
-        │       └── legal/
-        │           └── page.tsx              # Replaces Phase 3 skeleton
-        └── legal/
-            └── court-cases/
-                └── page.tsx                  # Replaces Phase 3 skeleton
+        └── personnel/
+            ├── persons/
+            │   ├── page.tsx                    # Replaces Phase 1 skeleton
+            │   └── [personId]/
+            │       └── page.tsx               # Replaces Phase 1 skeleton
+            └── officers/
+                ├── page.tsx                    # Replaces Phase 1 skeleton
+                └── [officerId]/
+                    └── page.tsx               # Replaces Phase 1 skeleton
 
 messages/
 ├── en/
-│   └── legal.json                           # Full EN population
+│   └── personnel.json                         # Full EN population
 └── am/
-    └── legal.json                           # Full AM population
+    └── personnel.json                         # Full AM population
 ```
 
 ---
 
 # 4. TypeScript Types
 
-## 4.1 `src/features/legal/types/legal.types.ts`
+## 4.1 `src/features/personnel/types/personnel.types.ts`
 
 ```typescript
-// ─── Court Case Status enum ──────────────────────────────────────────────────
-export const CourtCaseStatus = {
-  PENDING:    'PENDING',
-  ACTIVE:     'ACTIVE',
-  CONCLUDED:  'CONCLUDED',
-  DISMISSED:  'DISMISSED',
+// ─── Person Role enum ─────────────────────────────────────────────────────────
+export const PersonRole = {
+  SUSPECT:  'SUSPECT',
+  VICTIM:   'VICTIM',
+  WITNESS:  'WITNESS',
 } as const
-export type CourtCaseStatus = (typeof CourtCaseStatus)[keyof typeof CourtCaseStatus]
+export type PersonRole = (typeof PersonRole)[keyof typeof PersonRole]
 
-// ─── Court Case Outcome enum ──────────────────────────────────────────────────
-export const CourtCaseOutcome = {
-  GUILTY:        'GUILTY',
-  NOT_GUILTY:    'NOT_GUILTY',
-  DISMISSED:     'DISMISSED',
-  MISTRIAL:      'MISTRIAL',
-  PLEA_DEAL:     'PLEA_DEAL',
+// ─── Risk Level enum ──────────────────────────────────────────────────────────
+export const RiskLevel = {
+  LOW:    'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH:   'HIGH',
 } as const
-export type CourtCaseOutcome = (typeof CourtCaseOutcome)[keyof typeof CourtCaseOutcome]
+export type RiskLevel = (typeof RiskLevel)[keyof typeof RiskLevel]
 
-// ─── Hearing Type enum ───────────────────────────────────────────────────────
-export const HearingType = {
-  PRELIMINARY:  'PRELIMINARY',
-  TRIAL:        'TRIAL',
-  SENTENCING:   'SENTENCING',
-  APPEAL:       'APPEAL',
-  ARRAIGNMENT:  'ARRAIGNMENT',
+// ─── Gender enum ──────────────────────────────────────────────────────────────
+export const Gender = {
+  MALE:    'MALE',
+  FEMALE:  'FEMALE',
+  OTHER:   'OTHER',
 } as const
-export type HearingType = (typeof HearingType)[keyof typeof HearingType]
+export type Gender = (typeof Gender)[keyof typeof Gender]
 
-// ─── Charge Status enum ───────────────────────────────────────────────────────
-export const ChargeStatus = {
-  FILED:      'FILED',
-  ACTIVE:     'ACTIVE',
-  CONVICTED:  'CONVICTED',
-  ACQUITTED:  'ACQUITTED',
-  DROPPED:    'DROPPED',
+// ─── Officer Role enum ────────────────────────────────────────────────────────
+export const OfficerRole = {
+  INVESTIGATOR:    'INVESTIGATOR',
+  FORENSIC:        'FORENSIC',
+  LEGAL_OFFICER:   'LEGAL_OFFICER',
+  DEPT_HEAD:       'DEPT_HEAD',
+  ADMIN:           'ADMIN',
+  SUPERADMIN:      'SUPERADMIN',
 } as const
-export type ChargeStatus = (typeof ChargeStatus)[keyof typeof ChargeStatus]
+export type OfficerRole = (typeof OfficerRole)[keyof typeof OfficerRole]
 
-// Terminal charge statuses — cannot be changed once reached
-export const TERMINAL_CHARGE_STATUSES: ChargeStatus[] = [
-  ChargeStatus.CONVICTED,
-  ChargeStatus.ACQUITTED,
-  ChargeStatus.DROPPED,
-]
-
-// ─── Sentence Type enum ───────────────────────────────────────────────────────
-export const SentenceType = {
-  IMPRISONMENT:        'IMPRISONMENT',
-  FINE:                'FINE',
-  COMMUNITY_SERVICE:   'COMMUNITY_SERVICE',
-  SUSPENDED:           'SUSPENDED',
-  DEATH_PENALTY:       'DEATH_PENALTY',
-  LIFE_IMPRISONMENT:   'LIFE_IMPRISONMENT',
+// ─── Officer Status enum ──────────────────────────────────────────────────────
+export const OfficerStatus = {
+  ACTIVE:   'ACTIVE',
+  INACTIVE: 'INACTIVE',
 } as const
-export type SentenceType = (typeof SentenceType)[keyof typeof SentenceType]
+export type OfficerStatus = (typeof OfficerStatus)[keyof typeof OfficerStatus]
 
-// Sentence types that require a duration field
-export const SENTENCE_TYPES_WITH_DURATION: SentenceType[] = [
-  SentenceType.IMPRISONMENT,
-  SentenceType.COMMUNITY_SERVICE,
-  SentenceType.SUSPENDED,
-]
+// ─── Linked Role Profiles ─────────────────────────────────────────────────────
+export interface SuspectProfile {
+  riskLevel: RiskLevel
+  notes: string | null
+  promotedAt: string                 // ISO 8601
+  promotedByOfficerId: string
+}
 
-// Sentence types that require a fine amount field
-export const SENTENCE_TYPES_WITH_FINE: SentenceType[] = [
-  SentenceType.FINE,
-]
+export interface VictimProfile {
+  notes: string | null
+  promotedAt: string
+  promotedByOfficerId: string
+}
 
-// ─── Shared reference shapes ──────────────────────────────────────────────────
-export interface PersonRef {
+export interface WitnessProfile {
+  credibilityNotes: string | null
+  isProtected: boolean
+  protectionLevel: string | null     // e.g. "STANDARD", "HIGH" — null if not protected
+  promotedAt: string
+  promotedByOfficerId: string
+}
+
+// ─── PII container ────────────────────────────────────────────────────────────
+// The API returns masked values for roles below dept_head.
+// For admin+, values are full. The SensitiveField component handles the toggle.
+export interface PersonPII {
+  nationalId: string | null          // Masked: "***-***-1234" for < dept_head
+  dateOfBirth: string | null         // ISO 8601 full date; masked: year only for < dept_head
+  phone: string | null               // Masked: "+251 *** *** 789" for < dept_head
+}
+
+// ─── Person List Item (for DataTable) ────────────────────────────────────────
+export interface PersonListItem {
   id: string
   firstName: string
   lastName: string
+  nationalIdMasked: string | null    // Always the masked version for all roles in list view
+  gender: Gender | null
+  roles: PersonRole[]
+  riskLevel: RiskLevel | null        // Non-null only if SUSPECT role is assigned
+  isProtectedWitness: boolean
+  createdAt: string
 }
 
-export interface OfficerRef {
+// ─── Person Detail ────────────────────────────────────────────────────────────
+export interface Person {
+  id: string
+  firstName: string
+  lastName: string
+  gender: Gender | null
+  pii: PersonPII                     // PII fields; values depend on caller's role
+  address: string | null
+  photoUrl: string | null
+  roles: PersonRole[]
+  riskLevel: RiskLevel | null
+  isProtectedWitness: boolean
+  suspectProfile: SuspectProfile | null
+  victimProfile: VictimProfile | null
+  witnessProfile: WitnessProfile | null
+  createdAt: string
+  updatedAt: string
+}
+
+// ─── Person Case Summary ──────────────────────────────────────────────────────
+export interface PersonCaseSummary {
+  caseId: string
+  caseNumber: string
+  title: string
+  roleOnCase: PersonRole
+  caseStatus: string                 // Case status string (maps to existing CaseStatus enum)
+  createdAt: string
+}
+
+// ─── Person Filters ───────────────────────────────────────────────────────────
+export interface PersonFilters {
+  search?: string                    // First name, last name, or masked national ID
+  roles?: PersonRole[]
+  riskLevel?: RiskLevel[]
+  isProtectedWitness?: boolean
+  page?: number
+  pageSize?: number
+  sortField?: 'firstName' | 'lastName' | 'createdAt' | 'riskLevel'
+  sortDirection?: 'asc' | 'desc'
+}
+
+// ─── Person Payloads ──────────────────────────────────────────────────────────
+export interface CreatePersonPayload {
+  firstName: string
+  lastName: string
+  gender?: Gender
+  nationalId?: string
+  dateOfBirth?: string               // ISO 8601 date
+  phone?: string
+  address?: string
+}
+
+export interface UpdatePersonPayload {
+  firstName?: string
+  lastName?: string
+  gender?: Gender | null
+  phone?: string | null
+  address?: string | null
+}
+
+export interface PromoteToSuspectPayload {
+  riskLevel: RiskLevel
+  notes?: string
+}
+
+export interface PromoteToVictimPayload {
+  notes?: string
+}
+
+export interface PromoteToWitnessPayload {
+  credibilityNotes?: string
+  isProtected: boolean
+  protectionLevel?: string | null
+}
+
+// ─── Officer List Item (for DataTable) ───────────────────────────────────────
+export interface OfficerListItem {
   id: string
   badgeNumber: string
   firstName: string
   lastName: string
+  email: string
+  role: OfficerRole
+  status: OfficerStatus
+  departmentId: string
   departmentName: string
+  lastActivityAt: string | null      // Returned only for admin+; null for dept_head
+  createdAt: string
 }
 
-export interface CrimeTypeRef {
-  id: string
-  name: string
+// ─── Officer Detail ───────────────────────────────────────────────────────────
+export interface Officer extends OfficerListItem {
+  phone: string | null
+  activeCaseCount: number
+  totalCaseCount: number
 }
 
-// ─── Hearing Date ─────────────────────────────────────────────────────────────
-export interface HearingDate {
-  id: string
-  date: string             // ISO 8601
-  type: HearingType
-  location: string
-  notes: string | null
-  outcome: string | null   // Free-text outcome note for concluded hearings
-}
-
-// ─── Sentence ─────────────────────────────────────────────────────────────────
-export interface Sentence {
-  id: string
-  sentenceType: SentenceType
-  durationMonths: number | null   // In months; null for non-duration sentence types
-  fineAmountETB: number | null    // In ETB; null for non-fine types
-  notes: string | null
-  issuedAt: string                // ISO 8601
-  issuedByJudge: string | null
-}
-
-// ─── Charge List Item (for DataTable) ────────────────────────────────────────
-export interface ChargeListItem {
-  id: string
-  courtCaseId: string
+// ─── Officer Case Summary ─────────────────────────────────────────────────────
+export interface OfficerCaseSummary {
   caseId: string
-  suspect: PersonRef
-  crimeType: CrimeTypeRef
-  status: ChargeStatus
-  filedAt: string          // ISO 8601
-  updatedAt: string
-  hasSentence: boolean     // True when status is CONVICTED and a sentence is recorded
+  caseNumber: string
+  title: string
+  status: string
+  assignedAt: string
 }
 
-// ─── Charge Detail (for detail drawer and sentence panel) ────────────────────
-export interface Charge extends ChargeListItem {
-  sentence: Sentence | null
-  notes: string | null
-}
-
-// ─── Court Case Summary (for list page) ──────────────────────────────────────
-export interface CourtCaseSummary {
-  id: string
-  courtCaseNumber: string     // Court-assigned reference (e.g. "CC-2026-0047")
-  investigationCaseId: string
-  investigationCaseTitle: string
-  court: string
-  status: CourtCaseStatus
-  outcome: CourtCaseOutcome | null
-  filedAt: string
-  nextHearingDate: string | null   // ISO 8601
-  chargeCount: number
-  updatedAt: string
-}
-
-// ─── Court Case Detail (for case detail legal tab) ────────────────────────────
-export interface CourtCase extends CourtCaseSummary {
-  hearingDates: HearingDate[]
-  presidingJudge: string | null
-  prosecutor: string | null
-  defenceCounsel: string | null
-  notes: string | null
-  charges: ChargeListItem[]
-}
-
-// ─── Filters ──────────────────────────────────────────────────────────────────
-export interface CourtCaseFilters {
-  search?: string          // Court case number or investigation case title
-  status?: CourtCaseStatus[]
-  dateFrom?: string
-  dateTo?: string
+// ─── Officer Filters ──────────────────────────────────────────────────────────
+export interface OfficerFilters {
+  search?: string                    // Badge number or full name
+  status?: OfficerStatus[]
+  role?: OfficerRole[]
+  departmentId?: string              // Admin+ can filter by department; dept_head sees only their dept
   page?: number
   pageSize?: number
-  sortField?: 'filedAt' | 'courtCaseNumber' | 'status'
+  sortField?: 'badgeNumber' | 'firstName' | 'lastName' | 'status' | 'lastActivityAt'
   sortDirection?: 'asc' | 'desc'
 }
 
-export interface ChargeFilters {
-  search?: string          // Suspect name or crime type
-  status?: ChargeStatus[]
-  page?: number
-  pageSize?: number
-  sortField?: 'filedAt' | 'status'
-  sortDirection?: 'asc' | 'desc'
+// ─── Officer Payloads ──────────────────────────────────────────────────────────
+export interface CreateOfficerPayload {
+  badgeNumber: string
+  firstName: string
+  lastName: string
+  email: string
+  role: OfficerRole
+  departmentId: string
+  phone?: string
 }
 
-// ─── Payloads ──────────────────────────────────────────────────────────────────
-export interface CreateCourtCasePayload {
-  court: string
-  filedAt: string
-  presidingJudge?: string
-  prosecutor?: string
-  defenceCounsel?: string
-  hearingDates?: Omit<HearingDate, 'id' | 'outcome'>[]
-  notes?: string
+export interface UpdateOfficerPayload {
+  role?: OfficerRole
+  departmentId?: string
+  phone?: string | null
 }
 
-export interface UpdateCourtCasePayload {
-  court?: string
-  status?: CourtCaseStatus
-  outcome?: CourtCaseOutcome | null
-  presidingJudge?: string | null
-  prosecutor?: string | null
-  defenceCounsel?: string | null
-  hearingDates?: Omit<HearingDate, 'id' | 'outcome'>[]
-  notes?: string | null
-}
-
-export interface CreateChargePayload {
-  suspectId: string
-  crimeTypeId: string
-  notes?: string
-}
-
-export interface UpdateChargePayload {
-  status: Exclude<ChargeStatus, 'CONVICTED'>  // CONVICTED goes via RecordSentencePayload
-}
-
-export interface RecordSentencePayload {
-  sentenceType: SentenceType
-  durationMonths?: number | null
-  fineAmountETB?: number | null
-  notes?: string | null
-  issuedAt: string
-  issuedByJudge?: string | null
+export interface ResetPasswordPayload {
+  // No body required — backend triggers a reset email or generates temp password
 }
 ```
 
-## 4.2 `src/features/legal/types/index.ts`
+## 4.2 `src/features/personnel/types/index.ts`
 
 ```typescript
-export * from './legal.types'
+export * from './personnel.types'
 ```
 
 ---
 
 # 5. Zod Schemas
 
-## 5.1 `src/features/legal/schemas/court-case.schema.ts`
+## 5.1 `src/features/personnel/schemas/person.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { CourtCaseStatus, CourtCaseOutcome, HearingType } from '../types/legal.types'
+import { Gender, RiskLevel } from '../types/personnel.types'
 
-// ─── Hearing date sub-schema ──────────────────────────────────────────────────
-export const hearingDateInputSchema = z.object({
-  date: z.string().min(1, { message: 'Hearing date is required.' }),
-  type: z.nativeEnum(HearingType),
-  location: z.string().min(2, { message: 'Location is required.' }).max(300),
-  notes: z.string().max(1000).optional(),
-})
-
-// ─── Create court case ────────────────────────────────────────────────────────
-export const createCourtCaseSchema = z.object({
-  court: z
+// ─── Create Person ────────────────────────────────────────────────────────────
+export const createPersonSchema = z.object({
+  firstName: z
     .string()
-    .min(2, { message: 'Court name is required.' })
-    .max(300),
-  filedAt: z.string().min(1, { message: 'Filing date is required.' }),
-  presidingJudge: z.string().max(200).optional(),
-  prosecutor: z.string().max(200).optional(),
-  defenceCounsel: z.string().max(200).optional(),
-  hearingDates: z.array(hearingDateInputSchema).max(20).optional().default([]),
-  notes: z.string().max(3000).optional(),
+    .min(1, { message: 'First name is required.' })
+    .max(100),
+  lastName: z
+    .string()
+    .min(1, { message: 'Last name is required.' })
+    .max(100),
+  gender: z.nativeEnum(Gender).optional(),
+  nationalId: z.string().max(50).optional(),
+  dateOfBirth: z.string().optional(),    // ISO 8601 date string
+  phone: z.string().max(20).optional(),
+  address: z.string().max(500).optional(),
 })
 
-export type CreateCourtCaseValues = z.infer<typeof createCourtCaseSchema>
+export type CreatePersonValues = z.infer<typeof createPersonSchema>
 
-// ─── Update court case ────────────────────────────────────────────────────────
-export const updateCourtCaseSchema = z.object({
-  court: z.string().min(2).max(300).optional(),
-  status: z.nativeEnum(CourtCaseStatus).optional(),
-  outcome: z.nativeEnum(CourtCaseOutcome).nullable().optional(),
-  presidingJudge: z.string().max(200).nullable().optional(),
-  prosecutor: z.string().max(200).nullable().optional(),
-  defenceCounsel: z.string().max(200).nullable().optional(),
-  hearingDates: z.array(hearingDateInputSchema).max(20).optional(),
-  notes: z.string().max(3000).nullable().optional(),
-}).refine(
-  (data) => {
-    // If status is CONCLUDED, outcome is required
-    if (data.status === CourtCaseStatus.CONCLUDED && !data.outcome) {
-      return false
-    }
-    return true
-  },
-  {
-    message: 'An outcome is required when the court case status is Concluded.',
-    path: ['outcome'],
-  },
-)
-
-export type UpdateCourtCaseValues = z.infer<typeof updateCourtCaseSchema>
-```
-
-## 5.2 `src/features/legal/schemas/charge.schema.ts`
-
-```typescript
-import { z } from 'zod'
-import { ChargeStatus } from '../types/legal.types'
-
-// ─── Add charge ───────────────────────────────────────────────────────────────
-export const createChargeSchema = z.object({
-  suspectId: z.string().min(1, { message: 'Suspect is required.' }),
-  crimeTypeId: z.string().min(1, { message: 'Crime type is required.' }),
+// ─── Promote to Suspect ───────────────────────────────────────────────────────
+export const promoteToSuspectSchema = z.object({
+  riskLevel: z.nativeEnum(RiskLevel, {
+    errorMap: () => ({ message: 'Risk level is required.' }),
+  }),
   notes: z.string().max(2000).optional(),
 })
 
-export type CreateChargeValues = z.infer<typeof createChargeSchema>
+export type PromoteToSuspectValues = z.infer<typeof promoteToSuspectSchema>
 
-// ─── Update charge status (excludes CONVICTED — that goes via sentence form) ──
-export const updateChargeStatusSchema = z.object({
-  status: z.enum([
-    ChargeStatus.ACTIVE,
-    ChargeStatus.ACQUITTED,
-  ] as const, {
-    errorMap: () => ({ message: 'Please select a valid status.' }),
-  }),
+// ─── Promote to Victim ────────────────────────────────────────────────────────
+export const promoteToVictimSchema = z.object({
+  notes: z.string().max(2000).optional(),
 })
 
-export type UpdateChargeStatusValues = z.infer<typeof updateChargeStatusSchema>
+export type PromoteToVictimValues = z.infer<typeof promoteToVictimSchema>
+
+// ─── Promote to Witness ───────────────────────────────────────────────────────
+export const promoteToWitnessSchema = z.object({
+  credibilityNotes: z.string().max(2000).optional(),
+  isProtected: z.boolean().default(false),
+  protectionLevel: z.string().max(50).nullable().optional(),
+}).refine(
+  (data) => {
+    // protectionLevel is required when isProtected is true
+    if (data.isProtected && !data.protectionLevel) return false
+    return true
+  },
+  {
+    message: 'Protection level is required when witness protection is enabled.',
+    path: ['protectionLevel'],
+  },
+)
+
+export type PromoteToWitnessValues = z.infer<typeof promoteToWitnessSchema>
 ```
 
-## 5.3 `src/features/legal/schemas/sentence.schema.ts`
+## 5.2 `src/features/personnel/schemas/officer.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import {
-  SentenceType,
-  SENTENCE_TYPES_WITH_DURATION,
-  SENTENCE_TYPES_WITH_FINE,
-} from '../types/legal.types'
+import { OfficerRole } from '../types/personnel.types'
 
-export const recordSentenceSchema = z.object({
-  sentenceType: z.nativeEnum(SentenceType, {
-    errorMap: () => ({ message: 'Sentence type is required.' }),
+// ─── Create Officer ───────────────────────────────────────────────────────────
+export const createOfficerSchema = z.object({
+  badgeNumber: z
+    .string()
+    .min(1, { message: 'Badge number is required.' })
+    .max(20)
+    .regex(/^[A-Z0-9-]+$/, {
+      message: 'Badge number must contain only uppercase letters, digits, and hyphens.',
+    }),
+  firstName: z
+    .string()
+    .min(1, { message: 'First name is required.' })
+    .max(100),
+  lastName: z
+    .string()
+    .min(1, { message: 'Last name is required.' })
+    .max(100),
+  email: z
+    .string()
+    .email({ message: 'A valid email address is required.' })
+    .max(200),
+  role: z.nativeEnum(OfficerRole, {
+    errorMap: () => ({ message: 'Officer role is required.' }),
   }),
-  durationMonths: z.number().int().positive().max(999).nullable().optional(),
-  fineAmountETB: z.number().positive().max(999_999_999).nullable().optional(),
-  notes: z.string().max(3000).nullable().optional(),
-  issuedAt: z.string().min(1, { message: 'Sentence date is required.' }),
-  issuedByJudge: z.string().max(200).nullable().optional(),
-}).superRefine((data, ctx) => {
-  // Duration is required for imprisonment, community service, suspended
-  if (
-    SENTENCE_TYPES_WITH_DURATION.includes(data.sentenceType) &&
-    (data.durationMonths === null || data.durationMonths === undefined)
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Duration is required for this sentence type.',
-      path: ['durationMonths'],
-    })
-  }
-  // Fine amount is required for fine-type sentences
-  if (
-    SENTENCE_TYPES_WITH_FINE.includes(data.sentenceType) &&
-    (data.fineAmountETB === null || data.fineAmountETB === undefined)
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Fine amount is required for a fine sentence.',
-      path: ['fineAmountETB'],
-    })
-  }
+  departmentId: z
+    .string()
+    .min(1, { message: 'Department is required.' }),
+  phone: z.string().max(20).optional(),
 })
 
-export type RecordSentenceValues = z.infer<typeof recordSentenceSchema>
+export type CreateOfficerValues = z.infer<typeof createOfficerSchema>
 ```
 
-## 5.4 `src/features/legal/schemas/legal-api.schema.ts`
+## 5.3 `src/features/personnel/schemas/personnel-api.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import {
-  CourtCaseStatus,
-  CourtCaseOutcome,
-  HearingType,
-  ChargeStatus,
-  SentenceType,
-} from '../types/legal.types'
+import { Gender, RiskLevel, PersonRole, OfficerRole, OfficerStatus } from '../types/personnel.types'
 
-// ─── Shared refs ──────────────────────────────────────────────────────────────
-const personRefSchema = z.object({
+// ─── Shared sub-schemas ───────────────────────────────────────────────────────
+const suspectProfileSchema = z.object({
+  riskLevel: z.nativeEnum(RiskLevel),
+  notes: z.string().nullable(),
+  promotedAt: z.string(),
+  promotedByOfficerId: z.string().uuid(),
+})
+
+const victimProfileSchema = z.object({
+  notes: z.string().nullable(),
+  promotedAt: z.string(),
+  promotedByOfficerId: z.string().uuid(),
+})
+
+const witnessProfileSchema = z.object({
+  credibilityNotes: z.string().nullable(),
+  isProtected: z.boolean(),
+  protectionLevel: z.string().nullable(),
+  promotedAt: z.string(),
+  promotedByOfficerId: z.string().uuid(),
+})
+
+const personPIISchema = z.object({
+  nationalId: z.string().nullable(),
+  dateOfBirth: z.string().nullable(),
+  phone: z.string().nullable(),
+})
+
+// ─── Person List Item ─────────────────────────────────────────────────────────
+export const personListItemSchema = z.object({
   id: z.string().uuid(),
   firstName: z.string(),
   lastName: z.string(),
+  nationalIdMasked: z.string().nullable(),
+  gender: z.nativeEnum(Gender).nullable(),
+  roles: z.array(z.nativeEnum(PersonRole)),
+  riskLevel: z.nativeEnum(RiskLevel).nullable(),
+  isProtectedWitness: z.boolean(),
+  createdAt: z.string(),
 })
 
-const crimeTypeRefSchema = z.object({
+// ─── Person Detail ────────────────────────────────────────────────────────────
+export const personDetailSchema = z.object({
   id: z.string().uuid(),
-  name: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  gender: z.nativeEnum(Gender).nullable(),
+  pii: personPIISchema,
+  address: z.string().nullable(),
+  photoUrl: z.string().nullable(),
+  roles: z.array(z.nativeEnum(PersonRole)),
+  riskLevel: z.nativeEnum(RiskLevel).nullable(),
+  isProtectedWitness: z.boolean(),
+  suspectProfile: suspectProfileSchema.nullable(),
+  victimProfile: victimProfileSchema.nullable(),
+  witnessProfile: witnessProfileSchema.nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 })
 
-// ─── Sentence ─────────────────────────────────────────────────────────────────
-export const sentenceSchema = z.object({
-  id: z.string().uuid(),
-  sentenceType: z.nativeEnum(SentenceType),
-  durationMonths: z.number().nullable(),
-  fineAmountETB: z.number().nullable(),
-  notes: z.string().nullable(),
-  issuedAt: z.string(),
-  issuedByJudge: z.string().nullable(),
+// ─── Paginated persons ────────────────────────────────────────────────────────
+export const paginatedPersonsSchema = z.object({
+  data: z.array(personListItemSchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+  totalPages: z.number(),
 })
 
-// ─── Hearing Date ─────────────────────────────────────────────────────────────
-export const hearingDateSchema = z.object({
-  id: z.string().uuid(),
-  date: z.string(),
-  type: z.nativeEnum(HearingType),
-  location: z.string(),
-  notes: z.string().nullable(),
-  outcome: z.string().nullable(),
-})
-
-// ─── Charge List Item ─────────────────────────────────────────────────────────
-export const chargeListItemSchema = z.object({
-  id: z.string().uuid(),
-  courtCaseId: z.string().uuid(),
+// ─── Person Case Summary ──────────────────────────────────────────────────────
+export const personCaseSummarySchema = z.object({
   caseId: z.string().uuid(),
-  suspect: personRefSchema,
-  crimeType: crimeTypeRefSchema,
-  status: z.nativeEnum(ChargeStatus),
-  filedAt: z.string(),
-  updatedAt: z.string(),
-  hasSentence: z.boolean(),
+  caseNumber: z.string(),
+  title: z.string(),
+  roleOnCase: z.nativeEnum(PersonRole),
+  caseStatus: z.string(),
+  createdAt: z.string(),
 })
 
-// ─── Charge Detail ────────────────────────────────────────────────────────────
-export const chargeDetailSchema = chargeListItemSchema.extend({
-  sentence: sentenceSchema.nullable(),
-  notes: z.string().nullable(),
-})
-
-// ─── Paginated charges ────────────────────────────────────────────────────────
-export const paginatedChargesSchema = z.object({
-  data: z.array(chargeListItemSchema),
+export const personCasesResponseSchema = z.object({
+  data: z.array(personCaseSummarySchema),
   total: z.number(),
-  page: z.number(),
-  pageSize: z.number(),
-  totalPages: z.number(),
 })
 
-// ─── Court Case Summary ───────────────────────────────────────────────────────
-export const courtCaseSummarySchema = z.object({
+// ─── Officer List Item ────────────────────────────────────────────────────────
+export const officerListItemSchema = z.object({
   id: z.string().uuid(),
-  courtCaseNumber: z.string(),
-  investigationCaseId: z.string().uuid(),
-  investigationCaseTitle: z.string(),
-  court: z.string(),
-  status: z.nativeEnum(CourtCaseStatus),
-  outcome: z.nativeEnum(CourtCaseOutcome).nullable(),
-  filedAt: z.string(),
-  nextHearingDate: z.string().nullable(),
-  chargeCount: z.number(),
-  updatedAt: z.string(),
+  badgeNumber: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string(),
+  role: z.nativeEnum(OfficerRole),
+  status: z.nativeEnum(OfficerStatus),
+  departmentId: z.string().uuid(),
+  departmentName: z.string(),
+  lastActivityAt: z.string().nullable(),
+  createdAt: z.string(),
 })
 
-// ─── Court Case Detail ────────────────────────────────────────────────────────
-export const courtCaseDetailSchema = courtCaseSummarySchema.extend({
-  hearingDates: z.array(hearingDateSchema),
-  presidingJudge: z.string().nullable(),
-  prosecutor: z.string().nullable(),
-  defenceCounsel: z.string().nullable(),
-  notes: z.string().nullable(),
-  charges: z.array(chargeListItemSchema),
+// ─── Officer Detail ───────────────────────────────────────────────────────────
+export const officerDetailSchema = officerListItemSchema.extend({
+  phone: z.string().nullable(),
+  activeCaseCount: z.number(),
+  totalCaseCount: z.number(),
 })
 
-// ─── Paginated court cases ────────────────────────────────────────────────────
-export const paginatedCourtCasesSchema = z.object({
-  data: z.array(courtCaseSummarySchema),
+// ─── Paginated officers ───────────────────────────────────────────────────────
+export const paginatedOfficersSchema = z.object({
+  data: z.array(officerListItemSchema),
   total: z.number(),
   page: z.number(),
   pageSize: z.number(),
   totalPages: z.number(),
+})
+
+// ─── Officer Case Summary ─────────────────────────────────────────────────────
+export const officerCaseSummarySchema = z.object({
+  caseId: z.string().uuid(),
+  caseNumber: z.string(),
+  title: z.string(),
+  status: z.string(),
+  assignedAt: z.string(),
+})
+
+export const officerCasesResponseSchema = z.object({
+  data: z.array(officerCaseSummarySchema),
+  total: z.number(),
 })
 ```
 
-## 5.5 `src/features/legal/schemas/legal-filters.schema.ts`
+## 5.4 `src/features/personnel/schemas/personnel-filters.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { CourtCaseStatus, ChargeStatus } from '../types/legal.types'
+import { PersonRole, RiskLevel, OfficerStatus, OfficerRole } from '../types/personnel.types'
 
-export const courtCaseFiltersSchema = z.object({
+export const personFiltersSchema = z.object({
   search: z.string().optional(),
-  status: z.array(z.nativeEnum(CourtCaseStatus)).optional(),
-  dateFrom: z.string().optional(),
-  dateTo: z.string().optional(),
+  roles: z.array(z.nativeEnum(PersonRole)).optional(),
+  riskLevel: z.array(z.nativeEnum(RiskLevel)).optional(),
+  isProtectedWitness: z.coerce.boolean().optional(),
   page: z.coerce.number().min(1).optional().default(1),
   pageSize: z.coerce.number().min(10).max(100).optional().default(25),
   sortField: z
-    .enum(['filedAt', 'courtCaseNumber', 'status'])
+    .enum(['firstName', 'lastName', 'createdAt', 'riskLevel'])
     .optional()
-    .default('filedAt'),
-  sortDirection: z.enum(['asc', 'desc']).optional().default('desc'),
+    .default('lastName'),
+  sortDirection: z.enum(['asc', 'desc']).optional().default('asc'),
 })
 
-export const chargeFiltersSchema = z.object({
+export const officerFiltersSchema = z.object({
   search: z.string().optional(),
-  status: z.array(z.nativeEnum(ChargeStatus)).optional(),
+  status: z.array(z.nativeEnum(OfficerStatus)).optional(),
+  role: z.array(z.nativeEnum(OfficerRole)).optional(),
+  departmentId: z.string().optional(),
   page: z.coerce.number().min(1).optional().default(1),
   pageSize: z.coerce.number().min(10).max(100).optional().default(25),
-  sortField: z.enum(['filedAt', 'status']).optional().default('filedAt'),
-  sortDirection: z.enum(['asc', 'desc']).optional().default('desc'),
+  sortField: z
+    .enum(['badgeNumber', 'firstName', 'lastName', 'status', 'lastActivityAt'])
+    .optional()
+    .default('badgeNumber'),
+  sortDirection: z.enum(['asc', 'desc']).optional().default('asc'),
 })
 ```
 
 ---
 
-# 6. `src/features/legal/utils/chargeUtils.ts`
-
-Utility functions shared across charge components.
+# 6. `src/features/personnel/utils/personnelUtils.ts`
 
 ```typescript
-import { ChargeStatus, TERMINAL_CHARGE_STATUSES } from '../types/legal.types'
+import { RiskLevel, OfficerRole, OfficerStatus, PersonRole } from '../types/personnel.types'
 import type { BadgeVariant } from '@shared/types/ui.types'
 
-// ─── Charge Status badge variant mapping ─────────────────────────────────────
-export const CHARGE_STATUS_VARIANTS: Record<ChargeStatus, BadgeVariant> = {
-  FILED:      'primary',       // Blue — charge has been filed
-  ACTIVE:     'warning',       // Amber — case in active proceedings
-  CONVICTED:  'destructive',   // Red — found guilty
-  ACQUITTED:  'success',       // Green — found not guilty
-  DROPPED:    'muted',         // Slate — charge withdrawn
+// ─── Risk Level badge variant mapping ────────────────────────────────────────
+export const RISK_LEVEL_VARIANTS: Record<RiskLevel, BadgeVariant> = {
+  LOW:    'success',      // Green — low risk
+  MEDIUM: 'warning',      // Amber — medium risk
+  HIGH:   'destructive',  // Red — high risk
 }
 
-// ─── Terminal state guard ─────────────────────────────────────────────────────
-export function isChargeTerminal(status: ChargeStatus): boolean {
-  return TERMINAL_CHARGE_STATUSES.includes(status)
+// ─── Officer Status badge variant mapping ────────────────────────────────────
+export const OFFICER_STATUS_VARIANTS: Record<OfficerStatus, BadgeVariant> = {
+  ACTIVE:   'success',  // Green — officer is active
+  INACTIVE: 'muted',    // Slate — officer is inactive
 }
 
-// ─── Available next statuses for a charge ────────────────────────────────────
-// CONVICTED is omitted here — that transition is only available via the
-// "Record Conviction & Sentence" flow in UpdateChargeStatusDrawer.
-export function getAvailableChargeStatuses(
-  current: ChargeStatus,
-): ChargeStatus[] {
-  if (isChargeTerminal(current)) return []
-  if (current === ChargeStatus.FILED) {
-    return [ChargeStatus.ACTIVE, ChargeStatus.ACQUITTED]
-  }
-  if (current === ChargeStatus.ACTIVE) {
-    return [ChargeStatus.ACQUITTED]
-  }
-  return []
+// ─── Officer Role badge variant mapping ──────────────────────────────────────
+export const OFFICER_ROLE_VARIANTS: Record<OfficerRole, BadgeVariant> = {
+  INVESTIGATOR:  'primary',
+  FORENSIC:      'accent',
+  LEGAL_OFFICER: 'accent',
+  DEPT_HEAD:     'warning',
+  ADMIN:         'destructive',
+  SUPERADMIN:    'destructive',
 }
 
-// ─── Duration formatter ───────────────────────────────────────────────────────
-export function formatDurationMonths(months: number): string {
-  if (months < 12) return `${months} month${months === 1 ? '' : 's'}`
-  const years = Math.floor(months / 12)
-  const rem = months % 12
-  if (rem === 0) return `${years} year${years === 1 ? '' : 's'}`
-  return `${years} year${years === 1 ? '' : 's'}, ${rem} month${rem === 1 ? '' : 's'}`
+// ─── Person Role badge variant mapping ───────────────────────────────────────
+export const PERSON_ROLE_VARIANTS: Record<PersonRole, BadgeVariant> = {
+  SUSPECT: 'warning',
+  VICTIM:  'muted',
+  WITNESS: 'primary',
 }
 
-// ─── Fine amount formatter ────────────────────────────────────────────────────
-export function formatFineAmount(amount: number): string {
-  return `${amount.toLocaleString('en-ET', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })} ETB`
+// ─── Full name helper ─────────────────────────────────────────────────────────
+export function getFullName(first: string, last: string): string {
+  return `${first} ${last}`.trim()
+}
+
+// ─── Officer display name helper ──────────────────────────────────────────────
+// Returns: "Insp. Alem Tadesse (BD-00142)"
+export function getOfficerDisplayName(
+  firstName: string,
+  lastName: string,
+  badgeNumber: string,
+): string {
+  return `${firstName} ${lastName} (${badgeNumber})`
+}
+
+// ─── Risk level ordinal (for sorting) ────────────────────────────────────────
+export const RISK_LEVEL_ORDINAL: Record<RiskLevel, number> = {
+  LOW:    0,
+  MEDIUM: 1,
+  HIGH:   2,
+}
+
+// ─── Check if a role is already assigned to a person ──────────────────────────
+export function hasRole(roles: PersonRole[], role: PersonRole): boolean {
+  return roles.includes(role)
+}
+
+// ─── Roles not yet assigned to a person ──────────────────────────────────────
+export function getUnassignedRoles(roles: PersonRole[]): PersonRole[] {
+  return Object.values(PersonRole).filter((r) => !roles.includes(r))
 }
 ```
 
@@ -768,39 +799,37 @@ export function formatFineAmount(amount: number): string {
 
 # 7. Query Key Factory
 
-## 7.1 `src/services/query/keys/legalKeys.ts`
+## 7.1 `src/services/query/keys/personnelKeys.ts`
 
 ```typescript
-export const legalKeys = {
-  // ── Court case root ─────────────────────────────────────────────────────────
-  courtCases: () => ['courtCases'] as const,
+export const personnelKeys = {
+  // ── Persons root ─────────────────────────────────────────────────────────────
+  persons: () => ['persons'] as const,
 
-  // ── Global court case list (for /legal/court-cases page) ────────────────────
-  courtCaseList: () => [...legalKeys.courtCases(), 'list'] as const,
-  courtCaseListFiltered: (filters: Record<string, unknown>) =>
-    [...legalKeys.courtCaseList(), filters] as const,
+  personList: () => [...personnelKeys.persons(), 'list'] as const,
+  personListFiltered: (filters: Record<string, unknown>) =>
+    [...personnelKeys.personList(), filters] as const,
 
-  // ── Court case detail ────────────────────────────────────────────────────────
-  courtCaseDetail: () => [...legalKeys.courtCases(), 'detail'] as const,
-  courtCase: (courtCaseId: string) =>
-    [...legalKeys.courtCaseDetail(), courtCaseId] as const,
+  personDetail: () => [...personnelKeys.persons(), 'detail'] as const,
+  person: (personId: string) =>
+    [...personnelKeys.personDetail(), personId] as const,
 
-  // ── Court case by investigation case (for legal tab) ────────────────────────
-  courtCaseByCase: (caseId: string) =>
-    [...legalKeys.courtCases(), 'byCase', caseId] as const,
+  personCases: (personId: string) =>
+    [...personnelKeys.person(personId), 'cases'] as const,
 
-  // ── Charges ──────────────────────────────────────────────────────────────────
-  charges: () => ['charges'] as const,
+  // ── Officers root ─────────────────────────────────────────────────────────────
+  officers: () => ['officers'] as const,
 
-  chargeList: (courtCaseId: string) =>
-    [...legalKeys.charges(), 'list', courtCaseId] as const,
-  chargeListFiltered: (
-    courtCaseId: string,
-    filters: Record<string, unknown>,
-  ) => [...legalKeys.chargeList(courtCaseId), filters] as const,
+  officerList: () => [...personnelKeys.officers(), 'list'] as const,
+  officerListFiltered: (filters: Record<string, unknown>) =>
+    [...personnelKeys.officerList(), filters] as const,
 
-  chargeDetail: (chargeId: string) =>
-    [...legalKeys.charges(), 'detail', chargeId] as const,
+  officerDetail: () => [...personnelKeys.officers(), 'detail'] as const,
+  officer: (officerId: string) =>
+    [...personnelKeys.officerDetail(), officerId] as const,
+
+  officerCases: (officerId: string) =>
+    [...personnelKeys.officer(officerId), 'cases'] as const,
 } as const
 ```
 
@@ -808,163 +837,190 @@ export const legalKeys = {
 
 # 8. Service Layer
 
-## 8.1 `src/services/domain/legal.service.ts`
+## 8.1 `src/services/domain/personnel.service.ts`
 
-Replace all stubs. Every response is validated with the corresponding Zod schema. Services return typed objects; the Zod parse throws on schema mismatch, which the `ApiError` interceptor handles.
+Replace all stubs. Every response validated with Zod. No `any` types.
 
 ```typescript
 import { apiClient } from '@services/api/client'
 import {
-  paginatedCourtCasesSchema,
-  courtCaseDetailSchema,
-  paginatedChargesSchema,
-  chargeDetailSchema,
-} from '@features/legal/schemas/legal-api.schema'
+  paginatedPersonsSchema,
+  personDetailSchema,
+  personCasesResponseSchema,
+  paginatedOfficersSchema,
+  officerDetailSchema,
+  officerCasesResponseSchema,
+} from '@features/personnel/schemas/personnel-api.schema'
 import type {
-  CourtCase,
-  CourtCaseSummary,
-  CourtCaseFilters,
-  ChargeListItem,
-  Charge,
-  ChargeFilters,
-  CreateCourtCasePayload,
-  UpdateCourtCasePayload,
-  CreateChargePayload,
-  UpdateChargePayload,
-  RecordSentencePayload,
-} from '@features/legal/types/legal.types'
+  Person,
+  PersonListItem,
+  PersonFilters,
+  PersonCaseSummary,
+  CreatePersonPayload,
+  PromoteToSuspectPayload,
+  PromoteToVictimPayload,
+  PromoteToWitnessPayload,
+  Officer,
+  OfficerListItem,
+  OfficerFilters,
+  OfficerCaseSummary,
+  CreateOfficerPayload,
+} from '@features/personnel/types/personnel.types'
 import type { PaginatedResponse } from '@shared/types/api.types'
 
-// ─── Court Cases ──────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// PERSONS (12 endpoints)
+// ═══════════════════════════════════════════════════════════════════════════════
 
-/**
- * GET /api/v1/court-cases
- * List all court cases (scoped to officer's access level by backend).
- */
-export async function getCourtCases(
-  filters: CourtCaseFilters,
-): Promise<PaginatedResponse<CourtCaseSummary>> {
-  const params = buildCourtCaseParams(filters)
-  const raw = await apiClient.get(`/api/v1/court-cases?${params}`)
-  return paginatedCourtCasesSchema.parse(raw)
+/** GET /api/v1/personnel/persons — list with filters */
+export async function getPersons(
+  filters: PersonFilters,
+): Promise<PaginatedResponse<PersonListItem>> {
+  const params = buildPersonParams(filters)
+  const raw = await apiClient.get(`/api/v1/personnel/persons?${params}`)
+  return paginatedPersonsSchema.parse(raw)
 }
 
-/**
- * GET /api/v1/cases/{caseId}/court-case
- * Fetch the single court case linked to an investigation case.
- * Returns null-equivalent (empty response) when no court case exists.
- * Backend returns 404 when none is linked — catch 404 and return null in the hook.
- */
-export async function getCourtCaseByCase(
-  caseId: string,
-): Promise<CourtCase | null> {
-  try {
-    const raw = await apiClient.get(`/api/v1/cases/${caseId}/court-case`)
-    return courtCaseDetailSchema.parse(raw)
-  } catch (err: unknown) {
-    // A 404 means no court case is linked yet — this is an expected state
-    if (isNotFoundError(err)) return null
-    throw err
-  }
+/** GET /api/v1/personnel/persons/:id — single person detail */
+export async function getPerson(personId: string): Promise<Person> {
+  const raw = await apiClient.get(`/api/v1/personnel/persons/${personId}`)
+  return personDetailSchema.parse(raw)
 }
 
-/**
- * POST /api/v1/cases/{caseId}/court-case
- * Create and link a court case to an investigation case.
- */
-export async function createCourtCase(
-  caseId: string,
-  payload: CreateCourtCasePayload,
-): Promise<CourtCase> {
+/** POST /api/v1/personnel/persons — create new person */
+export async function createPerson(
+  payload: CreatePersonPayload,
+): Promise<Person> {
+  const raw = await apiClient.post('/api/v1/personnel/persons', payload)
+  return personDetailSchema.parse(raw)
+}
+
+/** POST /api/v1/personnel/persons/:id/suspect — promote to suspect */
+export async function promoteToSuspect(
+  personId: string,
+  payload: PromoteToSuspectPayload,
+): Promise<Person> {
   const raw = await apiClient.post(
-    `/api/v1/cases/${caseId}/court-case`,
+    `/api/v1/personnel/persons/${personId}/suspect`,
     payload,
   )
-  return courtCaseDetailSchema.parse(raw)
+  return personDetailSchema.parse(raw)
+}
+
+/** POST /api/v1/personnel/persons/:id/victim — promote to victim */
+export async function promoteToVictim(
+  personId: string,
+  payload: PromoteToVictimPayload,
+): Promise<Person> {
+  const raw = await apiClient.post(
+    `/api/v1/personnel/persons/${personId}/victim`,
+    payload,
+  )
+  return personDetailSchema.parse(raw)
+}
+
+/** POST /api/v1/personnel/persons/:id/witness — promote to witness */
+export async function promoteToWitness(
+  personId: string,
+  payload: PromoteToWitnessPayload,
+): Promise<Person> {
+  const raw = await apiClient.post(
+    `/api/v1/personnel/persons/${personId}/witness`,
+    payload,
+  )
+  return personDetailSchema.parse(raw)
 }
 
 /**
- * PATCH /api/v1/court-cases/{courtCaseId}
- * Update a court case's metadata, status, hearing dates, or outcome.
+ * GET /api/v1/personnel/persons/:id/cases
+ * Cases this person is linked to (as suspect, victim, or witness).
+ * page and pageSize supported; returns up to 100 for the detail page.
  */
-export async function updateCourtCase(
-  courtCaseId: string,
-  payload: UpdateCourtCasePayload,
-): Promise<CourtCase> {
-  const raw = await apiClient.patch(
-    `/api/v1/court-cases/${courtCaseId}`,
-    payload,
-  )
-  return courtCaseDetailSchema.parse(raw)
-}
-
-// ─── Charges ──────────────────────────────────────────────────────────────────
-
-/**
- * GET /api/v1/court-cases/{courtCaseId}/charges
- * Paginated list of charges for a given court case.
- */
-export async function getCharges(
-  courtCaseId: string,
-  filters: ChargeFilters,
-): Promise<PaginatedResponse<ChargeListItem>> {
-  const params = buildChargeParams(filters)
+export async function getPersonCases(
+  personId: string,
+  params: { page?: number; pageSize?: number } = {},
+): Promise<{ data: PersonCaseSummary[]; total: number }> {
+  const p = new URLSearchParams()
+  p.set('page', String(params.page ?? 1))
+  p.set('pageSize', String(params.pageSize ?? 25))
   const raw = await apiClient.get(
-    `/api/v1/court-cases/${courtCaseId}/charges?${params}`,
+    `/api/v1/personnel/persons/${personId}/cases?${p.toString()}`,
   )
-  return paginatedChargesSchema.parse(raw)
+  return personCasesResponseSchema.parse(raw)
 }
 
-/**
- * POST /api/v1/court-cases/{courtCaseId}/charges
- * File a new charge against a suspect within a court case.
- */
-export async function createCharge(
-  courtCaseId: string,
-  payload: CreateChargePayload,
-): Promise<Charge> {
+// ═══════════════════════════════════════════════════════════════════════════════
+// OFFICERS (9 endpoints)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** GET /api/v1/personnel/officers — list with filters */
+export async function getOfficers(
+  filters: OfficerFilters,
+): Promise<PaginatedResponse<OfficerListItem>> {
+  const params = buildOfficerParams(filters)
+  const raw = await apiClient.get(`/api/v1/personnel/officers?${params}`)
+  return paginatedOfficersSchema.parse(raw)
+}
+
+/** GET /api/v1/personnel/officers/:id — single officer detail */
+export async function getOfficer(officerId: string): Promise<Officer> {
+  const raw = await apiClient.get(`/api/v1/personnel/officers/${officerId}`)
+  return officerDetailSchema.parse(raw)
+}
+
+/** POST /api/v1/personnel/officers — create new officer (admin+) */
+export async function createOfficer(
+  payload: CreateOfficerPayload,
+): Promise<Officer> {
+  const raw = await apiClient.post('/api/v1/personnel/officers', payload)
+  return officerDetailSchema.parse(raw)
+}
+
+/** POST /api/v1/personnel/officers/:id/activate — reactivate officer (admin+) */
+export async function activateOfficer(officerId: string): Promise<Officer> {
   const raw = await apiClient.post(
-    `/api/v1/court-cases/${courtCaseId}/charges`,
-    payload,
+    `/api/v1/personnel/officers/${officerId}/activate`,
   )
-  return chargeDetailSchema.parse(raw)
+  return officerDetailSchema.parse(raw)
 }
 
-/**
- * PATCH /api/v1/charges/{chargeId}
- * Update a charge's status. For conviction, use recordSentence instead.
- */
-export async function updateCharge(
-  chargeId: string,
-  payload: UpdateChargePayload,
-): Promise<Charge> {
-  const raw = await apiClient.patch(`/api/v1/charges/${chargeId}`, payload)
-  return chargeDetailSchema.parse(raw)
-}
-
-/**
- * POST /api/v1/charges/{chargeId}/sentence
- * Record conviction and sentence for a charge. Sets status to CONVICTED.
- */
-export async function recordSentence(
-  chargeId: string,
-  payload: RecordSentencePayload,
-): Promise<Charge> {
+/** POST /api/v1/personnel/officers/:id/deactivate — deactivate officer (admin+) */
+export async function deactivateOfficer(officerId: string): Promise<Officer> {
   const raw = await apiClient.post(
-    `/api/v1/charges/${chargeId}/sentence`,
-    payload,
+    `/api/v1/personnel/officers/${officerId}/deactivate`,
   )
-  return chargeDetailSchema.parse(raw)
+  return officerDetailSchema.parse(raw)
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+/** POST /api/v1/personnel/officers/:id/reset-password — trigger password reset (admin+) */
+export async function resetOfficerPassword(officerId: string): Promise<void> {
+  await apiClient.post(`/api/v1/personnel/officers/${officerId}/reset-password`)
+}
 
-function buildCourtCaseParams(filters: CourtCaseFilters): string {
+/**
+ * GET /api/v1/personnel/officers/:id/cases
+ * Recent cases assigned to this officer. Returns last 10 by default.
+ */
+export async function getOfficerCases(
+  officerId: string,
+): Promise<{ data: OfficerCaseSummary[]; total: number }> {
+  const raw = await apiClient.get(
+    `/api/v1/personnel/officers/${officerId}/cases?pageSize=10&sortField=assignedAt&sortDirection=desc`,
+  )
+  return officerCasesResponseSchema.parse(raw)
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function buildPersonParams(filters: PersonFilters): string {
   const p = new URLSearchParams()
   if (filters.search) p.set('search', filters.search)
-  if (filters.status?.length) p.set('status', filters.status.join(','))
-  if (filters.dateFrom) p.set('dateFrom', filters.dateFrom)
-  if (filters.dateTo) p.set('dateTo', filters.dateTo)
+  if (filters.roles?.length) p.set('roles', filters.roles.join(','))
+  if (filters.riskLevel?.length) p.set('riskLevel', filters.riskLevel.join(','))
+  if (filters.isProtectedWitness !== undefined)
+    p.set('isProtectedWitness', String(filters.isProtectedWitness))
   p.set('page', String(filters.page ?? 1))
   p.set('pageSize', String(filters.pageSize ?? 25))
   if (filters.sortField) p.set('sortField', filters.sortField)
@@ -972,24 +1028,17 @@ function buildCourtCaseParams(filters: CourtCaseFilters): string {
   return p.toString()
 }
 
-function buildChargeParams(filters: ChargeFilters): string {
+function buildOfficerParams(filters: OfficerFilters): string {
   const p = new URLSearchParams()
   if (filters.search) p.set('search', filters.search)
   if (filters.status?.length) p.set('status', filters.status.join(','))
+  if (filters.role?.length) p.set('role', filters.role.join(','))
+  if (filters.departmentId) p.set('departmentId', filters.departmentId)
   p.set('page', String(filters.page ?? 1))
   p.set('pageSize', String(filters.pageSize ?? 25))
   if (filters.sortField) p.set('sortField', filters.sortField)
   if (filters.sortDirection) p.set('sortDirection', filters.sortDirection)
   return p.toString()
-}
-
-function isNotFoundError(err: unknown): boolean {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    'status' in err &&
-    (err as { status: number }).status === 404
-  )
 }
 ```
 
@@ -997,885 +1046,1047 @@ function isNotFoundError(err: unknown): boolean {
 
 # 9. React Query Hooks
 
-Create all hooks in `src/features/legal/hooks/`.
+Create all hooks in `src/features/personnel/hooks/`.
 
-## 9.1 `useCourtCaseByCase.ts`
-
-```typescript
-import { useQuery } from '@tanstack/react-query'
-import { getCourtCaseByCase } from '@services/domain/legal.service'
-import { legalKeys } from '@services/query/keys/legalKeys'
-
-export function useCourtCaseByCase(caseId: string) {
-  return useQuery({
-    queryKey: legalKeys.courtCaseByCase(caseId),
-    queryFn: () => getCourtCaseByCase(caseId),
-    staleTime: 2 * 60 * 1000,
-    enabled: Boolean(caseId),
-    // null result (no court case) is a valid state — not an error
-    retry: (failureCount, error: unknown) => {
-      const is404 =
-        typeof error === 'object' &&
-        error !== null &&
-        'status' in error &&
-        (error as { status: number }).status === 404
-      if (is404) return false
-      return failureCount < 3
-    },
-  })
-}
-```
-
-## 9.2 `useCourtCaseList.ts`
+## 9.1 `usePersonList.ts`
 
 ```typescript
 import { useQuery } from '@tanstack/react-query'
-import { getCourtCases } from '@services/domain/legal.service'
-import { legalKeys } from '@services/query/keys/legalKeys'
-import type { CourtCaseFilters } from '../types/legal.types'
+import { getPersons } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
+import type { PersonFilters } from '../types/personnel.types'
 
-export function useCourtCaseList(filters: CourtCaseFilters) {
+export function usePersonList(filters: PersonFilters) {
   return useQuery({
-    queryKey: legalKeys.courtCaseListFiltered(filters as Record<string, unknown>),
-    queryFn: () => getCourtCases(filters),
+    queryKey: personnelKeys.personListFiltered(filters as Record<string, unknown>),
+    queryFn: () => getPersons(filters),
     staleTime: 2 * 60 * 1000,
     placeholderData: (prev) => prev,
   })
 }
 ```
 
-## 9.3 `useCreateCourtCase.ts`
-
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import { createCourtCase } from '@services/domain/legal.service'
-import { legalKeys } from '@services/query/keys/legalKeys'
-import { caseKeys } from '@services/query/keys/caseKeys'
-import { useNotificationStore } from '@shared/stores/notification.store'
-import { ApiError } from '@services/api/errors'
-import type { CreateCourtCasePayload } from '../types/legal.types'
-
-export function useCreateCourtCase(caseId: string) {
-  const queryClient = useQueryClient()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('legal')
-
-  return useMutation({
-    mutationFn: (payload: CreateCourtCasePayload) =>
-      createCourtCase(caseId, payload),
-    onSuccess: () => {
-      // Invalidate the court case for this investigation case
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.courtCaseByCase(caseId),
-      })
-      // Invalidate the global court case list
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.courtCaseList(),
-      })
-      // Invalidate case summary so the overview tab count cards update
-      void queryClient.invalidateQueries({
-        queryKey: caseKeys.summary(caseId),
-      })
-      addToast({ message: t('courtCase.create.successMessage'), variant: 'success' })
-    },
-    onError: (err: unknown) => {
-      const message =
-        err instanceof ApiError
-          ? err.message
-          : t('courtCase.create.errorMessage')
-      addToast({ message, variant: 'error' })
-    },
-  })
-}
-```
-
-## 9.4 `useUpdateCourtCase.ts`
-
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import { updateCourtCase } from '@services/domain/legal.service'
-import { legalKeys } from '@services/query/keys/legalKeys'
-import { useNotificationStore } from '@shared/stores/notification.store'
-import { ApiError } from '@services/api/errors'
-import type { UpdateCourtCasePayload } from '../types/legal.types'
-
-export function useUpdateCourtCase(courtCaseId: string, caseId: string) {
-  const queryClient = useQueryClient()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('legal')
-
-  return useMutation({
-    mutationFn: (payload: UpdateCourtCasePayload) =>
-      updateCourtCase(courtCaseId, payload),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.courtCase(courtCaseId),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.courtCaseByCase(caseId),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.courtCaseList(),
-      })
-      addToast({ message: t('courtCase.update.successMessage'), variant: 'success' })
-    },
-    onError: (err: unknown) => {
-      const message =
-        err instanceof ApiError
-          ? err.message
-          : t('courtCase.update.errorMessage')
-      addToast({ message, variant: 'error' })
-    },
-  })
-}
-```
-
-## 9.5 `useChargeList.ts`
+## 9.2 `usePersonDetail.ts`
 
 ```typescript
 import { useQuery } from '@tanstack/react-query'
-import { getCharges } from '@services/domain/legal.service'
-import { legalKeys } from '@services/query/keys/legalKeys'
-import type { ChargeFilters } from '../types/legal.types'
+import { getPerson } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
 
-export function useChargeList(
-  courtCaseId: string,
-  caseId: string,
-  filters: ChargeFilters,
+export function usePersonDetail(personId: string) {
+  return useQuery({
+    queryKey: personnelKeys.person(personId),
+    queryFn: () => getPerson(personId),
+    staleTime: 2 * 60 * 1000,
+    enabled: Boolean(personId),
+  })
+}
+```
+
+## 9.3 `useCreatePerson.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { createPerson } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { CreatePersonPayload } from '../types/personnel.types'
+
+export function useCreatePerson() {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('personnel')
+
+  return useMutation({
+    mutationFn: (payload: CreatePersonPayload) => createPerson(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.personList() })
+      addToast({ message: t('persons.create.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('persons.create.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 9.4 `usePromoteToSuspect.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { promoteToSuspect } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { PromoteToSuspectPayload } from '../types/personnel.types'
+
+export function usePromoteToSuspect(personId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('personnel')
+
+  return useMutation({
+    mutationFn: (payload: PromoteToSuspectPayload) =>
+      promoteToSuspect(personId, payload),
+    onSuccess: () => {
+      // Invalidate the person detail — the suspectProfile will now be populated
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.person(personId) })
+      // Invalidate the list — the roles column and risk badge update
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.personList() })
+      addToast({ message: t('persons.promoteToSuspect.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : t('persons.promoteToSuspect.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 9.5 `usePromoteToVictim.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { promoteToVictim } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { PromoteToVictimPayload } from '../types/personnel.types'
+
+export function usePromoteToVictim(personId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('personnel')
+
+  return useMutation({
+    mutationFn: (payload: PromoteToVictimPayload) =>
+      promoteToVictim(personId, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.person(personId) })
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.personList() })
+      addToast({ message: t('persons.promoteToVictim.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : t('persons.promoteToVictim.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 9.6 `usePromoteToWitness.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { promoteToWitness } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { PromoteToWitnessPayload } from '../types/personnel.types'
+
+export function usePromoteToWitness(personId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('personnel')
+
+  return useMutation({
+    mutationFn: (payload: PromoteToWitnessPayload) =>
+      promoteToWitness(personId, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.person(personId) })
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.personList() })
+      addToast({ message: t('persons.promoteToWitness.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : t('persons.promoteToWitness.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 9.7 `usePersonCases.ts`
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getPersonCases } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
+
+export function usePersonCases(
+  personId: string,
+  params: { page?: number; pageSize?: number } = {},
 ) {
   return useQuery({
-    queryKey: legalKeys.chargeListFiltered(
-      courtCaseId,
-      filters as Record<string, unknown>,
-    ),
-    queryFn: () => getCharges(courtCaseId, filters),
+    queryKey: [...personnelKeys.personCases(personId), params],
+    queryFn: () => getPersonCases(personId, params),
     staleTime: 2 * 60 * 1000,
     placeholderData: (prev) => prev,
-    enabled: Boolean(courtCaseId) && Boolean(caseId),
+    enabled: Boolean(personId),
   })
 }
 ```
 
-## 9.6 `useCreateCharge.ts`
+## 9.8 `useOfficerList.ts`
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getOfficers } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
+import type { OfficerFilters } from '../types/personnel.types'
+
+export function useOfficerList(filters: OfficerFilters) {
+  return useQuery({
+    queryKey: personnelKeys.officerListFiltered(filters as Record<string, unknown>),
+    queryFn: () => getOfficers(filters),
+    staleTime: 2 * 60 * 1000,
+    placeholderData: (prev) => prev,
+  })
+}
+```
+
+## 9.9 `useOfficerDetail.ts`
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getOfficer } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
+
+export function useOfficerDetail(officerId: string) {
+  return useQuery({
+    queryKey: personnelKeys.officer(officerId),
+    queryFn: () => getOfficer(officerId),
+    staleTime: 2 * 60 * 1000,
+    enabled: Boolean(officerId),
+  })
+}
+```
+
+## 9.10 `useCreateOfficer.ts`
 
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { createCharge } from '@services/domain/legal.service'
-import { legalKeys } from '@services/query/keys/legalKeys'
-import { caseKeys } from '@services/query/keys/caseKeys'
+import { createOfficer } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
 import { ApiError } from '@services/api/errors'
-import type { CreateChargePayload } from '../types/legal.types'
+import type { CreateOfficerPayload } from '../types/personnel.types'
 
-export function useCreateCharge(courtCaseId: string, caseId: string) {
+export function useCreateOfficer() {
   const queryClient = useQueryClient()
   const { addToast } = useNotificationStore()
-  const t = useTranslations('legal')
+  const t = useTranslations('personnel')
 
   return useMutation({
-    mutationFn: (payload: CreateChargePayload) =>
-      createCharge(courtCaseId, payload),
+    mutationFn: (payload: CreateOfficerPayload) => createOfficer(payload),
     onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.chargeList(courtCaseId),
-      })
-      // Refresh the court case so chargeCount updates in the CourtCaseCard
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.courtCaseByCase(caseId),
-      })
-      // Update case overview tab count card
-      void queryClient.invalidateQueries({
-        queryKey: caseKeys.summary(caseId),
-      })
-      addToast({ message: t('charges.create.successMessage'), variant: 'success' })
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.officerList() })
+      addToast({ message: t('officers.create.successMessage'), variant: 'success' })
     },
     onError: (err: unknown) => {
       const message =
-        err instanceof ApiError
-          ? err.message
-          : t('charges.create.errorMessage')
+        err instanceof ApiError ? err.message : t('officers.create.errorMessage')
       addToast({ message, variant: 'error' })
     },
   })
 }
 ```
 
-## 9.7 `useUpdateCharge.ts`
+## 9.11 `useActivateOfficer.ts`
 
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { updateCharge } from '@services/domain/legal.service'
-import { legalKeys } from '@services/query/keys/legalKeys'
+import { activateOfficer } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
-import { ApiError } from '@services/api/errors'
-import type { UpdateChargePayload } from '../types/legal.types'
 
-export function useUpdateCharge(
-  chargeId: string,
-  courtCaseId: string,
-  caseId: string,
-) {
+export function useActivateOfficer(officerId: string) {
   const queryClient = useQueryClient()
   const { addToast } = useNotificationStore()
-  const t = useTranslations('legal')
+  const t = useTranslations('personnel')
 
   return useMutation({
-    mutationFn: (payload: UpdateChargePayload) =>
-      updateCharge(chargeId, payload),
+    mutationFn: () => activateOfficer(officerId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.chargeDetail(chargeId),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.chargeList(courtCaseId),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.courtCaseByCase(caseId),
-      })
-      addToast({ message: t('charges.update.successMessage'), variant: 'success' })
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.officer(officerId) })
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.officerList() })
+      addToast({ message: t('officers.activate.successMessage'), variant: 'success' })
+    },
+  })
+}
+```
+
+## 9.12 `useDeactivateOfficer.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { deactivateOfficer } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+
+export function useDeactivateOfficer(officerId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('personnel')
+
+  return useMutation({
+    // Not optimistic — officer deactivation is a security-sensitive action
+    mutationFn: () => deactivateOfficer(officerId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.officer(officerId) })
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.officerList() })
+      addToast({ message: t('officers.deactivate.successMessage'), variant: 'success' })
+    },
+  })
+}
+```
+
+## 9.13 `useResetOfficerPassword.ts`
+
+```typescript
+import { useMutation } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { resetOfficerPassword } from '@services/domain/personnel.service'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+
+export function useResetOfficerPassword(officerId: string) {
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('personnel')
+
+  return useMutation({
+    mutationFn: () => resetOfficerPassword(officerId),
+    onSuccess: () => {
+      addToast({ message: t('officers.resetPassword.successMessage'), variant: 'success' })
     },
     onError: (err: unknown) => {
       const message =
         err instanceof ApiError
           ? err.message
-          : t('charges.update.errorMessage')
+          : t('officers.resetPassword.errorMessage')
       addToast({ message, variant: 'error' })
     },
   })
 }
 ```
 
-## 9.8 `useDropCharge.ts`
+## 9.14 `useOfficerCases.ts`
 
 ```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import { updateCharge } from '@services/domain/legal.service'
-import { legalKeys } from '@services/query/keys/legalKeys'
-import { caseKeys } from '@services/query/keys/caseKeys'
-import { useNotificationStore } from '@shared/stores/notification.store'
-import { ChargeStatus } from '../types/legal.types'
+import { useQuery } from '@tanstack/react-query'
+import { getOfficerCases } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
 
-export function useDropCharge(
-  chargeId: string,
-  courtCaseId: string,
-  caseId: string,
-) {
-  const queryClient = useQueryClient()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('legal')
-
-  return useMutation({
-    // Drop is a specific status update — set to DROPPED
-    mutationFn: () =>
-      updateCharge(chargeId, { status: ChargeStatus.DROPPED }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.chargeList(courtCaseId),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.courtCaseByCase(caseId),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: caseKeys.summary(caseId),
-      })
-      addToast({ message: t('charges.drop.successMessage'), variant: 'success' })
-    },
+export function useOfficerCases(officerId: string) {
+  return useQuery({
+    queryKey: personnelKeys.officerCases(officerId),
+    queryFn: () => getOfficerCases(officerId),
+    staleTime: 5 * 60 * 1000,
+    enabled: Boolean(officerId),
   })
 }
 ```
 
-## 9.9 `useRecordSentence.ts`
+## 9.15 `src/features/personnel/hooks/index.ts`
 
 ```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import { recordSentence } from '@services/domain/legal.service'
-import { legalKeys } from '@services/query/keys/legalKeys'
-import { useNotificationStore } from '@shared/stores/notification.store'
-import { ApiError } from '@services/api/errors'
-import type { RecordSentencePayload } from '../types/legal.types'
-
-export function useRecordSentence(
-  chargeId: string,
-  courtCaseId: string,
-  caseId: string,
-) {
-  const queryClient = useQueryClient()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('legal')
-
-  return useMutation({
-    mutationFn: (payload: RecordSentencePayload) =>
-      recordSentence(chargeId, payload),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.chargeDetail(chargeId),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.chargeList(courtCaseId),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: legalKeys.courtCaseByCase(caseId),
-      })
-      addToast({ message: t('charges.sentence.successMessage'), variant: 'success' })
-    },
-    onError: (err: unknown) => {
-      const message =
-        err instanceof ApiError
-          ? err.message
-          : t('charges.sentence.errorMessage')
-      addToast({ message, variant: 'error' })
-    },
-  })
-}
-```
-
-## 9.10 `src/features/legal/hooks/index.ts`
-
-Export all hooks:
-
-```typescript
-export { useCourtCaseByCase } from './useCourtCaseByCase'
-export { useCourtCaseList } from './useCourtCaseList'
-export { useCreateCourtCase } from './useCreateCourtCase'
-export { useUpdateCourtCase } from './useUpdateCourtCase'
-export { useChargeList } from './useChargeList'
-export { useCreateCharge } from './useCreateCharge'
-export { useUpdateCharge } from './useUpdateCharge'
-export { useDropCharge } from './useDropCharge'
-export { useRecordSentence } from './useRecordSentence'
+export { usePersonList } from './usePersonList'
+export { usePersonDetail } from './usePersonDetail'
+export { useCreatePerson } from './useCreatePerson'
+export { usePromoteToSuspect } from './usePromoteToSuspect'
+export { usePromoteToVictim } from './usePromoteToVictim'
+export { usePromoteToWitness } from './usePromoteToWitness'
+export { usePersonCases } from './usePersonCases'
+export { useOfficerList } from './useOfficerList'
+export { useOfficerDetail } from './useOfficerDetail'
+export { useCreateOfficer } from './useCreateOfficer'
+export { useActivateOfficer } from './useActivateOfficer'
+export { useDeactivateOfficer } from './useDeactivateOfficer'
+export { useResetOfficerPassword } from './useResetOfficerPassword'
+export { useOfficerCases } from './useOfficerCases'
 ```
 
 ---
 
-# 10. i18n Messages — Legal
+# 10. i18n Messages — Personnel
 
-## 10.1 `messages/en/legal.json` — Full Population
+## 10.1 `messages/en/personnel.json` — Full Population
 
 ```json
 {
-  "pageTitle": "Legal",
-  "tab": {
-    "heading": "Legal Proceedings",
-    "lockedTooltip": "You do not have access to legal proceedings. Contact a Legal Officer.",
-    "loading": "Loading legal proceedings...",
-    "errorTitle": "Failed to load legal proceedings",
-    "errorDescription": "Please refresh the page or contact support if the issue persists."
-  },
-  "courtCase": {
-    "sectionTitle": "Court Case",
-    "empty": {
-      "title": "No Court Case Linked",
-      "description": "This investigation case has not yet been linked to a court case. A Legal Officer can create and link one.",
-      "createButton": "Create Court Case"
+  "persons": {
+    "pageTitle": "Persons",
+    "list": {
+      "heading": "Persons",
+      "entityCount": "{count} person(s)",
+      "addPersonButton": "Add Person",
+      "filters": {
+        "search": "Search by name or ID...",
+        "roles": "Role",
+        "riskLevel": "Risk Level",
+        "protectedWitness": "Protected Witness Only",
+        "clearAll": "Clear all filters"
+      },
+      "loading": "Loading persons...",
+      "empty": {
+        "title": "No Persons Found",
+        "description": "No person records have been created yet.",
+        "cta": "Add the first person using the button above."
+      },
+      "emptyFiltered": "No persons match your current filters.",
+      "columns": {
+        "name": "Name",
+        "nationalId": "National ID",
+        "roles": "Roles",
+        "riskLevel": "Risk",
+        "protected": "Protected",
+        "createdAt": "Added",
+        "actions": "Actions"
+      },
+      "protectedYes": "Protected",
+      "rowActions": {
+        "view": "View Details"
+      }
     },
-    "card": {
-      "caseNumber": "Court Case No.",
-      "court": "Court",
-      "status": "Status",
-      "outcome": "Outcome",
-      "filedAt": "Filed",
-      "nextHearing": "Next Hearing",
-      "noNextHearing": "No hearing scheduled",
-      "presidingJudge": "Presiding Judge",
-      "noJudge": "Not recorded",
-      "prosecutor": "Prosecutor",
-      "noProsecutor": "Not recorded",
-      "defenceCounsel": "Defence Counsel",
-      "noDefenceCounsel": "Not recorded",
-      "notes": "Notes",
-      "noNotes": "No notes.",
-      "chargeCount": "{count} charge(s)",
-      "editButton": "Edit Court Case",
-      "hearingsSectionTitle": "Hearing Dates"
+    "detail": {
+      "breadcrumb": "Persons",
+      "identityCard": {
+        "title": "Identity",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "gender": "Gender",
+        "nationalId": "National ID",
+        "dateOfBirth": "Date of Birth",
+        "phone": "Phone",
+        "address": "Address",
+        "noAddress": "Not recorded",
+        "createdAt": "Record Created",
+        "updatedAt": "Last Updated"
+      },
+      "pii": {
+        "masked": "Hidden for privacy",
+        "revealButton": "Reveal",
+        "hideButton": "Hide",
+        "dobYearOnly": "Year only visible for your role",
+        "revealAuditNotice": "Revealing this field will be logged in the audit trail."
+      },
+      "rolesSection": {
+        "title": "Roles & Profiles",
+        "noRoles": "No roles assigned yet.",
+        "noRolesDescription": "This person has not been linked to any investigation roles.",
+        "promoteSection": "Assign Roles",
+        "promoteHint": "Use the buttons below to assign this person to an investigative role. Each assignment is permanent."
+      },
+      "suspectCard": {
+        "title": "Suspect Profile",
+        "riskLevel": "Risk Level",
+        "notes": "Notes",
+        "noNotes": "No notes.",
+        "promotedAt": "Designated",
+        "promotedBy": "By"
+      },
+      "victimCard": {
+        "title": "Victim Profile",
+        "notes": "Notes",
+        "noNotes": "No notes.",
+        "promotedAt": "Designated",
+        "promotedBy": "By"
+      },
+      "witnessCard": {
+        "title": "Witness Profile",
+        "credibilityNotes": "Credibility Notes",
+        "noNotes": "No notes.",
+        "isProtected": "Under Protection",
+        "protectionLevel": "Protection Level",
+        "notProtected": "No protection",
+        "promotedAt": "Designated",
+        "promotedBy": "By"
+      },
+      "casesSection": {
+        "title": "Associated Cases",
+        "entityCount": "{count} case(s)",
+        "loading": "Loading cases...",
+        "empty": "This person is not linked to any cases.",
+        "columns": {
+          "caseNumber": "Case No.",
+          "title": "Case Title",
+          "roleOnCase": "Role",
+          "caseStatus": "Status",
+          "createdAt": "Since"
+        }
+      },
+      "actions": {
+        "promoteToSuspect": "Add as Suspect",
+        "promoteToVictim": "Add as Victim",
+        "promoteToWitness": "Add as Witness"
+      }
     },
-    "status": {
-      "PENDING": "Pending",
-      "ACTIVE": "Active",
-      "CONCLUDED": "Concluded",
-      "DISMISSED": "Dismissed"
+    "riskLevel": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High"
     },
-    "outcome": {
-      "GUILTY": "Guilty",
-      "NOT_GUILTY": "Not Guilty",
-      "DISMISSED": "Dismissed",
-      "MISTRIAL": "Mistrial",
-      "PLEA_DEAL": "Plea Deal"
+    "role": {
+      "SUSPECT": "Suspect",
+      "VICTIM": "Victim",
+      "WITNESS": "Witness"
     },
-    "hearingType": {
-      "PRELIMINARY": "Preliminary Hearing",
-      "TRIAL": "Trial",
-      "SENTENCING": "Sentencing",
-      "APPEAL": "Appeal",
-      "ARRAIGNMENT": "Arraignment"
-    },
-    "create": {
-      "drawerTitle": "Create Court Case",
-      "drawerDescription": "Link this investigation case to court proceedings.",
-      "section1Title": "Court Details",
-      "section2Title": "Key Personnel",
-      "section3Title": "Hearing Dates (optional)",
-      "section4Title": "Additional Notes",
-      "courtLabel": "Court Name",
-      "courtPlaceholder": "e.g. Federal High Court — Lideta Division",
-      "filedAtLabel": "Date Filed",
-      "presidingJudgeLabel": "Presiding Judge (optional)",
-      "presidingJudgePlaceholder": "Full name of the judge",
-      "prosecutorLabel": "Prosecutor (optional)",
-      "prosecutorPlaceholder": "Full name of the prosecutor",
-      "defenceCounselLabel": "Defence Counsel (optional)",
-      "defenceCounselPlaceholder": "Full name of the defence counsel",
-      "addHearingButton": "Add Hearing Date",
-      "hearingDateLabel": "Date",
-      "hearingTypeLabel": "Hearing Type",
-      "hearingLocationLabel": "Location",
-      "hearingLocationPlaceholder": "e.g. Courtroom 4, Lideta Courts",
-      "hearingNotesLabel": "Notes (optional)",
-      "removeHearingButton": "Remove",
-      "notesLabel": "Notes (optional)",
-      "notesPlaceholder": "Any additional notes about the court case...",
-      "submitButton": "Create Court Case",
-      "cancelButton": "Cancel",
-      "successMessage": "Court case created and linked successfully.",
-      "errorMessage": "Failed to create court case. Please try again."
-    },
-    "update": {
-      "drawerTitle": "Edit Court Case",
-      "drawerDescription": "Update court case metadata, status, or hearing dates.",
-      "courtLabel": "Court Name",
-      "statusLabel": "Status",
-      "outcomeLabel": "Outcome",
-      "outcomeHint": "Required when status is Concluded.",
-      "presidingJudgeLabel": "Presiding Judge",
-      "prosecutorLabel": "Prosecutor",
-      "defenceCounselLabel": "Defence Counsel",
-      "hearingsSectionTitle": "Hearing Dates",
-      "addHearingButton": "Add Hearing Date",
-      "notesLabel": "Notes",
-      "submitButton": "Save Changes",
-      "cancelButton": "Cancel",
-      "successMessage": "Court case updated successfully.",
-      "errorMessage": "Failed to update court case. Please try again."
-    }
-  },
-  "charges": {
-    "sectionTitle": "Charges",
-    "addChargeButton": "Add Charge",
-    "entityCount": "{count} charge(s)",
-    "filters": {
-      "search": "Search by suspect or crime type...",
-      "status": "Status",
-      "clearAll": "Clear all filters"
-    },
-    "loading": "Loading charges...",
-    "empty": {
-      "title": "No Charges Filed",
-      "description": "No charges have been filed in this court case yet.",
-      "cta": "Add the first charge using the button above."
-    },
-    "emptyFiltered": "No charges match your current filters.",
-    "columns": {
-      "suspect": "Suspect",
-      "crimeType": "Crime Type",
-      "status": "Status",
-      "filedAt": "Filed",
-      "sentence": "Sentence",
-      "actions": "Actions"
-    },
-    "sentenceIndicator": {
-      "recorded": "Recorded",
-      "pending": "Pending"
-    },
-    "rowActions": {
-      "updateStatus": "Update Status",
-      "viewSentence": "View Sentence",
-      "dropCharge": "Drop Charge"
-    },
-    "status": {
-      "FILED": "Filed",
-      "ACTIVE": "Active",
-      "CONVICTED": "Convicted",
-      "ACQUITTED": "Acquitted",
-      "DROPPED": "Dropped"
+    "gender": {
+      "MALE": "Male",
+      "FEMALE": "Female",
+      "OTHER": "Other"
     },
     "create": {
-      "drawerTitle": "Add Charge",
-      "drawerDescription": "File a new charge in this court case.",
-      "section1Title": "Charge Details",
-      "suspectLabel": "Suspect",
-      "suspectPlaceholder": "Search suspects linked to this case...",
-      "suspectHint": "Only persons linked to this investigation case as suspects are shown.",
-      "crimeTypeLabel": "Crime Type",
-      "crimeTypePlaceholder": "Search crime types...",
+      "drawerTitle": "Add Person",
+      "drawerDescription": "Create a new person record in the system.",
+      "section1Title": "Basic Information",
+      "section2Title": "Contact & Identity",
+      "firstNameLabel": "First Name",
+      "firstNamePlaceholder": "e.g. Alem",
+      "lastNameLabel": "Last Name",
+      "lastNamePlaceholder": "e.g. Tadesse",
+      "genderLabel": "Gender (optional)",
+      "nationalIdLabel": "National ID (optional)",
+      "nationalIdPlaceholder": "e.g. ETH-1234567890",
+      "nationalIdHint": "This field is treated as sensitive PII and will be masked for lower roles.",
+      "dateOfBirthLabel": "Date of Birth (optional)",
+      "phoneLabel": "Phone Number (optional)",
+      "phonePlaceholder": "e.g. +251 91 234 5678",
+      "addressLabel": "Address (optional)",
+      "addressPlaceholder": "e.g. Bole Sub-City, Addis Ababa",
+      "submitButton": "Add Person",
+      "cancelButton": "Cancel",
+      "successMessage": "Person record created successfully.",
+      "errorMessage": "Failed to create person record. Please try again."
+    },
+    "promoteToSuspect": {
+      "drawerTitle": "Add as Suspect",
+      "drawerDescription": "Link this person to the investigation as a suspect. This assignment is permanent.",
+      "permanenceNotice": "Once a person is designated as a Suspect, this cannot be undone from the UI. Contact an administrator if this was made in error.",
+      "section1Title": "Suspect Details",
+      "riskLevelLabel": "Risk Level",
+      "riskLevelHint": "Assess the risk level based on available intelligence.",
       "notesLabel": "Notes (optional)",
-      "notesPlaceholder": "Additional notes about this charge...",
-      "submitButton": "File Charge",
+      "notesPlaceholder": "Any notes relevant to the suspect designation...",
+      "submitButton": "Confirm — Add as Suspect",
       "cancelButton": "Cancel",
-      "successMessage": "Charge filed successfully.",
-      "errorMessage": "Failed to file charge. Please try again."
+      "successMessage": "Person designated as Suspect successfully.",
+      "errorMessage": "Failed to designate as Suspect. Please try again."
     },
-    "update": {
-      "drawerTitle": "Update Charge Status",
-      "drawerDescription": "Change the status of this charge.",
-      "currentStatusLabel": "Current Status",
-      "newStatusLabel": "New Status",
-      "newStatusPlaceholder": "Select new status...",
-      "terminalNotice": "This charge has reached a final status and cannot be changed.",
-      "convictSection": "Record Conviction",
-      "convictNotice": "Selecting 'Convicted' will record this charge as a conviction. You must also record the sentencing details. This action cannot be reversed.",
-      "convictButton": "Record Conviction & Sentence",
-      "submitButton": "Update Status",
+    "promoteToVictim": {
+      "drawerTitle": "Add as Victim",
+      "drawerDescription": "Link this person to the investigation as a victim. This assignment is permanent.",
+      "permanenceNotice": "Once a person is designated as a Victim, this cannot be undone from the UI.",
+      "section1Title": "Victim Details",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Any notes relevant to the victim designation...",
+      "submitButton": "Confirm — Add as Victim",
       "cancelButton": "Cancel",
-      "successMessage": "Charge status updated successfully.",
-      "errorMessage": "Failed to update charge status. Please try again."
+      "successMessage": "Person designated as Victim successfully.",
+      "errorMessage": "Failed to designate as Victim. Please try again."
     },
-    "drop": {
-      "confirmTitle": "Drop this charge?",
-      "confirmDescription": "Charge against {suspectName} ({crimeType}) will be permanently set to Dropped. This action cannot be undone.",
-      "confirmButton": "Drop Charge",
+    "promoteToWitness": {
+      "drawerTitle": "Add as Witness",
+      "drawerDescription": "Link this person to the investigation as a witness. This assignment is permanent.",
+      "permanenceNotice": "Once a person is designated as a Witness, this cannot be undone from the UI.",
+      "section1Title": "Witness Details",
+      "section2Title": "Witness Protection",
+      "credibilityNotesLabel": "Credibility Notes (optional)",
+      "credibilityNotesPlaceholder": "Notes on witness credibility and reliability...",
+      "isProtectedLabel": "Under Witness Protection",
+      "protectionLevelLabel": "Protection Level",
+      "protectionLevelPlaceholder": "e.g. STANDARD, HIGH",
+      "protectionLevelHint": "Required when witness protection is enabled.",
+      "protectedBadge": "Protected Witness",
+      "submitButton": "Confirm — Add as Witness",
       "cancelButton": "Cancel",
-      "successMessage": "Charge dropped successfully."
-    },
-    "sentence": {
-      "drawerTitle": "Record Sentence",
-      "drawerDescription": "Record the sentencing details for this conviction.",
-      "convictionNotice": "Recording a sentence will permanently set this charge to Convicted. This cannot be reversed.",
-      "section1Title": "Sentence Details",
-      "sentenceTypeLabel": "Sentence Type",
-      "durationMonthsLabel": "Duration (months)",
-      "durationMonthsPlaceholder": "e.g. 60 for 5 years",
-      "durationMonthsHint": "Enter the total sentence length in months.",
-      "fineAmountLabel": "Fine Amount (ETB)",
-      "fineAmountPlaceholder": "Enter fine amount in Ethiopian Birr",
-      "issuedAtLabel": "Sentence Date",
-      "issuedByJudgeLabel": "Issued By Judge (optional)",
-      "issuedByJudgePlaceholder": "Full name of the sentencing judge",
-      "notesLabel": "Sentence Notes (optional)",
-      "notesPlaceholder": "Any additional sentencing notes or conditions...",
-      "submitButton": "Record Sentence",
-      "cancelButton": "Cancel",
-      "successMessage": "Sentence recorded successfully. Charge is now Convicted.",
-      "errorMessage": "Failed to record sentence. Please try again."
-    },
-    "viewSentence": {
-      "drawerTitle": "Sentence Details",
-      "immutableNotice": "This sentence record is permanent and cannot be modified.",
-      "sentenceType": "Sentence Type",
-      "duration": "Duration",
-      "fineAmount": "Fine Amount",
-      "issuedAt": "Sentenced On",
-      "issuedByJudge": "Sentenced By",
-      "noJudge": "Not recorded",
-      "notes": "Notes",
-      "noNotes": "No notes.",
-      "closeButton": "Close"
-    },
-    "sentenceType": {
-      "IMPRISONMENT": "Imprisonment",
-      "FINE": "Fine",
-      "COMMUNITY_SERVICE": "Community Service",
-      "SUSPENDED": "Suspended Sentence",
-      "DEATH_PENALTY": "Death Penalty",
-      "LIFE_IMPRISONMENT": "Life Imprisonment"
+      "successMessage": "Person designated as Witness successfully.",
+      "errorMessage": "Failed to designate as Witness. Please try again."
     }
   },
-  "courtCasesList": {
-    "pageTitle": "Court Cases",
-    "entityCount": "{count} court case(s)",
-    "filters": {
-      "search": "Search by case title or court no...",
-      "status": "Status",
-      "dateRange": "Date Range",
-      "clearAll": "Clear all filters"
+  "officers": {
+    "pageTitle": "Officers",
+    "list": {
+      "heading": "Officers",
+      "entityCount": "{count} officer(s)",
+      "addOfficerButton": "Add Officer",
+      "filters": {
+        "search": "Search by badge or name...",
+        "status": "Status",
+        "role": "Role",
+        "department": "Department",
+        "clearAll": "Clear all filters"
+      },
+      "loading": "Loading officers...",
+      "empty": {
+        "title": "No Officers Found",
+        "description": "No officer accounts exist in this scope."
+      },
+      "emptyFiltered": "No officers match your current filters.",
+      "columns": {
+        "badgeNumber": "Badge",
+        "name": "Name",
+        "role": "Role",
+        "department": "Department",
+        "status": "Status",
+        "lastActivity": "Last Active",
+        "actions": "Actions"
+      },
+      "lastActivityNever": "Never",
+      "rowActions": {
+        "view": "View Details",
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "resetPassword": "Reset Password"
+      }
     },
-    "loading": "Loading court cases...",
-    "empty": {
-      "title": "No Court Cases",
-      "description": "No court cases found. Court cases are created from within individual case files."
+    "detail": {
+      "breadcrumb": "Officers",
+      "identityCard": {
+        "title": "Officer Identity",
+        "badgeNumber": "Badge Number",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone",
+        "noPhone": "Not recorded",
+        "role": "Role",
+        "department": "Department",
+        "status": "Status",
+        "lastActivity": "Last Active",
+        "lastActivityNever": "Never",
+        "activeCases": "Active Cases",
+        "totalCases": "Total Cases",
+        "createdAt": "Account Created"
+      },
+      "casesSection": {
+        "title": "Recent Assigned Cases",
+        "loading": "Loading cases...",
+        "empty": "No cases assigned to this officer.",
+        "viewAll": "View all cases",
+        "columns": {
+          "caseNumber": "Case No.",
+          "title": "Title",
+          "status": "Status",
+          "assignedAt": "Assigned"
+        }
+      },
+      "actions": {
+        "deactivate": "Deactivate Officer",
+        "activate": "Activate Officer",
+        "resetPassword": "Reset Password"
+      }
     },
-    "emptyFiltered": "No court cases match your current filters.",
-    "columns": {
-      "courtCaseNumber": "Court Case No.",
-      "investigationCase": "Investigation Case",
-      "court": "Court",
-      "status": "Status",
-      "outcome": "Outcome",
-      "filedAt": "Filed",
-      "nextHearing": "Next Hearing",
-      "chargeCount": "Charges",
-      "actions": "Actions"
+    "officerRole": {
+      "INVESTIGATOR": "Investigator",
+      "FORENSIC": "Forensic Officer",
+      "LEGAL_OFFICER": "Legal Officer",
+      "DEPT_HEAD": "Department Head",
+      "ADMIN": "Administrator",
+      "SUPERADMIN": "Super Administrator"
     },
-    "rowActions": {
-      "viewCase": "View Investigation Case"
+    "officerStatus": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive"
+    },
+    "create": {
+      "drawerTitle": "Add Officer",
+      "drawerDescription": "Create a new officer account. The officer will receive an email to set their password.",
+      "section1Title": "Identity",
+      "section2Title": "Account Details",
+      "badgeNumberLabel": "Badge Number",
+      "badgeNumberPlaceholder": "e.g. BD-00142",
+      "badgeNumberHint": "Must be unique. Use uppercase letters, digits, and hyphens only.",
+      "firstNameLabel": "First Name",
+      "firstNamePlaceholder": "e.g. Sara",
+      "lastNameLabel": "Last Name",
+      "lastNamePlaceholder": "e.g. Haile",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "e.g. sara.haile@police.gov.et",
+      "phoneLabel": "Phone Number (optional)",
+      "phonePlaceholder": "e.g. +251 91 234 5678",
+      "roleLabel": "Officer Role",
+      "departmentLabel": "Department",
+      "departmentPlaceholder": "Select department...",
+      "submitButton": "Create Officer Account",
+      "cancelButton": "Cancel",
+      "successMessage": "Officer account created. An email has been sent with login instructions.",
+      "errorMessage": "Failed to create officer account. Please try again."
+    },
+    "deactivate": {
+      "confirmTitle": "Deactivate this officer?",
+      "confirmDescription": "Officer {badgeNumber} — {officerName} will be deactivated and will no longer be able to log in. All active sessions will be terminated. This action is logged.",
+      "confirmButton": "Deactivate Officer",
+      "cancelButton": "Cancel",
+      "successMessage": "Officer deactivated successfully.",
+      "errorMessage": "Failed to deactivate officer. Please try again."
+    },
+    "activate": {
+      "confirmTitle": "Activate this officer?",
+      "confirmDescription": "Officer {badgeNumber} — {officerName} will be reactivated and will be able to log in again.",
+      "confirmButton": "Activate Officer",
+      "cancelButton": "Cancel",
+      "successMessage": "Officer activated successfully.",
+      "errorMessage": "Failed to activate officer. Please try again."
+    },
+    "resetPassword": {
+      "confirmTitle": "Reset officer password?",
+      "confirmDescription": "A password reset email will be sent to {officerEmail}. The officer's current password will be invalidated immediately. This action is logged.",
+      "confirmButton": "Send Reset Email",
+      "cancelButton": "Cancel",
+      "successMessage": "Password reset email sent successfully.",
+      "errorMessage": "Failed to send password reset. Please try again."
     }
   }
 }
 ```
 
-## 10.2 `messages/am/legal.json` — Full Amharic Equivalent
+## 10.2 `messages/am/personnel.json` — Full Amharic Equivalent
 
-Every key in `en/legal.json` must appear with the identical key path:
+Every key in `en/personnel.json` must appear with the identical key path:
 
 ```json
 {
-  "pageTitle": "ሕጋዊ",
-  "tab": {
-    "heading": "ሕጋዊ ሂደቶች",
-    "lockedTooltip": "ወደ ሕጋዊ ሂደቶች ስልጣን የለዎትም። ሕጋዊ ባለሙያ ያነጋግሩ።",
-    "loading": "ሕጋዊ ሂደቶች እየጫነ ነው...",
-    "errorTitle": "ሕጋዊ ሂደቶችን መጫን አልተሳካም",
-    "errorDescription": "ገጹን ያድሱ ወይም ችግሩ ከቀጠለ ድጋፍ ያነጋግሩ።"
-  },
-  "courtCase": {
-    "sectionTitle": "የፍርድ ቤት ጉዳይ",
-    "empty": {
-      "title": "ምንም የፍርድ ቤት ጉዳይ አልተጣበቀም",
-      "description": "ይህ የምርመራ ጉዳይ ለፍርድ ቤት ጉዳይ ገና አልተጣበቀም። ሕጋዊ ባለሙያ መፍጠር ይችላል።",
-      "createButton": "የፍርድ ቤት ጉዳይ ፍጠር"
+  "persons": {
+    "pageTitle": "ሰዎች",
+    "list": {
+      "heading": "ሰዎች",
+      "entityCount": "{count} ሰው(ዎች)",
+      "addPersonButton": "ሰው ጨምር",
+      "filters": {
+        "search": "በስም ወይም ፓስፖርት ፈልግ...",
+        "roles": "ሚና",
+        "riskLevel": "የስጋት ደረጃ",
+        "protectedWitness": "የተጠበቁ ምስክሮች ብቻ",
+        "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+      },
+      "loading": "ሰዎችን እየጫነ ነው...",
+      "empty": {
+        "title": "ምንም ሰዎች አልተገኙም",
+        "description": "ምንም የሰው መዝገቦች ገና አልተፈጠሩም።",
+        "cta": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ሰው ያስፈልጋሉ።"
+      },
+      "emptyFiltered": "ምንም ሰዎች ከማጣሪያዎ ጋር አይዛመዱም።",
+      "columns": {
+        "name": "ስም",
+        "nationalId": "ብሔራዊ መታወቂያ",
+        "roles": "ሚናዎች",
+        "riskLevel": "ስጋት",
+        "protected": "ጥበቃ",
+        "createdAt": "ቀን",
+        "actions": "ድርጊቶች"
+      },
+      "protectedYes": "ጥበቃ ስር",
+      "rowActions": {
+        "view": "ዝርዝሮች ተመልከት"
+      }
     },
-    "card": {
-      "caseNumber": "የፍርድ ቤት ጉዳይ ቁ.",
-      "court": "ፍርድ ቤት",
-      "status": "ሁኔታ",
-      "outcome": "ውጤት",
-      "filedAt": "የቀረበ",
-      "nextHearing": "ቀጣይ ችሎት",
-      "noNextHearing": "ምንም ችሎት አልታቀደም",
-      "presidingJudge": "ሊቀ-ዳኛ",
-      "noJudge": "አልተመዘገበም",
-      "prosecutor": "አቃቤ ሕግ",
-      "noProsecutor": "አልተመዘገበም",
-      "defenceCounsel": "ጠበቃ",
-      "noDefenceCounsel": "አልተመዘገበም",
-      "notes": "ማስታወሻ",
-      "noNotes": "ምንም ማስታወሻ የለም።",
-      "chargeCount": "{count} ክስ(ቾ)",
-      "editButton": "የፍርድ ቤት ጉዳይ አርም",
-      "hearingsSectionTitle": "የቤት ቀናት"
+    "detail": {
+      "breadcrumb": "ሰዎች",
+      "identityCard": {
+        "title": "ማንነት",
+        "firstName": "የመጀመሪያ ስም",
+        "lastName": "የአባት ስም",
+        "gender": "ፆታ",
+        "nationalId": "ብሔራዊ መታወቂያ",
+        "dateOfBirth": "የትውልድ ቀን",
+        "phone": "ስልክ",
+        "address": "አድራሻ",
+        "noAddress": "አልተመዘገበም",
+        "createdAt": "መዝገብ ቀን",
+        "updatedAt": "መጨረሻ ዝማኔ"
+      },
+      "pii": {
+        "masked": "ለግላዊነት ተደብቋል",
+        "revealButton": "አሳይ",
+        "hideButton": "ደብቅ",
+        "dobYearOnly": "ለሚናዎ ዓመቱ ብቻ ይታያል",
+        "revealAuditNotice": "ይህን መስክ ማሳየት በኦዲት ዱካ ይመዘገባል።"
+      },
+      "rolesSection": {
+        "title": "ሚናዎች እና መገለጫዎች",
+        "noRoles": "ምንም ሚናዎች ገና አልተሰጡም።",
+        "noRolesDescription": "ይህ ሰው ለምርመራ ሚና ገና አልተጣበቀም።",
+        "promoteSection": "ሚናዎች ሰጥ",
+        "promoteHint": "ይህን ሰው ለምርመራ ሚና ለመሰጠት ከታች ያሉ አዝራሮች ይጠቀሙ። እያንዳንዱ ሚና ቋሚ ነው።"
+      },
+      "suspectCard": {
+        "title": "የተጠርጣሪ መገለጫ",
+        "riskLevel": "የስጋት ደረጃ",
+        "notes": "ማስታወሻ",
+        "noNotes": "ምንም ማስታወሻ የለም።",
+        "promotedAt": "ተሰጥቷል",
+        "promotedBy": "በ"
+      },
+      "victimCard": {
+        "title": "የሰለባ መገለጫ",
+        "notes": "ማስታወሻ",
+        "noNotes": "ምንም ማስታወሻ የለም።",
+        "promotedAt": "ተሰጥቷል",
+        "promotedBy": "በ"
+      },
+      "witnessCard": {
+        "title": "የምስክር መገለጫ",
+        "credibilityNotes": "የአስተማማኝነት ማስታወሻ",
+        "noNotes": "ምንም ማስታወሻ የለም።",
+        "isProtected": "ጥበቃ ስር",
+        "protectionLevel": "የጥበቃ ደረጃ",
+        "notProtected": "ምንም ጥበቃ የለም",
+        "promotedAt": "ተሰጥቷል",
+        "promotedBy": "በ"
+      },
+      "casesSection": {
+        "title": "ተያያዥ ጉዳዮች",
+        "entityCount": "{count} ጉዳይ(ዎች)",
+        "loading": "ጉዳዮችን እየጫነ ነው...",
+        "empty": "ይህ ሰው ከምንም ጉዳዮች ጋር አልተጣበቀም።",
+        "columns": {
+          "caseNumber": "ጉዳይ ቁ.",
+          "title": "ርዕስ",
+          "roleOnCase": "ሚና",
+          "caseStatus": "ሁኔታ",
+          "createdAt": "ጀምሮ"
+        }
+      },
+      "actions": {
+        "promoteToSuspect": "ተጠርጣሪ አድርግ",
+        "promoteToVictim": "ሰለባ አድርግ",
+        "promoteToWitness": "ምስክር አድርግ"
+      }
     },
-    "status": {
-      "PENDING": "በመጠባበቅ ላይ",
-      "ACTIVE": "ንቁ",
-      "CONCLUDED": "የተጠናቀቀ",
-      "DISMISSED": "ውድቅ"
+    "riskLevel": {
+      "LOW": "ዝቅተኛ",
+      "MEDIUM": "መካከለኛ",
+      "HIGH": "ከፍተኛ"
     },
-    "outcome": {
-      "GUILTY": "ጥፋተኛ",
-      "NOT_GUILTY": "ጥፋተኛ አይደለም",
-      "DISMISSED": "ውድቅ ተደርጓል",
-      "MISTRIAL": "ሚስትሪያል",
-      "PLEA_DEAL": "ስምምነት"
+    "role": {
+      "SUSPECT": "ተጠርጣሪ",
+      "VICTIM": "ሰለባ",
+      "WITNESS": "ምስክር"
     },
-    "hearingType": {
-      "PRELIMINARY": "ቅድመ ችሎት",
-      "TRIAL": "ፍርድ",
-      "SENTENCING": "ቅጣት",
-      "APPEAL": "ይግባኝ",
-      "ARRAIGNMENT": "ክስ ማቅረቢያ"
-    },
-    "create": {
-      "drawerTitle": "የፍርድ ቤት ጉዳይ ፍጠር",
-      "drawerDescription": "ይህን የምርመራ ጉዳይ ከፍርድ ቤት ሂደት ጋር ያጣምሩ።",
-      "section1Title": "የፍርድ ቤት ዝርዝሮች",
-      "section2Title": "ዋና ሰዎች",
-      "section3Title": "የቤት ቀናት (አማራጭ)",
-      "section4Title": "ተጨማሪ ማስታወሻዎች",
-      "courtLabel": "የፍርድ ቤት ስም",
-      "courtPlaceholder": "ለምሳሌ የፌደራል ከፍተኛ ፍርድ ቤት — ልደታ ምድብ",
-      "filedAtLabel": "የቀረበበት ቀን",
-      "presidingJudgeLabel": "ሊቀ-ዳኛ (አማራጭ)",
-      "presidingJudgePlaceholder": "የዳኛ ሙሉ ስም",
-      "prosecutorLabel": "አቃቤ ሕግ (አማራጭ)",
-      "prosecutorPlaceholder": "የአቃቤ ሕግ ሙሉ ስም",
-      "defenceCounselLabel": "ጠበቃ (አማራጭ)",
-      "defenceCounselPlaceholder": "የጠበቃ ሙሉ ስም",
-      "addHearingButton": "የቤት ቀን ጨምር",
-      "hearingDateLabel": "ቀን",
-      "hearingTypeLabel": "የቤት አይነት",
-      "hearingLocationLabel": "ቦታ",
-      "hearingLocationPlaceholder": "ለምሳሌ አዳራሽ 4፣ ልደታ ፍርድ ቤቶች",
-      "hearingNotesLabel": "ማስታወሻ (አማራጭ)",
-      "removeHearingButton": "አስወግድ",
-      "notesLabel": "ማስታወሻ (አማራጭ)",
-      "notesPlaceholder": "ስለ ፍርድ ቤቱ ጉዳይ ማናቸውም ተጨማሪ ማስታወሻ...",
-      "submitButton": "የፍርድ ቤት ጉዳይ ፍጠር",
-      "cancelButton": "ሰርዝ",
-      "successMessage": "የፍርድ ቤት ጉዳይ በተሳካ ሁኔታ ተፈጥሮ ተጣምሯል።",
-      "errorMessage": "የፍርድ ቤት ጉዳይ ለመፍጠር አልተሳካም። እንደገና ይሞክሩ።"
-    },
-    "update": {
-      "drawerTitle": "የፍርድ ቤት ጉዳይ አርም",
-      "drawerDescription": "የፍርድ ቤት ጉዳዩን ዝርዝሮች፣ ሁኔታ፣ ወይም የቤት ቀናት ያዘምኑ።",
-      "courtLabel": "የፍርድ ቤት ስም",
-      "statusLabel": "ሁኔታ",
-      "outcomeLabel": "ውጤት",
-      "outcomeHint": "ሁኔታው 'ተጠናቋል' ሲሆን ውጤት ያስፈልጋል።",
-      "presidingJudgeLabel": "ሊቀ-ዳኛ",
-      "prosecutorLabel": "አቃቤ ሕግ",
-      "defenceCounselLabel": "ጠበቃ",
-      "hearingsSectionTitle": "የቤት ቀናት",
-      "addHearingButton": "የቤት ቀን ጨምር",
-      "notesLabel": "ማስታወሻ",
-      "submitButton": "ለውጦች ያስቀምጡ",
-      "cancelButton": "ሰርዝ",
-      "successMessage": "የፍርድ ቤት ጉዳይ በተሳካ ሁኔታ ተዘምኗል።",
-      "errorMessage": "የፍርድ ቤት ጉዳይ ለማዘምን አልተሳካም። እንደገና ይሞክሩ።"
-    }
-  },
-  "charges": {
-    "sectionTitle": "ክሶች",
-    "addChargeButton": "ክስ ጨምር",
-    "entityCount": "{count} ክስ(ቾ)",
-    "filters": {
-      "search": "በተጠርጣሪ ወይም ወንጀል አይነት ፈልግ...",
-      "status": "ሁኔታ",
-      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
-    },
-    "loading": "ክሶቾ እየጫነ ነው...",
-    "empty": {
-      "title": "ምንም ክስ አልቀረበም",
-      "description": "ለዚህ የፍርድ ቤት ጉዳይ ምንም ክስ ገና አልቀረበም።",
-      "cta": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ክስ ያቅርቡ።"
-    },
-    "emptyFiltered": "ምንም ክሶቾ ከማጣሪያዎ ጋር አይዛመዱም።",
-    "columns": {
-      "suspect": "ተጠርጣሪ",
-      "crimeType": "የወንጀል አይነት",
-      "status": "ሁኔታ",
-      "filedAt": "የቀረበ",
-      "sentence": "ቅጣት",
-      "actions": "ድርጊቶች"
-    },
-    "sentenceIndicator": {
-      "recorded": "ተመዝግቧል",
-      "pending": "በጥበቃ ላይ"
-    },
-    "rowActions": {
-      "updateStatus": "ሁኔታ አዘምን",
-      "viewSentence": "ቅጣት ተመልከት",
-      "dropCharge": "ክስ ዝቅ አድርግ"
-    },
-    "status": {
-      "FILED": "ቀርቧል",
-      "ACTIVE": "ንቁ",
-      "CONVICTED": "ጥፋተኛ ተብሏል",
-      "ACQUITTED": "ነጻ ተለቋል",
-      "DROPPED": "ውድቅ"
+    "gender": {
+      "MALE": "ወንድ",
+      "FEMALE": "ሴት",
+      "OTHER": "ሌላ"
     },
     "create": {
-      "drawerTitle": "ክስ ጨምር",
-      "drawerDescription": "ለዚህ ፍርድ ቤት ጉዳይ አዲስ ክስ ያቅርቡ።",
-      "section1Title": "የክስ ዝርዝሮች",
-      "suspectLabel": "ተጠርጣሪ",
-      "suspectPlaceholder": "ለዚህ ጉዳይ ተጠርጣሪዎችን ፈልግ...",
-      "suspectHint": "ለዚህ ምርመራ ጉዳይ ተጠርጣሪ ሆነው የተጣበቁ ሰዎች ብቻ ይታያሉ።",
-      "crimeTypeLabel": "የወንጀል አይነት",
-      "crimeTypePlaceholder": "የወንጀል አይነቶችን ፈልግ...",
+      "drawerTitle": "ሰው ጨምር",
+      "drawerDescription": "ለስርዓቱ አዲስ የሰው መዝገብ ፍጠር።",
+      "section1Title": "መሰረታዊ መረጃ",
+      "section2Title": "ግኑኝነት እና ማንነት",
+      "firstNameLabel": "የመጀመሪያ ስም",
+      "firstNamePlaceholder": "ለምሳሌ አለም",
+      "lastNameLabel": "የአባት ስም",
+      "lastNamePlaceholder": "ለምሳሌ ታደሰ",
+      "genderLabel": "ፆታ (አማራጭ)",
+      "nationalIdLabel": "ብሔራዊ መታወቂያ (አማራጭ)",
+      "nationalIdPlaceholder": "ለምሳሌ ETH-1234567890",
+      "nationalIdHint": "ይህ መስክ እንደ ሚስጥራዊ ፒአይአይ ይቆጠራል።",
+      "dateOfBirthLabel": "የትውልድ ቀን (አማራጭ)",
+      "phoneLabel": "ስልክ ቁጥር (አማራጭ)",
+      "phonePlaceholder": "ለምሳሌ +251 91 234 5678",
+      "addressLabel": "አድራሻ (አማራጭ)",
+      "addressPlaceholder": "ለምሳሌ ቦሌ ክፍለ ከተማ፣ አዲስ አበባ",
+      "submitButton": "ሰው ጨምር",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የሰው መዝገብ በተሳካ ሁኔታ ተፈጥሯል።",
+      "errorMessage": "የሰው መዝገብ ለመፍጠር አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "promoteToSuspect": {
+      "drawerTitle": "ተጠርጣሪ አድርግ",
+      "drawerDescription": "ይህን ሰው ለምርመራ ተጠርጣሪ ሆኖ ያጣምሩ። ይህ ሚና ቋሚ ነው።",
+      "permanenceNotice": "አንድ ሰው ተጠርጣሪ ሆኖ ከተሰጠ፣ ከUI ሊቀለበስ አይችልም። ስህተት ከሆነ አስተዳዳሪን ያነጋግሩ።",
+      "section1Title": "የተጠርጣሪ ዝርዝሮች",
+      "riskLevelLabel": "የስጋት ደረጃ",
+      "riskLevelHint": "ከሚገኝ መረጃ ስጋቱን ይገምቱ።",
       "notesLabel": "ማስታወሻ (አማራጭ)",
-      "notesPlaceholder": "ስለዚህ ክስ ተጨማሪ ማስታወሻዎች...",
-      "submitButton": "ክስ አቅርብ",
+      "notesPlaceholder": "ስለ ተጠርጣሪ ሚናው ማናቸውም ማስታወሻዎች...",
+      "submitButton": "አረጋግጥ — ተጠርጣሪ አድርግ",
       "cancelButton": "ሰርዝ",
-      "successMessage": "ክሱ በተሳካ ሁኔታ ቀርቧል።",
-      "errorMessage": "ክስ ለማቅረብ አልተሳካም። እንደገና ይሞክሩ።"
+      "successMessage": "ሰው ተጠርጣሪ ሆኖ ተሰጥቷል።",
+      "errorMessage": "ተጠርጣሪ ለማድረግ አልተሳካም። እንደገና ይሞክሩ።"
     },
-    "update": {
-      "drawerTitle": "የክስ ሁኔታ አዘምን",
-      "drawerDescription": "የዚህን ክስ ሁኔታ ይቀይሩ።",
-      "currentStatusLabel": "አሁናዊ ሁኔታ",
-      "newStatusLabel": "አዲስ ሁኔታ",
-      "newStatusPlaceholder": "አዲስ ሁኔታ ይምረጡ...",
-      "terminalNotice": "ይህ ክስ የመጨረሻ ሁኔታ ላይ ደርሷል እና ሊቀየር አይችልም።",
-      "convictSection": "ጥፋተኛ ያስመዝጉ",
-      "convictNotice": "'ጥፋተኛ' መምረጥ ይህን ክስ ጥፋተኛ ሆኖ ያሰፍረዋል። የቅጣት ዝርዝሮችንም ማስቀመጥ ያለቦት። ይህ ድርጊት ሊቀለበስ አይችልም።",
-      "convictButton": "ጥፋተኛ & ቅጣት ይመዝግቡ",
-      "submitButton": "ሁኔታ አዘምን",
+    "promoteToVictim": {
+      "drawerTitle": "ሰለባ አድርግ",
+      "drawerDescription": "ይህን ሰው ለምርመራ ሰለባ ሆኖ ያጣምሩ። ይህ ሚና ቋሚ ነው።",
+      "permanenceNotice": "አንድ ሰው ሰለባ ሆኖ ከተሰጠ፣ ከUI ሊቀለበስ አይችልም።",
+      "section1Title": "የሰለባ ዝርዝሮች",
+      "notesLabel": "ማስታወሻ (አማራጭ)",
+      "notesPlaceholder": "ስለ ሰለባ ሚናው ማናቸውም ማስታወሻዎች...",
+      "submitButton": "አረጋግጥ — ሰለባ አድርግ",
       "cancelButton": "ሰርዝ",
-      "successMessage": "የክስ ሁኔታ በተሳካ ሁኔታ ተዘምኗል።",
-      "errorMessage": "የክስ ሁኔታ ለማዘምን አልተሳካም። እንደገና ይሞክሩ።"
+      "successMessage": "ሰው ሰለባ ሆኖ ተሰጥቷል።",
+      "errorMessage": "ሰለባ ለማድረግ አልተሳካም። እንደገና ይሞክሩ።"
     },
-    "drop": {
-      "confirmTitle": "ይህን ክስ ዝቅ ያድርጉ?",
-      "confirmDescription": "{suspectName} ({crimeType}) ላይ የቀረበ ክስ ቋሚ ሆኖ ውድቅ ይሆናል። ይህ ድርጊት ሊቀለበስ አይችልም።",
-      "confirmButton": "ክስ ዝቅ አድርግ",
+    "promoteToWitness": {
+      "drawerTitle": "ምስክር አድርግ",
+      "drawerDescription": "ይህን ሰው ለምርመራ ምስክር ሆኖ ያጣምሩ። ይህ ሚና ቋሚ ነው።",
+      "permanenceNotice": "አንድ ሰው ምስክር ሆኖ ከተሰጠ፣ ከUI ሊቀለበስ አይችልም።",
+      "section1Title": "የምስክር ዝርዝሮች",
+      "section2Title": "የምስክር ጥበቃ",
+      "credibilityNotesLabel": "የአስተማማኝነት ማስታወሻ (አማራጭ)",
+      "credibilityNotesPlaceholder": "ስለ ምስክሩ አስተማማኝነት ማስታወሻዎች...",
+      "isProtectedLabel": "ጥበቃ ስር",
+      "protectionLevelLabel": "የጥበቃ ደረጃ",
+      "protectionLevelPlaceholder": "ለምሳሌ STANDARD፣ HIGH",
+      "protectionLevelHint": "ጥበቃ ሲበቃ ያስፈልጋል።",
+      "protectedBadge": "የተጠበቀ ምስክር",
+      "submitButton": "አረጋግጥ — ምስክር አድርግ",
       "cancelButton": "ሰርዝ",
-      "successMessage": "ክሱ በተሳካ ሁኔታ ውድቅ ሆኗል።"
-    },
-    "sentence": {
-      "drawerTitle": "ቅጣት ይምዝግቡ",
-      "drawerDescription": "ለዚህ ጥፋተኛ ፍርድ የቅጣት ዝርዝሮች ያስቀምጡ።",
-      "convictionNotice": "ቅጣት መሰወር ይህን ክስ ቋሚ ሆኖ ጥፋተኛ ያስቀምጠዋል። ሊቀለበስ አይችልም።",
-      "section1Title": "የቅጣት ዝርዝሮች",
-      "sentenceTypeLabel": "የቅጣት አይነት",
-      "durationMonthsLabel": "ቆይታ (ወራት)",
-      "durationMonthsPlaceholder": "ለምሳሌ 5 ዓመት = 60",
-      "durationMonthsHint": "ጠቅላላ የቅጣት ቆይታ በወራት ያስገቡ።",
-      "fineAmountLabel": "የቅጣት መጠን (ብር)",
-      "fineAmountPlaceholder": "መጠን በኢትዮጵያ ብር ያስገቡ",
-      "issuedAtLabel": "የቅጣት ቀን",
-      "issuedByJudgeLabel": "ቅጣቱ የተሰጠ ዳኛ (አማራጭ)",
-      "issuedByJudgePlaceholder": "የዳኛ ሙሉ ስም",
-      "notesLabel": "የቅጣት ማስታወሻ (አማራጭ)",
-      "notesPlaceholder": "ስለ ቅጣቱ ተጨማሪ ማስታወሻዎች...",
-      "submitButton": "ቅጣት ይምዝገቡ",
-      "cancelButton": "ሰርዝ",
-      "successMessage": "ቅጣቱ በተሳካ ሁኔታ ተሰፍሯል። ክሱ አሁን ጥፋተኛ ሆኗል።",
-      "errorMessage": "ቅጣቱን ለማስፈር አልተሳካም። እንደገና ይሞክሩ።"
-    },
-    "viewSentence": {
-      "drawerTitle": "የቅጣት ዝርዝሮች",
-      "immutableNotice": "ይህ የቅጣት መዝገብ ቋሚ ነው እና ሊቀየር አይችልም።",
-      "sentenceType": "የቅጣት አይነት",
-      "duration": "ቆይታ",
-      "fineAmount": "የቅጣት መጠን",
-      "issuedAt": "የቅጣት ቀን",
-      "issuedByJudge": "ቅጣቱ ያሰጠ",
-      "noJudge": "አልተመዘገበም",
-      "notes": "ማስታወሻ",
-      "noNotes": "ምንም ማስታወሻ የለም።",
-      "closeButton": "ዝጋ"
-    },
-    "sentenceType": {
-      "IMPRISONMENT": "እስር",
-      "FINE": "ቅጣት",
-      "COMMUNITY_SERVICE": "ማህበረሰብ አገልግሎት",
-      "SUSPENDED": "የተቋረጠ ፍርድ",
-      "DEATH_PENALTY": "ሞት ቅጣት",
-      "LIFE_IMPRISONMENT": "የዕድሜ ልክ እስር"
+      "successMessage": "ሰው ምስክር ሆኖ ተሰጥቷል።",
+      "errorMessage": "ምስክር ለማድረግ አልተሳካም። እንደገና ይሞክሩ።"
     }
   },
-  "courtCasesList": {
-    "pageTitle": "የፍርድ ቤት ጉዳዮች",
-    "entityCount": "{count} ጉዳይ(ዎች)",
-    "filters": {
-      "search": "በጉዳይ ርዕስ ወይም ቁጥር ፈልግ...",
-      "status": "ሁኔታ",
-      "dateRange": "የቀን ክልል",
-      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+  "officers": {
+    "pageTitle": "ፖሊሶች",
+    "list": {
+      "heading": "ፖሊሶች",
+      "entityCount": "{count} ፖሊስ(ዎች)",
+      "addOfficerButton": "ፖሊስ ጨምር",
+      "filters": {
+        "search": "በባጅ ቁጥር ወይም ስም ፈልግ...",
+        "status": "ሁኔታ",
+        "role": "ሚና",
+        "department": "ክፍል",
+        "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+      },
+      "loading": "ፖሊሶችን እየጫነ ነው...",
+      "empty": {
+        "title": "ምንም ፖሊሶች አልተገኙም",
+        "description": "ምንም የፖሊስ መለያዎች በዚህ ወሰን ውስጥ የሉም።"
+      },
+      "emptyFiltered": "ምንም ፖሊሶች ከማጣሪያዎ ጋር አይዛመዱም።",
+      "columns": {
+        "badgeNumber": "ባጅ",
+        "name": "ስም",
+        "role": "ሚና",
+        "department": "ክፍል",
+        "status": "ሁኔታ",
+        "lastActivity": "መጨረሻ ንቁ",
+        "actions": "ድርጊቶች"
+      },
+      "lastActivityNever": "ፈጽሞ አይደለም",
+      "rowActions": {
+        "view": "ዝርዝሮች ተመልከት",
+        "activate": "ንቁ አድርግ",
+        "deactivate": "አቁም",
+        "resetPassword": "የይለፍ ቃል ዳግም አስጀምር"
+      }
     },
-    "loading": "የፍርድ ቤት ጉዳዮች እየጫነ ነው...",
-    "empty": {
-      "title": "ምንም የፍርድ ቤት ጉዳዮች የሉም",
-      "description": "ምንም የፍርድ ቤት ጉዳዮች አልተገኙም። ጉዳዮቹ ከምርመራ ፋይሎቹ ውስጥ ይፈጠራሉ።"
+    "detail": {
+      "breadcrumb": "ፖሊሶች",
+      "identityCard": {
+        "title": "የፖሊስ ማንነት",
+        "badgeNumber": "ባጅ ቁጥር",
+        "firstName": "የመጀመሪያ ስም",
+        "lastName": "የአባት ስም",
+        "email": "ኢሜይል",
+        "phone": "ስልክ",
+        "noPhone": "አልተመዘገበም",
+        "role": "ሚና",
+        "department": "ክፍል",
+        "status": "ሁኔታ",
+        "lastActivity": "መጨረሻ ንቁ",
+        "lastActivityNever": "ፈጽሞ አይደለም",
+        "activeCases": "ንቁ ጉዳዮች",
+        "totalCases": "ጠቅላላ ጉዳዮች",
+        "createdAt": "መለያ ተፈጥሯል"
+      },
+      "casesSection": {
+        "title": "ቅርብ ጊዜ የተሰጡ ጉዳዮች",
+        "loading": "ጉዳዮችን እየጫነ ነው...",
+        "empty": "ለዚህ ፖሊስ ምንም ጉዳዮች አልተሰጡም።",
+        "viewAll": "ሁሉም ጉዳዮች ተመልከት",
+        "columns": {
+          "caseNumber": "ጉዳይ ቁ.",
+          "title": "ርዕስ",
+          "status": "ሁኔታ",
+          "assignedAt": "ተሰጥቷል"
+        }
+      },
+      "actions": {
+        "deactivate": "ፖሊስ አቁም",
+        "activate": "ፖሊስ ንቁ አድርግ",
+        "resetPassword": "የይለፍ ቃል ዳግም አስጀምር"
+      }
     },
-    "emptyFiltered": "ምንም ጉዳዮቾ ከማጣሪያዎ ጋር አይዛመዱም።",
-    "columns": {
-      "courtCaseNumber": "የፍርድ ቤት ቁ.",
-      "investigationCase": "የምርመራ ጉዳይ",
-      "court": "ፍርድ ቤት",
-      "status": "ሁኔታ",
-      "outcome": "ውጤት",
-      "filedAt": "የቀረበ",
-      "nextHearing": "ቀጣይ ቤት",
-      "chargeCount": "ክሶቾ",
-      "actions": "ድርጊቶች"
+    "officerRole": {
+      "INVESTIGATOR": "መርማሪ",
+      "FORENSIC": "ፎረንሲክ ፖሊስ",
+      "LEGAL_OFFICER": "ሕጋዊ ባለሙያ",
+      "DEPT_HEAD": "የክፍል ኃላፊ",
+      "ADMIN": "አስተዳዳሪ",
+      "SUPERADMIN": "ከፍተኛ አስተዳዳሪ"
     },
-    "rowActions": {
-      "viewCase": "የምርመራ ጉዳዩ ተመልከት"
+    "officerStatus": {
+      "ACTIVE": "ንቁ",
+      "INACTIVE": "ንቁ ያይደለ"
+    },
+    "create": {
+      "drawerTitle": "ፖሊስ ጨምር",
+      "drawerDescription": "አዲስ የፖሊስ መለያ ፍጠር። ፖሊሱ የይለፍ ቃል ለማስቀናት ኢሜይል ይቀበላል።",
+      "section1Title": "ማንነት",
+      "section2Title": "የመለያ ዝርዝሮች",
+      "badgeNumberLabel": "ባጅ ቁጥር",
+      "badgeNumberPlaceholder": "ለምሳሌ BD-00142",
+      "badgeNumberHint": "ልዩ መሆን አለበት። ትልቁ ፊደሎች፣ ቁጥሮች፣ እና ሰረዞች ብቻ።",
+      "firstNameLabel": "የመጀመሪያ ስም",
+      "firstNamePlaceholder": "ለምሳሌ ሳራ",
+      "lastNameLabel": "የአባት ስም",
+      "lastNamePlaceholder": "ለምሳሌ ሃይሌ",
+      "emailLabel": "ኢሜይል አድራሻ",
+      "emailPlaceholder": "ለምሳሌ sara.haile@police.gov.et",
+      "phoneLabel": "ስልክ ቁጥር (አማራጭ)",
+      "phonePlaceholder": "ለምሳሌ +251 91 234 5678",
+      "roleLabel": "የፖሊስ ሚና",
+      "departmentLabel": "ክፍል",
+      "departmentPlaceholder": "ክፍል ምረጥ...",
+      "submitButton": "የፖሊስ መለያ ፍጠር",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የፖሊስ መለያ ተፈጥሯል። ለመግቢያ መመሪያዎች ኢሜይል ተልኳል።",
+      "errorMessage": "የፖሊስ መለያ ለመፍጠር አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "deactivate": {
+      "confirmTitle": "ፖሊሱን ያቁሙ?",
+      "confirmDescription": "ፖሊስ {badgeNumber} — {officerName} ይቆማል እና ከእንግዲህ ወዲህ መግባት አይችልም። ሁሉም ንቁ ክፍለ ጊዜዎች ይዘጋሉ።",
+      "confirmButton": "ፖሊስ አቁም",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ፖሊስ በተሳካ ሁኔታ ቆሟል።",
+      "errorMessage": "ፖሊሱን ለማቆም አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "activate": {
+      "confirmTitle": "ፖሊሱን ያንቁ?",
+      "confirmDescription": "ፖሊስ {badgeNumber} — {officerName} እንደገና ንቁ ይሆናል እና ወደ ስርዓቱ መግባት ይችላል።",
+      "confirmButton": "ፖሊስ ንቁ አድርግ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ፖሊስ በተሳካ ሁኔታ ንቁ ሆኗል።",
+      "errorMessage": "ፖሊሱን ለማንቃት አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "resetPassword": {
+      "confirmTitle": "የፖሊስ የይለፍ ቃል ዳግም ያስጀምሩ?",
+      "confirmDescription": "ለ {officerEmail} የይለፍ ቃል ዳግም የማስጀመሪያ ኢሜይል ይላካል። የፖሊሱ አሁናዊ የይለፍ ቃል ወዲያውኑ ይሰረዛል።",
+      "confirmButton": "ዳግም ማስጀመሪያ ኢሜይል ላክ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የይለፍ ቃል ዳግም ኢሜይል በተሳካ ሁኔታ ተልኳል።",
+      "errorMessage": "የይለፍ ቃል ዳግም ለማስጀመር አልተሳካም። እንደገና ይሞክሩ።"
     }
   }
 }
@@ -1883,1081 +2094,1186 @@ Every key in `en/legal.json` must appear with the identical key path:
 
 ---
 
-# 11. caseKeys Update
+# 11. Route Pages
 
-## 11.1 Verify and extend `src/services/query/keys/caseKeys.ts`
-
-Open the existing `caseKeys.ts` file. Verify these sub-resource keys exist. If any are missing, add them:
-
-```typescript
-// Add to caseKeys factory if not already present:
-charges: (caseId: string) =>
-  [...caseKeys.detail(caseId), 'charges'] as const,
-
-courtCase: (caseId: string) =>
-  [...caseKeys.detail(caseId), 'courtCase'] as const,
-```
-
-These are used by the case overview tab's count cards (already rendered in Phase 3). Every `useCreateCharge` success must invalidate `caseKeys.summary(caseId)` and `caseKeys.charges(caseId)` so the overview tab count refreshes without a page reload.
-
----
-
-# 12. Route Page — Legal Tab
-
-## 12.1 `src/app/(dashboard)/cases/[caseId]/legal/page.tsx`
-
-Replace the Phase 3 skeleton:
+## 11.1 `src/app/(dashboard)/personnel/persons/page.tsx`
 
 ```typescript
 import { getTranslations } from 'next-intl/server'
-import { LegalTab } from '@features/legal/components/LegalTab'
+import { PersonsList } from '@features/personnel/components/persons/PersonsList'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('legal')
-  return { title: t('pageTitle') }
+  const t = await getTranslations('personnel')
+  return { title: t('persons.pageTitle') }
 }
 
-export default function CaseLegalPage({
+export default function PersonsPage() {
+  return <PersonsList />
+}
+```
+
+## 11.2 `src/app/(dashboard)/personnel/persons/[personId]/page.tsx`
+
+```typescript
+import { getTranslations } from 'next-intl/server'
+import { PersonDetail } from '@features/personnel/components/persons/PersonDetail'
+import type { Metadata } from 'next'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('personnel')
+  return { title: t('persons.pageTitle') }
+}
+
+export default function PersonDetailPage({
   params,
 }: {
-  params: { caseId: string }
+  params: { personId: string }
 }) {
-  return <LegalTab caseId={params.caseId} />
+  return <PersonDetail personId={params.personId} />
 }
 ```
 
-> **Note:** `LegalTab` is not listed in the §3 component tree because it is a thin orchestration wrapper rendered by the page. Create it as `src/features/legal/components/LegalTab.tsx` — a Client Component that composes `CourtCaseCard` and `ChargesTable` together with the drawer states.
-
----
-
-# 13. Route Page — Court Cases List
-
-## 13.1 `src/app/(dashboard)/legal/court-cases/page.tsx`
-
-Replace the Phase 3 skeleton:
+## 11.3 `src/app/(dashboard)/personnel/officers/page.tsx`
 
 ```typescript
 import { getTranslations } from 'next-intl/server'
-import { CourtCasesList } from '@features/legal/components/CourtCasesList'
+import { OfficersList } from '@features/personnel/components/officers/OfficersList'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('legal')
-  return { title: t('courtCasesList.pageTitle') }
+  const t = await getTranslations('personnel')
+  return { title: t('officers.pageTitle') }
 }
 
-export default function CourtCasesPage() {
-  return <CourtCasesList />
-}
-```
-
----
-
-# 14. UI Implementation — LegalTab (Orchestration Wrapper)
-
-## 14.1 `LegalTab.tsx`
-
-Client Component. Manages all drawer open/close states for the legal tab.
-
-### 14.1.1 State
-
-```typescript
-const [createCourtCaseOpen, setCreateCourtCaseOpen] = useState(false)
-const [updateCourtCaseOpen, setUpdateCourtCaseOpen] = useState(false)
-const [addChargeOpen, setAddChargeOpen] = useState(false)
-const [selectedChargeId, setSelectedChargeId] = useState<string | null>(null)
-const [updateChargeOpen, setUpdateChargeOpen] = useState(false)
-const [dropChargeOpen, setDropChargeOpen] = useState(false)
-const [viewSentenceOpen, setViewSentenceOpen] = useState(false)
-```
-
-### 14.1.2 Data
-
-```typescript
-const {
-  data: courtCase,
-  isLoading,
-  isError,
-  error,
-} = useCourtCaseByCase(caseId)
-```
-
-### 14.1.3 Render tree
-
-```
-LegalTab
-├── [isLoading] → <Skeleton> (full panel skeleton matching card + table dimensions)
-├── [isError] → <ErrorState> with retry
-├── [courtCase === null] → <CourtCaseEmptyState> (see §15)
-└── [courtCase exists]
-    ├── <CourtCaseCard courtCase={courtCase} onEdit={() => setUpdateCourtCaseOpen(true)} />
-    ├── <ChargesTable
-    │     courtCaseId={courtCase.id}
-    │     caseId={caseId}
-    │     onAddCharge={() => setAddChargeOpen(true)}
-    │     onUpdateStatus={(id) => { setSelectedChargeId(id); setUpdateChargeOpen(true) }}
-    │     onDropCharge={(id) => { setSelectedChargeId(id); setDropChargeOpen(true) }}
-    │     onViewSentence={(id) => { setSelectedChargeId(id); setViewSentenceOpen(true) }}
-    │   />
-    ├── <CreateCourtCaseDrawer open={createCourtCaseOpen} caseId={caseId} ... />
-    ├── <UpdateCourtCaseDrawer open={updateCourtCaseOpen} courtCase={courtCase} caseId={caseId} ... />
-    ├── <AddChargeDrawer open={addChargeOpen} courtCaseId={courtCase.id} caseId={caseId} ... />
-    ├── <UpdateChargeStatusDrawer open={updateChargeOpen} chargeId={selectedChargeId} ... />
-    ├── <DropChargeDialog open={dropChargeOpen} chargeId={selectedChargeId} ... />
-    └── <ViewSentenceDrawer open={viewSentenceOpen} chargeId={selectedChargeId} ... />
-```
-
----
-
-# 15. UI Implementation — Court Case Empty State
-
-## 15.1 `CourtCaseEmptyState`
-
-Inline (not a separate file — render within `LegalTab`):
-
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                                                                    │
-│                    [Scale icon — 48px, muted]                      │
-│                                                                    │
-│                    No Court Case Linked                            │
-│              (muted, base font, centred)                           │
-│                                                                    │
-│    This investigation case has not yet been linked to a court      │
-│    case. A Legal Officer can create and link one.                  │
-│              (foreground-muted, sm font, centred)                  │
-│                                                                    │
-│              [Create Court Case]  ← Primary button                 │
-│              (PermissionGuard: legal:manage)                        │
-│                                                                    │
-└────────────────────────────────────────────────────────────────────┘
-```
-
-Use the `EmptyState` shared component from `shared/components/display/EmptyState.tsx`. Pass:
-- `icon`: `Scale` (from lucide-react) — the scales of justice icon
-- `title`: `t('courtCase.empty.title')`
-- `description`: `t('courtCase.empty.description')`
-- `action`: a `PermissionGuard`-wrapped `Button` for `legal:manage`
-
----
-
-# 16. UI Implementation — CourtCaseCard
-
-## 16.1 `CourtCaseCard.tsx`
-
-Client Component. Receives the full `CourtCase` object as a prop.
-
-### 16.1.1 Layout
-
-```
-CourtCaseCard
-──────────────────────────────────────────────────────────────────────
-  Court Case                            [Edit Court Case button — PermissionGuard]
-──────────────────────────────────────────────────────────────────────
- ┌── Primary Info (two-column grid) ──────────────────────────────────┐
- │  Court Case No.   CC-2026-0047          Status    [Active badge]   │
- │  Court            Federal High Court    Outcome   —               │
- │  Filed            14 Jan 2026           Charges   3               │
- └─────────────────────────────────────────────────────────────────────┘
-
- ┌── Key Personnel (three columns) ───────────────────────────────────┐
- │  Presiding Judge     Prosecutor          Defence Counsel           │
- │  Hon. Abebe Tadesse  Ato Daniel Girma    Ato Samuel Haile          │
- └─────────────────────────────────────────────────────────────────────┘
-
- ┌── Hearing Dates ────────────────────────────────────────────────────┐
- │  <HearingDatesList hearingDates={courtCase.hearingDates} />        │
- └─────────────────────────────────────────────────────────────────────┘
-
- ┌── Notes ────────────────────────────────────────────────────────────┐
- │  ...notes text if present, muted if absent...                      │
- └─────────────────────────────────────────────────────────────────────┘
-```
-
-### 16.1.2 Status badge variant mapping
-
-```typescript
-const COURT_CASE_STATUS_VARIANTS: Record<CourtCaseStatus, BadgeVariant> = {
-  PENDING:    'muted',       // Slate — not yet active
-  ACTIVE:     'warning',     // Amber — proceedings in progress
-  CONCLUDED:  'success',     // Green — concluded
-  DISMISSED:  'destructive', // Red — dismissed
+export default function OfficersPage() {
+  return <OfficersList />
 }
 ```
 
-### 16.1.3 Edit button
-
-```tsx
-<PermissionGuard permission={Permission.LEGAL_MANAGE}>
-  <Button variant="outline" size="sm" onClick={onEdit}>
-    <Pencil className="mr-2 h-3.5 w-3.5" />
-    {t('courtCase.card.editButton')}
-  </Button>
-</PermissionGuard>
-```
-
-`Permission.LEGAL_MANAGE` is the existing permission enum constant from `shared/permissions`. Use the constant — never hardcode the string.
-
----
-
-# 17. UI Implementation — HearingDatesList
-
-## 17.1 `HearingDatesList.tsx`
-
-Client Component. Renders all hearing dates as a compact chronological list.
-
-### 17.1.1 Layout (each hearing date)
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│  [Calendar icon]  Preliminary Hearing                         │
-│                   14 Mar 2026 — Courtroom 4, Lideta Courts   │
-│                   (notes if present, muted)                  │
-│                   (outcome if present, amber italic)         │
-└──────────────────────────────────────────────────────────────┘
-```
-
-Sort hearing dates ascending by `date` (oldest first). If `hearingDates` is empty: render `t('courtCase.card.noNextHearing')` in muted text.
-
-Upcoming hearings (date in the future) render with a subtle `primary` left-border accent. Past hearings render without the accent. Use `date-fns/isFuture` to determine this.
-
----
-
-# 18. UI Implementation — CreateCourtCaseDrawer
-
-## 18.1 `CreateCourtCaseDrawer.tsx`
-
-Client Component wrapping `SlideOverDrawer` (480px).
-
-### 18.1.1 Layout
-
-```
-CreateCourtCaseDrawer (480px)
-──────────────────────────────────────────────
-  Create Court Case
-  Link this investigation case to court proceedings.
-──────────────────────────────────────────────
- ┌── Section 1: Court Details ─────────────────┐
- │  Court Name *         [Input]               │
- │  Date Filed *         [DatePicker]          │
- └─────────────────────────────────────────────┘
-
- ┌── Section 2: Key Personnel ─────────────────┐
- │  Presiding Judge      [Input, optional]     │
- │  Prosecutor           [Input, optional]     │
- │  Defence Counsel      [Input, optional]     │
- └─────────────────────────────────────────────┘
-
- ┌── Section 3: Hearing Dates ─────────────────┐
- │  [+ Add Hearing Date]                       │
- │                                             │
- │  ┌─ Hearing 1 ──────────────────────────┐  │
- │  │  Date *      [DatePicker]            │  │
- │  │  Type *      [Select]                │  │
- │  │  Location *  [Input]                 │  │
- │  │  Notes       [Input, optional]       │  │
- │  │  [Remove]                            │  │
- │  └──────────────────────────────────────┘  │
- └─────────────────────────────────────────────┘
-
- ┌── Section 4: Notes ────────────────────────┐
- │  Notes          [Textarea, optional]       │
- └────────────────────────────────────────────┘
-
- ────────────────────────────────────────────
- [Cancel]                  [Create Court Case]
-```
-
-### 18.1.2 Hearing Dates — Dynamic Field Array
-
-Use `useFieldArray` from React Hook Form to manage the `hearingDates` array:
+## 11.4 `src/app/(dashboard)/personnel/officers/[officerId]/page.tsx`
 
 ```typescript
-const { fields, append, remove } = useFieldArray({
-  control,
-  name: 'hearingDates',
-})
-```
+import { getTranslations } from 'next-intl/server'
+import { OfficerDetail } from '@features/personnel/components/officers/OfficerDetail'
+import type { Metadata } from 'next'
 
-"Add Hearing Date" button appends a blank hearing object. Each hearing entry renders in a card with a remove button. Maximum 20 hearing dates.
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('personnel')
+  return { title: t('officers.pageTitle') }
+}
 
-### 18.1.3 Submit logic
-
-```typescript
-const onSubmit = async (values: CreateCourtCaseValues) => {
-  await createCourtCaseMutation.mutateAsync(values)
-  onClose()
-  form.reset()
+export default function OfficerDetailPage({
+  params,
+}: {
+  params: { officerId: string }
+}) {
+  return <OfficerDetail officerId={params.officerId} />
 }
 ```
 
-Dirty state guard: if `formState.isDirty` and the officer closes the drawer, show `ConfirmDialog`: "Discard changes? The court case will not be created."
-
 ---
 
-# 19. UI Implementation — UpdateCourtCaseDrawer
+# 12. UI Implementation — PersonsList
 
-## 19.1 `UpdateCourtCaseDrawer.tsx`
+## 12.1 `PersonsList.tsx`
 
-Client Component wrapping `SlideOverDrawer` (480px).
+Client Component. Manages URL-driven filter state.
 
-Pre-populate all fields with the current `CourtCase` data using `defaultValues` in `useForm`. The update form mirrors the create form in structure, with two additions:
-
-1. **Status field** — `Select` showing `CourtCaseStatus` values, labelled via `t('courtCase.status.*')`
-2. **Outcome field** — `Select` showing `CourtCaseOutcome` values, labelled via `t('courtCase.outcome.*')`. Conditionally required: show a `(Required when Concluded)` hint and validate at schema level.
-
-The Outcome select is always rendered (not conditionally shown), but the Zod schema validation rejects submission when `status === CONCLUDED && !outcome`.
-
-Uses `useUpdateCourtCase(courtCase.id, caseId)`. On success: drawer closes, toast confirms.
-
----
-
-# 20. UI Implementation — ChargesTable
-
-## 20.1 `ChargesTable.tsx`
-
-Client Component. Manages filter state (URL-driven) and delegates row action events upward to `LegalTab`.
-
-### 20.1.1 Filter state
+### 12.1.1 Filter state
 
 ```typescript
 const [filters, setFilters] = useQueryStates({
-  chargeSearch: parseAsString.withDefault(''),
-  chargeStatus: parseAsArrayOf(parseAsString).withDefault([]),
-  chargePage: parseAsInteger.withDefault(1),
-  chargePageSize: parseAsInteger.withDefault(25),
-  chargeSortField: parseAsString.withDefault('filedAt'),
-  chargeSortDirection: parseAsString.withDefault('desc'),
+  search: parseAsString.withDefault(''),
+  roles: parseAsArrayOf(parseAsString).withDefault([]),
+  riskLevel: parseAsArrayOf(parseAsString).withDefault([]),
+  page: parseAsInteger.withDefault(1),
+  pageSize: parseAsInteger.withDefault(25),
+  sortField: parseAsString.withDefault('lastName'),
+  sortDirection: parseAsString.withDefault('asc'),
 })
 ```
 
-> Use a unique URL param prefix (`charge*`) to avoid collisions with any other filter state on the same page.
-
-### 20.1.2 PageHeader
+### 12.1.2 PageHeader
 
 ```tsx
-<SectionHeader
-  title={t('charges.sectionTitle')}
-  description={`${data?.total ?? 0} ${t('charges.entityCount', { count: data?.total ?? 0 })}`}
+<PageHeader
+  title={t('persons.list.heading')}
+  description={`${data?.total ?? 0} ${t('persons.list.entityCount', { count: data?.total ?? 0 })}`}
   actions={
-    <PermissionGuard permission={Permission.LEGAL_MANAGE}>
-      <Button onClick={onAddCharge} size="sm">
-        <Plus className="mr-2 h-3.5 w-3.5" />
-        {t('charges.addChargeButton')}
+    <PermissionGuard permission={Permission.PERSONNEL_MANAGE}>
+      <Button onClick={() => setCreateOpen(true)}>
+        <Plus className="mr-2 h-4 w-4" />
+        {t('persons.list.addPersonButton')}
       </Button>
     </PermissionGuard>
   }
 />
 ```
 
-Use `SectionHeader` (not `PageHeader`) — the charges table is a section within the legal tab page, not a top-level page.
-
-### 20.1.3 DataTable Column Definitions
+### 12.1.3 DataTable Column Definitions
 
 | Column Key | Renderer | Sortable | Min Width |
 |---|---|---|---|
-| `suspect` | `firstName lastName` (plain text) | No | 150px |
-| `crimeType` | `crimeType.name` (plain text) | No | 150px |
-| `status` | `ChargeStatusBadge` (see §20.1.4) | Yes | 110px |
-| `filedAt` | `dd MMM yyyy` | Yes | 100px |
-| `sentence` | Sentence indicator chip (see §20.1.5) | No | 100px |
+| `name` | `firstName lastName` as a link to detail page | Yes | 160px |
+| `nationalIdMasked` | Masked value (`***-***-1234`), or `—` if null | No | 130px |
+| `roles` | Row of role badges using `PERSON_ROLE_VARIANTS` | No | 180px |
+| `riskLevel` | `StatusBadge` using `RISK_LEVEL_VARIANTS`; `—` if null | Yes | 100px |
+| `isProtectedWitness` | `accent` badge "Protected" when true; empty when false | No | 110px |
+| `createdAt` | `dd MMM yyyy` | Yes | 100px |
 | `actions` | Kebab menu | No | 48px |
 
-**Row click behaviour:** Clicking any row (not the kebab) opens `UpdateChargeStatusDrawer` for non-terminal charges, or `ViewSentenceDrawer` for terminal `CONVICTED` charges.
+**Row click behaviour:** Clicking the name link or anywhere on the row navigates to `/personnel/persons/[personId]`.
 
-**Kebab actions** (rendered conditionally per charge state):
-- `t('charges.rowActions.updateStatus')` — rendered when charge is NOT terminal (`isChargeTerminal(charge.status) === false`); guarded by `legal:manage`
-- `t('charges.rowActions.viewSentence')` — rendered when `charge.status === CONVICTED`; no permission guard (read action)
-- Separator (rendered when both above are visible)
-- `t('charges.rowActions.dropCharge')` — rendered when charge is NOT terminal; destructive (red label, `Trash2` icon); guarded by `legal:manage`
+**Kebab actions:**
+- `t('persons.list.rowActions.view')` → `router.push(\`/personnel/persons/${row.id}\`)`
 
-### 20.1.4 Charge Status Badge Variant
+**Role badges:** Each role in `person.roles` renders as a small badge. Multiple roles stack horizontally. Order: SUSPECT, VICTIM, WITNESS.
 
-```typescript
-const CHARGE_STATUS_VARIANTS: Record<ChargeStatus, BadgeVariant> = {
-  FILED:      'primary',       // Blue — filed
-  ACTIVE:     'warning',       // Amber — in active proceedings
-  CONVICTED:  'destructive',   // Red — convicted
-  ACQUITTED:  'success',       // Green — acquitted
-  DROPPED:    'muted',         // Slate — dropped
-}
-```
+### 12.1.4 Active filter chips
 
-### 20.1.5 Sentence Indicator Chip
-
-For the `sentence` column:
-
-- `CONVICTED` + `hasSentence === true`: render a small `success` badge — `t('charges.sentenceIndicator.recorded')` with a `CheckCircle2` icon (12px)
-- `CONVICTED` + `hasSentence === false`: render a `warning` badge — `t('charges.sentenceIndicator.pending')` with a `Clock` icon (12px)
-- All other statuses: render `—` in muted text
-
-### 20.1.6 Empty state
-
-Two variants:
-- No charges, no filters active: `EmptyState` with title `t('charges.empty.title')`, description `t('charges.empty.description')`, and a CTA `t('charges.empty.cta')` as a text hint (not a button — the Add Charge button in the header serves as the CTA)
-- Filters active but no results: `TableEmptyState` with `t('charges.emptyFiltered')` (no CTA)
+Chips appear below the filter bar. Each chip: `Role: Suspect ×`, `Risk: High ×`. The `×` removes that specific filter value. A "Clear all filters" link appears when any filter is active.
 
 ---
 
-# 21. UI Implementation — AddChargeDrawer
+# 13. UI Implementation — PersonDetail
 
-## 21.1 `AddChargeDrawer.tsx`
+## 13.1 `PersonDetail.tsx`
 
-Client Component wrapping `SlideOverDrawer` (480px).
+Client Component. Orchestration wrapper for the person detail page. **This is a single-column full page — not a tabbed layout.**
 
-### 21.1.1 Layout
-
-```
-AddChargeDrawer (480px)
-──────────────────────────────────────────────
-  Add Charge
-  File a new charge in this court case.
-──────────────────────────────────────────────
- ┌── Section 1: Charge Details ───────────────┐
- │  Suspect *        [SearchableSelect]        │
- │  (hint: suspects linked to this case only) │
- │                                            │
- │  Crime Type *     [SearchableSelect]       │
- │                                            │
- │  Notes            [Textarea, optional]     │
- └────────────────────────────────────────────┘
-
- ────────────────────────────────────────────
- [Cancel]                       [File Charge]
-```
-
-### 21.1.2 Suspect SearchableSelect
+### 13.1.1 Drawer state
 
 ```typescript
-const searchSuspects = async (searchTerm: string): Promise<SelectOption[]> => {
-  const persons = await getCasePersons(caseId, {
-    role: 'SUSPECT',
-    search: searchTerm,
-  })
-  return persons.map((p) => ({
-    value: p.id,
-    label: `${p.firstName} ${p.lastName}`,
-  }))
-}
+const [promoteToSuspectOpen, setPromoteToSuspectOpen] = useState(false)
+const [promoteToVictimOpen, setPromoteToVictimOpen] = useState(false)
+const [promoteToWitnessOpen, setPromoteToWitnessOpen] = useState(false)
 ```
 
-If the case has no suspects, render an inline empty state inside the dropdown: "No suspects are linked to this case. Add suspects from the Personnel module first." — and disable the submit button with a tooltip.
-
-### 21.1.3 Crime Type SearchableSelect
+### 13.1.2 Data
 
 ```typescript
-const searchCrimeTypes = async (searchTerm: string): Promise<SelectOption[]> => {
-  // Use the existing reference data endpoint
-  const crimeTypes = await getCrimeTypes({ search: searchTerm })
-  return crimeTypes.map((ct) => ({ value: ct.id, label: ct.name }))
-}
+const { data: person, isLoading, isError } = usePersonDetail(personId)
 ```
 
-`getCrimeTypes` is already implemented in the admin/reference data service (Phase 1 foundation). Import from `@services/domain/admin.service`.
-
-### 21.1.4 Submit logic
-
-```typescript
-const onSubmit = async (values: CreateChargeValues) => {
-  await createChargeMutation.mutateAsync(values)
-  onClose()
-  form.reset()
-}
-```
-
-On mutation error: drawer stays open; toast shown by hook.
-
----
-
-# 22. UI Implementation — UpdateChargeStatusDrawer
-
-## 22.1 `UpdateChargeStatusDrawer.tsx`
-
-Client Component wrapping `SlideOverDrawer` (480px). This is the most complex drawer in the legal module.
-
-### 22.1.1 Data fetching
-
-The drawer receives `chargeId`, `courtCaseId`, and `caseId` as props. It fetches the charge detail from the list cache — find by ID from `useChargeList` data already in cache. If the charge needs a dedicated detail endpoint, add `useChargeDetail(chargeId)` fetching from `GET /api/v1/charges/{chargeId}`.
-
-### 22.1.2 Layout — Non-terminal charge
+### 13.1.3 Page layout
 
 ```
-UpdateChargeStatusDrawer (480px)
-──────────────────────────────────────────────
-  Update Charge Status
-  Change the status of this charge.
-──────────────────────────────────────────────
- ┌── Current Status ───────────────────────────┐
- │  Status: [Filed badge]                      │
- │  Suspect: John Bekele                       │
- │  Crime: Robbery with Violence               │
- └─────────────────────────────────────────────┘
+PersonDetail (single column)
+──────────────────────────────────────────────────────────────────────
+PageHeader
+  Breadcrumb: Persons > [Full Name]
+  Title: [Full Name]
+  Actions: [Promote to ▼] dropdown (PermissionGuard: PERSONNEL_MANAGE)
+             Options: Add as Suspect (if not already), Add as Victim, Add as Witness
+──────────────────────────────────────────────────────────────────────
 
- ┌── Update Status ─────────────────────────────┐
- │  New Status *   [Select — available options] │
- └─────────────────────────────────────────────┘
+[isLoading] → Full-page skeleton matching the below layout
 
- ┌── Record Conviction (appears only when CONVICTED is selected) ────┐
- │  [Amber notice bar — see §22.1.3]                                │
- │                                                                  │
- │  Sentence Type *    [Select]                                     │
- │  Duration (months)  [Input, conditional]                         │
- │  Fine Amount (ETB)  [Input, conditional]                         │
- │  Sentence Date *    [DatePicker]                                 │
- │  Issued By Judge    [Input, optional]                            │
- │  Notes              [Textarea, optional]                         │
- └──────────────────────────────────────────────────────────────────┘
+<PersonIdentityCard person={person} />    (§13.2)
 
- ────────────────────────────────────────────
- [Cancel]              [Record Conviction & Sentence] or [Update Status]
+<PersonRoleCards person={person}          (§13.3)
+  onPromoteSuspect={...}
+  onPromoteVictim={...}
+  onPromoteWitness={...}
+/>
+
+<PersonCasesTable personId={person.id} /> (§13.4)
+
+<!-- Drawers (always mounted, open/close controlled) -->
+<PromoteToSuspectDrawer open={...} personId={...} onClose={...} />
+<PromoteToVictimDrawer open={...} personId={...} onClose={...} />
+<PromoteToWitnessDrawer open={...} personId={...} onClose={...} />
 ```
 
-### 22.1.3 Conviction flow inline
+### 13.1.4 Promote dropdown menu
 
-The `UpdateChargeStatusDrawer` handles two distinct flows depending on which status is selected:
-
-**Non-CONVICTED selection** (e.g. ACTIVE, ACQUITTED):
-- Submit button label: `t('charges.update.submitButton')` ("Update Status")
-- On submit: calls `useUpdateCharge` mutation with `{ status }` payload
-
-**CONVICTED selection**:
-- The sentencing fields section expands (animate with `max-height` expand, 150ms ease-out)
-- Display the amber conviction notice bar:
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  ⚠  Recording a sentence will permanently set this charge to       │
-│     Convicted. This cannot be reversed.                            │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-Style: `background: rgba(245, 158, 11, 0.08)`, `border: 1px solid var(--color-warning)`, `border-radius: var(--radius-sm)`, `padding: 8px 12px`. `AlertTriangle` icon (14px, warning colour).
-
-- Submit button label changes to: `t('charges.update.convictButton')` ("Record Conviction & Sentence")
-- On submit: calls `useRecordSentence` mutation (NOT `useUpdateCharge`) — `recordSentence` sets the status to CONVICTED and records the sentence in one atomic backend operation
-- The `updateChargeStatusSchema` is used for the status field; the `recordSentenceSchema` is used for the sentence fields; combine them using `z.object({}).merge()` or validate conditionally
-
-### 22.1.4 Available status options in the Select
-
-Use `getAvailableChargeStatuses(charge.status)` from `chargeUtils.ts` to populate the options. This function returns `[]` for terminal statuses. Always include `CONVICTED` as a separate option in the UI, below the regular options, separated by a divider — it triggers the sentencing section, not the regular status update flow.
+The "Promote to" action in the PageHeader renders as a `DropdownMenu` (not individual buttons):
 
 ```tsx
-// In the Select options:
-[
-  ...getAvailableChargeStatuses(charge.status).map(status => ({
-    value: status,
-    label: t(`charges.status.${status}`),
-  })),
-  { type: 'separator' },
-  {
-    value: ChargeStatus.CONVICTED,
-    label: t(`charges.status.CONVICTED`),
-    // Render with a subtle red label to communicate significance
-    className: 'text-destructive',
-  },
-]
+<PermissionGuard permission={Permission.PERSONNEL_MANAGE}>
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant="outline">
+        {t('persons.detail.actions.promoteSection')} <ChevronDown />
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent>
+      {!hasRole(person.roles, PersonRole.SUSPECT) && (
+        <DropdownMenuItem onClick={() => setPromoteToSuspectOpen(true)}>
+          <UserX className="mr-2 h-4 w-4" />
+          {t('persons.detail.actions.promoteToSuspect')}
+        </DropdownMenuItem>
+      )}
+      {!hasRole(person.roles, PersonRole.VICTIM) && (
+        <DropdownMenuItem onClick={() => setPromoteToVictimOpen(true)}>
+          <Heart className="mr-2 h-4 w-4" />
+          {t('persons.detail.actions.promoteToVictim')}
+        </DropdownMenuItem>
+      )}
+      {!hasRole(person.roles, PersonRole.WITNESS) && (
+        <DropdownMenuItem onClick={() => setPromoteToWitnessOpen(true)}>
+          <Eye className="mr-2 h-4 w-4" />
+          {t('persons.detail.actions.promoteToWitness')}
+        </DropdownMenuItem>
+      )}
+    </DropdownMenuContent>
+  </DropdownMenu>
+</PermissionGuard>
 ```
 
-### 22.1.5 Terminal charge state
-
-If `isChargeTerminal(charge.status) === true`:
-
-```
-UpdateChargeStatusDrawer (480px)
-──────────────────────────────────────────────
-  Update Charge Status
-──────────────────────────────────────────────
- ┌── Terminal Notice ───────────────────────────┐
- │  [Lock icon]  This charge has reached a      │
- │  final status and cannot be changed.         │
- │  Status: [CONVICTED badge]                  │
- └─────────────────────────────────────────────┘
-
- ────────────────────────────────────────────
- [Close]
-```
-
-No form fields are rendered. The drawer is read-only. The "Update Status" button in the kebab should not open this drawer for terminal charges — instead, for `CONVICTED` it opens `ViewSentenceDrawer`. The `onUpdateStatus` callback in `LegalTab` should guard against terminal statuses before opening this drawer.
+If all three roles are assigned, hide the dropdown entirely (all options would be filtered out).
 
 ---
 
-# 23. UI Implementation — DropChargeDialog
+# 14. UI Implementation — PersonIdentityCard
 
-## 23.1 `DropChargeDialog.tsx`
+## 14.1 `PersonIdentityCard.tsx`
 
-Thin wrapper around the existing `DestructiveConfirmDialog` shared component.
+Client Component. Receives the full `Person` object.
+
+### 14.1.1 Layout
+
+```
+PersonIdentityCard
+──────────────────────────────────────────────────────────────
+  Identity
+──────────────────────────────────────────────────────────────
+ ┌── Two-column metadata grid ──────────────────────────────┐
+ │  First Name      Alem          │  Gender        Male     │
+ │  Last Name       Tadesse       │  Risk Level    [High]   │
+ │                                                           │
+ │  National ID     [SensitiveField: ***-***-1234] [Reveal] │
+ │  Date of Birth   [SensitiveField: 1988 (year only)]      │
+ │  Phone           [SensitiveField: +251 *** *** 789]      │
+ │                                                           │
+ │  Address         Bole Sub-City, Addis Ababa              │
+ │                  (or "Not recorded" in muted)            │
+ │                                                           │
+ │  Record Created  14 Jan 2026    Last Updated  20 Jun 2026│
+ └───────────────────────────────────────────────────────────┘
+```
+
+### 14.1.2 PII field rendering with `SensitiveField`
+
+Use the existing `SensitiveField` shared component from `shared/components/display/SensitiveField.tsx`. Do not rebuild it.
 
 ```tsx
-<DestructiveConfirmDialog
-  open={open}
-  onClose={onClose}
-  title={t('charges.drop.confirmTitle')}
-  description={t('charges.drop.confirmDescription', {
-    suspectName: `${charge.suspect.firstName} ${charge.suspect.lastName}`,
-    crimeType: charge.crimeType.name,
-  })}
-  confirmLabel={t('charges.drop.confirmButton')}
-  cancelLabel={t('charges.drop.cancelButton')}
-  onConfirm={async () => {
-    await dropChargeMutation.mutateAsync()
-    onClose()
-  }}
-  isLoading={dropChargeMutation.isPending}
-  error={dropChargeMutation.isError ? t('charges.update.errorMessage') : undefined}
+<SensitiveField
+  label={t('persons.detail.identityCard.nationalId')}
+  maskedValue={person.pii.nationalId ?? '—'}
+  fullValue={person.pii.nationalId}   // Same field — backend returns appropriate value
+  canReveal={hasPermission(Permission.PII_REVEAL)}
+  onReveal={() => logPIIRevealEvent(person.id, 'nationalId')}
 />
 ```
 
-No confirm phrase required (blueprint pattern: confirm phrase is optional, used for "highest-consequence actions such as case deletion"). Dropping a charge is serious but not as irreversible as case deletion.
+The `SensitiveField` component already handles the toggle between masked and revealed states using local component state. The `onReveal` callback fires `logPIIRevealEvent` — a fire-and-forget POST to log the access. Implement this function as:
+
+```typescript
+// In PersonIdentityCard.tsx — not a hook, just a fire-and-forget call
+function logPIIRevealEvent(personId: string, field: string): void {
+  // Non-blocking audit call — do not await, do not show error to user
+  void apiClient
+    .post(`/api/v1/personnel/persons/${personId}/pii-access`, { field })
+    .catch(() => {
+      // Silent fail — audit failure must not block the reveal UX
+    })
+}
+```
+
+### 14.1.3 Risk level display
+
+Risk level is shown only if `person.riskLevel !== null` (i.e., the person is a suspect). Use `RISK_LEVEL_VARIANTS` from `personnelUtils.ts`. If `riskLevel === null`, render `—` in muted text.
 
 ---
 
-# 24. UI Implementation — ViewSentenceDrawer
+# 15. UI Implementation — PersonRoleCards
 
-## 24.1 `ViewSentenceDrawer.tsx`
+## 15.1 `PersonRoleCards.tsx`
 
-Client Component wrapping `SlideOverDrawer` (480px). Read-only.
+Client Component. Receives the full `Person` object and promotion callbacks.
 
-### 24.1.1 Immutability indicator
-
-Immediately below the drawer title, render the immutability notice bar (same pattern as `InterrogationDetailDrawer`):
+### 15.1.1 Section structure
 
 ```
-┌────────────────────────────────────────────────────────────────────┐
-│  🔒  This sentence record is permanent and cannot be modified.     │
-└────────────────────────────────────────────────────────────────────┘
+PersonRoleCards
+──────────────────────────────────────────────────────────────
+  Roles & Profiles
+──────────────────────────────────────────────────────────────
+
+[Rendered only if person.suspectProfile exists]
+┌── Suspect Profile ───────────────────────────────────────────┐
+│  [Warning badge: Suspect]                                   │
+│  Risk Level: [High badge]                                   │
+│  Notes: ...or "No notes."                                   │
+│  Designated: 14 Jan 2026  By: Insp. Sara Haile (BD-082)    │
+└──────────────────────────────────────────────────────────────┘
+
+[Rendered only if person.victimProfile exists]
+┌── Victim Profile ────────────────────────────────────────────┐
+│  [Muted badge: Victim]                                      │
+│  Notes: ...or "No notes."                                   │
+│  Designated: 14 Jan 2026  By: Insp. Dawit Bekele (BD-091)  │
+└──────────────────────────────────────────────────────────────┘
+
+[Rendered only if person.witnessProfile exists]
+┌── Witness Profile ───────────────────────────────────────────┐
+│  [Primary badge: Witness]  [Accent badge: Protected Witness]│
+│  Protection Level: HIGH                                     │
+│  Credibility Notes: ...or "No notes."                       │
+│  Designated: 14 Jan 2026  By: Insp. Sara Haile (BD-082)    │
+└──────────────────────────────────────────────────────────────┘
+
+[If NO roles at all]
+┌── No Roles ──────────────────────────────────────────────────┐
+│  [User icon, muted]                                         │
+│  No roles assigned yet.                                     │
+│  This person has not been linked to any investigation roles.│
+└──────────────────────────────────────────────────────────────┘
 ```
 
-### 24.1.2 Layout
+Each role card is a `MetadataCard` wrapper from `shared/components/display/MetadataCard.tsx`. Each field uses the same two-column metadata grid as `PersonIdentityCard`.
+
+The `Protected Witness` badge (`accent` variant) renders next to the "Witness" badge only when `witnessProfile.isProtected === true`.
+
+---
+
+# 16. UI Implementation — PersonCasesTable
+
+## 16.1 `PersonCasesTable.tsx`
+
+Client Component. Shows cases this person is linked to.
+
+### 16.1.1 Data fetching
+
+```typescript
+const { data, isLoading, isError } = usePersonCases(personId, { page, pageSize: 10 })
+```
+
+### 16.1.2 Layout
 
 ```
-ViewSentenceDrawer (480px)
+PersonCasesTable
+──────────────────────────────────────────────────────────────
+  Associated Cases                              3 case(s)
+──────────────────────────────────────────────────────────────
+ DataTable (compact mode, 40px rows):
+   Case No. | Title              | Role    | Status | Since
+   0042      | Robbery at Bole..  | Suspect | Open   | Jan 2026
+   0038      | Assault at...      | Witness | Closed | Nov 2025
+──────────────────────────────────────────────────────────────
+```
+
+Use `SectionHeader` (not `PageHeader`). Use the DataTable in compact mode (`40px rows`).
+
+**Column definitions:**
+
+| Column Key | Renderer | Sortable | Min Width |
+|---|---|---|---|
+| `caseNumber` | Monospace `xs`, link to `/cases/[caseId]` | No | 90px |
+| `title` | Truncated to 40 chars | No | 180px |
+| `roleOnCase` | Role badge using `PERSON_ROLE_VARIANTS` | No | 100px |
+| `caseStatus` | StatusBadge using existing case status variants | No | 100px |
+| `createdAt` | `dd MMM yyyy` | No | 90px |
+
+**Row click:** Navigates to `/cases/[caseId]`.
+
+**Empty state:** Muted text: `t('persons.detail.casesSection.empty')`. No CTA.
+
+---
+
+# 17. UI Implementation — Role Promotion Drawers
+
+## 17.1 `PromoteToSuspectDrawer.tsx`
+
+Client Component wrapping `SlideOverDrawer` (480px).
+
+### 17.1.1 Layout
+
+```
+PromoteToSuspectDrawer (480px)
 ──────────────────────────────────────────────
-  Sentence Details               🔒
-  [Immutability notice bar]
+  Add as Suspect
+  Link this person to the investigation as a suspect. This assignment is permanent.
 ──────────────────────────────────────────────
- ┌── Charge Context ───────────────────────────┐
- │  Suspect    John Bekele                     │
- │  Charge     Robbery with Violence           │
- │  Status     [Convicted badge]               │
- └─────────────────────────────────────────────┘
+ ┌── Permanence Notice Bar ─────────────────────┐
+ │  ⚠  Once a person is designated as a Suspect, │
+ │     this cannot be undone from the UI.        │
+ └───────────────────────────────────────────────┘
 
- ┌── Sentence Details ─────────────────────────┐
- │  Type        Imprisonment                   │
- │  Duration    5 years (60 months)            │
- │  Fine        —                              │
- │  Sentenced   14 Jun 2026                    │
- │  By Judge    Hon. Abebe Tadesse             │
- └─────────────────────────────────────────────┘
-
- ┌── Notes ────────────────────────────────────┐
- │  ...sentence notes text...                 │
- └─────────────────────────────────────────────┘
+ ┌── Section 1: Suspect Details ────────────────┐
+ │  Risk Level *      [Select]                  │
+ │    Options: Low | Medium | High              │
+ │    (render each with its badge variant)      │
+ │                                              │
+ │  Notes             [Textarea, optional]      │
+ └──────────────────────────────────────────────┘
 
  ────────────────────────────────────────────
- [Close]
+ [Cancel]              [Confirm — Add as Suspect]
 ```
 
-Duration rendering: use `formatDurationMonths(sentence.durationMonths)` from `chargeUtils.ts`. If `durationMonths === null`, render `—`.
+The permanence notice bar uses the same amber style as the conviction notice bar in Phase 6 (`background: rgba(245, 158, 11, 0.08)`, `border: 1px solid var(--color-warning)`).
 
-Fine rendering: use `formatFineAmount(sentence.fineAmountETB)` from `chargeUtils.ts`. If `fineAmountETB === null`, render `—`.
+On submit: calls `usePromoteToSuspect(personId)`. On success: drawer closes, `PersonDetail` refreshes (the suspect profile card appears), toast confirms.
 
-The `Sentence` object is passed as a prop. If the charge is `CONVICTED` but `sentence === null` (sentence not yet recorded — edge case), show a `warning` state instead: "Sentence details have not been recorded yet."
+No dirty state guard on close — the form is short and the permanence notice already contextualises the gravity of the action.
+
+## 17.2 `PromoteToVictimDrawer.tsx`
+
+Client Component wrapping `SlideOverDrawer` (480px).
+
+```
+PromoteToVictimDrawer (480px)
+──────────────────────────────────────────────
+  Add as Victim
+  ...
+──────────────────────────────────────────────
+ [Permanence Notice Bar]
+
+ ┌── Victim Details ────────────────────────────┐
+ │  Notes             [Textarea, optional]      │
+ └──────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Cancel]               [Confirm — Add as Victim]
+```
+
+Uses `usePromoteToVictim(personId)`.
+
+## 17.3 `PromoteToWitnessDrawer.tsx`
+
+Client Component wrapping `SlideOverDrawer` (480px).
+
+```
+PromoteToWitnessDrawer (480px)
+──────────────────────────────────────────────
+  Add as Witness
+  ...
+──────────────────────────────────────────────
+ [Permanence Notice Bar]
+
+ ┌── Section 1: Witness Details ────────────────┐
+ │  Credibility Notes  [Textarea, optional]     │
+ └──────────────────────────────────────────────┘
+
+ ┌── Section 2: Witness Protection ─────────────┐
+ │  Under Protection?  [Switch toggle]          │
+ │                                              │
+ │  Protection Level   [Input, conditional]     │
+ │  (appears when toggle is ON)                 │
+ └──────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Cancel]              [Confirm — Add as Witness]
+```
+
+When `isProtected === true`, animate the Protection Level input into view using `max-height` expand (150ms ease-out). When toggled off, collapse and clear the value.
+
+Uses `usePromoteToWitness(personId)`.
 
 ---
 
-# 25. UI Implementation — Court Cases List Page
+# 18. UI Implementation — CreatePersonDrawer
 
-## 25.1 `CourtCasesList.tsx`
+## 18.1 `CreatePersonDrawer.tsx`
 
-Client Component. Full list page for `/legal/court-cases`.
+Client Component wrapping `SlideOverDrawer` (480px).
 
-### 25.1.1 Filter state
+```
+CreatePersonDrawer (480px)
+──────────────────────────────────────────────
+  Add Person
+  Create a new person record in the system.
+──────────────────────────────────────────────
+ ┌── Section 1: Basic Information ──────────────┐
+ │  First Name *      [Input]                   │
+ │  Last Name *       [Input]                   │
+ │  Gender            [Select, optional]        │
+ └──────────────────────────────────────────────┘
+
+ ┌── Section 2: Contact & Identity ─────────────┐
+ │  National ID       [Input, optional]         │
+ │  (PII hint below field)                      │
+ │  Date of Birth     [DatePicker, optional]    │
+ │  Phone             [Input, optional]         │
+ │  Address           [Input, optional]         │
+ └──────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Cancel]                          [Add Person]
+```
+
+On success: drawer closes, persons list refreshes, toast confirms.
+
+Dirty state guard: if `formState.isDirty` and officer closes, show `ConfirmDialog`: "Discard person record? Your unsaved data will be lost."
+
+---
+
+# 19. UI Implementation — OfficersList
+
+## 19.1 `OfficersList.tsx`
+
+Client Component. Manages URL-driven filter state.
+
+### 19.1.1 Filter state
 
 ```typescript
 const [filters, setFilters] = useQueryStates({
   search: parseAsString.withDefault(''),
   status: parseAsArrayOf(parseAsString).withDefault([]),
-  dateFrom: parseAsString.withDefault(''),
-  dateTo: parseAsString.withDefault(''),
+  role: parseAsArrayOf(parseAsString).withDefault([]),
+  departmentId: parseAsString.withDefault(''),
   page: parseAsInteger.withDefault(1),
   pageSize: parseAsInteger.withDefault(25),
-  sortField: parseAsString.withDefault('filedAt'),
-  sortDirection: parseAsString.withDefault('desc'),
+  sortField: parseAsString.withDefault('badgeNumber'),
+  sortDirection: parseAsString.withDefault('asc'),
 })
 ```
 
-### 25.1.2 PageHeader
+### 19.1.2 PageHeader
 
 ```tsx
 <PageHeader
-  title={t('courtCasesList.pageTitle')}
-  description={`${data?.total ?? 0} ${t('courtCasesList.entityCount', { count: data?.total ?? 0 })}`}
+  title={t('officers.list.heading')}
+  description={`${data?.total ?? 0} ${t('officers.list.entityCount', { count: data?.total ?? 0 })}`}
+  actions={
+    <PermissionGuard permission={Permission.OFFICERS_MANAGE}>
+      <Button onClick={() => setCreateOpen(true)}>
+        <Plus className="mr-2 h-4 w-4" />
+        {t('officers.list.addOfficerButton')}
+      </Button>
+    </PermissionGuard>
+  }
 />
 ```
 
-No "New Court Case" button — court cases are created from within individual case files (legal tab), not from this global list.
+### 19.1.3 Department filter visibility
 
-### 25.1.3 DataTable Column Definitions
+The Department filter dropdown is visible only to `admin+` roles:
+
+```tsx
+<PermissionGuard permission={Permission.OFFICERS_MANAGE}>
+  <DepartmentSelect
+    value={filters.departmentId}
+    onChange={(val) => setFilters({ departmentId: val, page: 1 })}
+    placeholder={t('officers.list.filters.department')}
+  />
+</PermissionGuard>
+```
+
+For `dept_head`, the backend already scopes the officer list to their department. No department filter is rendered for `dept_head`.
+
+### 19.1.4 DataTable Column Definitions
 
 | Column Key | Renderer | Sortable | Min Width |
 |---|---|---|---|
-| `courtCaseNumber` | Monospace, `xs` | Yes | 120px |
-| `investigationCaseTitle` | Plain text, truncated | No | 200px |
-| `court` | Plain text, truncated | No | 160px |
-| `status` | `CourtCaseStatusBadge` | Yes | 110px |
-| `outcome` | `OutcomeBadge` or `—` | No | 110px |
-| `filedAt` | `dd MMM yyyy` | Yes | 100px |
-| `nextHearingDate` | `dd MMM yyyy` or `—` | No | 110px |
-| `chargeCount` | Number | No | 80px |
+| `badgeNumber` | Monospace `xs` | Yes | 90px |
+| `name` | `firstName lastName` | Yes | 160px |
+| `role` | `StatusBadge` using `OFFICER_ROLE_VARIANTS` | No | 140px |
+| `departmentName` | Plain text | No | 150px |
+| `status` | `StatusBadge` using `OFFICER_STATUS_VARIANTS` | Yes | 100px |
+| `lastActivityAt` | Relative time (`formatDistanceToNow`) or `t('officers.list.lastActivityNever')`; **rendered only for `admin+`** | Yes | 120px |
 | `actions` | Kebab menu | No | 48px |
 
-**Row click behaviour:** Clicking a row navigates to the linked investigation case's legal tab: `router.push(\`/cases/${row.original.investigationCaseId}/legal\`)`.
+**Row click:** Navigates to `/personnel/officers/[officerId]`.
 
-**Kebab actions:**
-- `t('courtCasesList.rowActions.viewCase')` → `router.push(\`/cases/${row.investigationCaseId}/legal\`)`
+**Kebab actions** (permission-guarded):
+- `t('officers.list.rowActions.view')` → navigate to detail (all roles)
+- Separator
+- `t('officers.list.rowActions.activate')` — shown only when `officer.status === INACTIVE`; guarded by `OFFICERS_MANAGE`
+- `t('officers.list.rowActions.deactivate')` — shown only when `officer.status === ACTIVE`; guarded by `OFFICERS_MANAGE`; destructive label (red)
+- `t('officers.list.rowActions.resetPassword')` — always shown; guarded by `OFFICERS_MANAGE`
 
-### 25.1.4 Court Case Status Badge Variant
-
-Same as §16.1.2 (`CourtCaseCard`). Define in `chargeUtils.ts` and import from there.
-
-### 25.1.5 Outcome Badge
-
-When `outcome` is not null, render a `muted` variant badge with the outcome label from `t('courtCase.outcome.*')`. When null, render `—` in muted text.
+**Active officer row:** render with no special styling.
+**Inactive officer row:** render with `opacity-60` to visually indicate inactivity. The status badge is `muted` variant.
 
 ---
 
-# 26. Role-Based Access
+# 20. UI Implementation — OfficerDetail
 
-## 26.1 Access control for the Legal Tab
+## 20.1 `OfficerDetail.tsx`
 
-The legal tab is visible but locked for non-legal roles (established in Phase 3's tab navigation). Phase 6 only needs to guard the content within the tab.
+Client Component. Orchestration wrapper for the officer detail page. **Single-column layout — not tabbed.**
 
-At the top of `LegalTab.tsx`, add:
+### 20.1.1 Drawer/dialog state
 
-```tsx
-return (
-  <PermissionGuard
-    permission={Permission.LEGAL_READ}
-    fallback={
-      <ForbiddenState
-        message={t('tab.lockedTooltip')}
-      />
-    }
-  >
-    {/* rest of the legal tab content */}
-  </PermissionGuard>
-)
+```typescript
+const [createOpen, setCreateOpen] = useState(false)   // unused here — create is on list page
+const [deactivateOpen, setDeactivateOpen] = useState(false)
+const [activateOpen, setActivateOpen] = useState(false)
+const [resetPasswordOpen, setResetPasswordOpen] = useState(false)
 ```
 
-## 26.2 Action guards
+### 20.1.2 Page layout
 
-All mutative actions are guarded with `Permission.LEGAL_MANAGE`. `PermissionGuard` renders `null` (not a disabled button) for non-legal roles — the button is entirely absent, consistent with the blueprint's "Action not permitted by role → Button/menu item hidden entirely" policy.
+```
+OfficerDetail (single column)
+──────────────────────────────────────────────────────────────────────
+PageHeader
+  Breadcrumb: Officers > Officer Name
+  Title: [Full Name] (Badge: BD-00142)
+  Actions (all PermissionGuard: OFFICERS_MANAGE):
+    [Reset Password]          — always shown for admin+
+    [Deactivate] (destructive, red)  — shown when ACTIVE
+    [Activate]                — shown when INACTIVE
+──────────────────────────────────────────────────────────────────────
 
-## 26.3 Court Cases List page guard
+[isLoading] → Skeleton layout
 
-The `/legal/court-cases` page route already has a middleware-level role check (legal_officer+) from Phase 1. No additional page-level guard is needed. However, the `PageHeader` should not show a "Create" button at any point on this page — court case creation is intentionally scoped to the case detail legal tab only.
+<OfficerIdentityCard officer={officer} />    (§20.2)
+
+<OfficerCasesSummary officerId={officer.id} /> (§20.3)
+
+<!-- Dialogs -->
+<DeactivateOfficerDialog open={deactivateOpen} officer={officer} onClose={...} />
+<ActivateOfficerDialog open={activateOpen} officer={officer} onClose={...} />
+<ResetPasswordDialog open={resetPasswordOpen} officer={officer} onClose={...} />
+```
 
 ---
 
-# 27. `src/features/legal/index.ts`
+# 21. UI Implementation — OfficerIdentityCard
+
+## 21.1 `OfficerIdentityCard.tsx`
+
+Client Component. Receives the full `Officer` object.
+
+### 21.1.1 Layout
+
+```
+OfficerIdentityCard
+──────────────────────────────────────────────────────────────
+  Officer Identity
+──────────────────────────────────────────────────────────────
+ ┌── Two-column grid ────────────────────────────────────────┐
+ │  Badge Number  BD-00142       │  Status  [Active badge]   │
+ │  First Name    Sara           │  Role    [Investigator]   │
+ │  Last Name     Haile          │  Dept    Bole Sub-City    │
+ │  Email         sara@...       │  Phone   +251 91 234 5678 │
+ │                               │          (or "Not recorded")│
+ │  Active Cases  3              │  Total Cases  17           │
+ │  Last Active   5 minutes ago  │  Account Created  Jan 2026 │
+ └───────────────────────────────────────────────────────────┘
+```
+
+**`lastActivityAt` visibility:** This field is visible only to `admin+`. For `dept_head`, this cell renders `—`.
+
+```tsx
+<PermissionGuard permission={Permission.OFFICERS_MANAGE}>
+  <MetadataRow
+    label={t('officers.detail.identityCard.lastActivity')}
+    value={
+      officer.lastActivityAt
+        ? formatDistanceToNow(new Date(officer.lastActivityAt), { addSuffix: true })
+        : t('officers.detail.identityCard.lastActivityNever')
+    }
+  />
+</PermissionGuard>
+```
+
+---
+
+# 22. UI Implementation — OfficerCasesSummary
+
+## 22.1 `OfficerCasesSummary.tsx`
+
+Client Component. Shows the last 10 cases assigned to this officer as a compact list.
+
+### 22.1.1 Layout
+
+```
+OfficerCasesSummary
+──────────────────────────────────────────────────────────────
+  Recent Assigned Cases           17 total
+                                  [View all cases →]
+──────────────────────────────────────────────────────────────
+ DataTable (compact mode):
+   Case No. | Title             | Status | Assigned
+   0042      | Robbery at Bole   | Open   | 14 Jun 2026
+   0038      | Assault at...     | Closed | 12 May 2026
+   ...
+──────────────────────────────────────────────────────────────
+```
+
+The `View all cases →` link navigates to `/cases?assignedOfficerId={officerId}` — passing the officer ID as a filter to the cases list.
+
+No loading skeleton needed on this section (the whole page skeleton covers the initial load). Use a compact inline loading state: a single row of three skeleton cells.
+
+---
+
+# 23. UI Implementation — CreateOfficerDrawer
+
+## 23.1 `CreateOfficerDrawer.tsx`
+
+Client Component wrapping `SlideOverDrawer` (480px). Accessible from the officer list page via the "Add Officer" button. Admin+ only (guarded by `PermissionGuard`).
+
+```
+CreateOfficerDrawer (480px)
+──────────────────────────────────────────────
+  Add Officer
+  Create a new officer account. The officer will receive an email to set their password.
+──────────────────────────────────────────────
+ ┌── Section 1: Identity ───────────────────────┐
+ │  Badge Number *    [Input]                   │
+ │  (hint: uppercase, digits, hyphens only)     │
+ │  First Name *      [Input]                   │
+ │  Last Name *       [Input]                   │
+ │  Phone             [Input, optional]         │
+ └──────────────────────────────────────────────┘
+
+ ┌── Section 2: Account Details ────────────────┐
+ │  Email *           [Input]                   │
+ │  Role *            [Select]                  │
+ │  Department *      [SearchableSelect]        │
+ └──────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Cancel]               [Create Officer Account]
+```
+
+**Department SearchableSelect:** Fetch from `GET /api/v1/departments?pageSize=100` (existing departments service from Phase 1 foundation). Map to `{ value: dept.id, label: dept.name }`.
+
+**Role Select:** All values from `OfficerRole` enum, labelled via `t('officers.officerRole.*')`. Do not include `SUPERADMIN` in the options unless the current user is `superadmin`.
+
+On success: drawer closes, officer list refreshes, toast confirms.
+
+Dirty state guard: if `formState.isDirty`, show unsaved changes `ConfirmDialog` on close.
+
+---
+
+# 24. UI Implementation — Officer Action Dialogs
+
+## 24.1 `DeactivateOfficerDialog.tsx`
+
+Wrapper around `DestructiveConfirmDialog`:
+
+```tsx
+<DestructiveConfirmDialog
+  open={open}
+  onClose={onClose}
+  title={t('officers.deactivate.confirmTitle')}
+  description={t('officers.deactivate.confirmDescription', {
+    badgeNumber: officer.badgeNumber,
+    officerName: `${officer.firstName} ${officer.lastName}`,
+  })}
+  confirmLabel={t('officers.deactivate.confirmButton')}
+  cancelLabel={t('officers.deactivate.cancelButton')}
+  onConfirm={async () => {
+    await deactivateOfficerMutation.mutateAsync()
+    onClose()
+  }}
+  isLoading={deactivateOfficerMutation.isPending}
+/>
+```
+
+Uses `useDeactivateOfficer(officerId)`. No confirm phrase required — deactivation is significant but not as irreversible as case deletion.
+
+On success: dialog closes, officer detail page refreshes (status badge changes to "Inactive"), toast confirms.
+
+## 24.2 `ActivateOfficerDialog.tsx`
+
+Simple `ConfirmDialog` (non-destructive):
+
+```tsx
+<ConfirmDialog
+  open={open}
+  onClose={onClose}
+  title={t('officers.activate.confirmTitle')}
+  description={t('officers.activate.confirmDescription', {
+    badgeNumber: officer.badgeNumber,
+    officerName: `${officer.firstName} ${officer.lastName}`,
+  })}
+  confirmLabel={t('officers.activate.confirmButton')}
+  cancelLabel={t('officers.activate.cancelButton')}
+  onConfirm={async () => {
+    await activateOfficerMutation.mutateAsync()
+    onClose()
+  }}
+  isLoading={activateOfficerMutation.isPending}
+/>
+```
+
+## 24.3 `ResetPasswordDialog.tsx`
+
+Simple `ConfirmDialog` (non-destructive, but consequential):
+
+```tsx
+<ConfirmDialog
+  open={open}
+  onClose={onClose}
+  title={t('officers.resetPassword.confirmTitle')}
+  description={t('officers.resetPassword.confirmDescription', {
+    officerEmail: officer.email,
+  })}
+  confirmLabel={t('officers.resetPassword.confirmButton')}
+  cancelLabel={t('officers.resetPassword.cancelButton')}
+  onConfirm={async () => {
+    await resetPasswordMutation.mutateAsync()
+    onClose()
+  }}
+  isLoading={resetPasswordMutation.isPending}
+/>
+```
+
+---
+
+# 25. `src/features/personnel/index.ts`
 
 Public barrel export:
 
 ```typescript
 // Types
-export * from './types/legal.types'
+export * from './types/personnel.types'
 
 // Hooks
 export {
-  useCourtCaseByCase,
-  useCourtCaseList,
-  useCreateCourtCase,
-  useUpdateCourtCase,
-  useChargeList,
-  useCreateCharge,
-  useUpdateCharge,
-  useDropCharge,
-  useRecordSentence,
+  usePersonList,
+  usePersonDetail,
+  useCreatePerson,
+  usePromoteToSuspect,
+  usePromoteToVictim,
+  usePromoteToWitness,
+  usePersonCases,
+  useOfficerList,
+  useOfficerDetail,
+  useCreateOfficer,
+  useActivateOfficer,
+  useDeactivateOfficer,
+  useResetOfficerPassword,
+  useOfficerCases,
 } from './hooks'
 
 // Components (export only those consumed outside the module)
-export { LegalTab } from './components/LegalTab'
-export { CourtCasesList } from './components/CourtCasesList'
+export { PersonsList } from './components/persons/PersonsList'
+export { PersonDetail } from './components/persons/PersonDetail'
+export { OfficersList } from './components/officers/OfficersList'
+export { OfficerDetail } from './components/officers/OfficerDetail'
 
 // Utils
 export {
-  CHARGE_STATUS_VARIANTS,
-  COURT_CASE_STATUS_VARIANTS,
-  isChargeTerminal,
-  getAvailableChargeStatuses,
-  formatDurationMonths,
-  formatFineAmount,
-} from './utils/chargeUtils'
+  RISK_LEVEL_VARIANTS,
+  OFFICER_STATUS_VARIANTS,
+  OFFICER_ROLE_VARIANTS,
+  PERSON_ROLE_VARIANTS,
+  getFullName,
+  getOfficerDisplayName,
+  hasRole,
+  getUnassignedRoles,
+} from './utils/personnelUtils'
 ```
 
 ---
 
-# 28. Testing Requirements
+# 26. Role-Based Access
 
-## 28.1 Unit Tests — `chargeUtils.ts`
+## 26.1 Person list and detail access
 
-Create `src/features/legal/utils/chargeUtils.test.ts`:
+The person list (`/personnel/persons`) and person detail (`/personnel/persons/[personId]`) require `Permission.PERSONNEL_READ` (dept_head+). The middleware-level route guard from Phase 1 covers this. At the page level, wrap content in `PermissionGuard`:
 
-- `isChargeTerminal('FILED')` → `false`
-- `isChargeTerminal('ACTIVE')` → `false`
-- `isChargeTerminal('CONVICTED')` → `true`
-- `isChargeTerminal('ACQUITTED')` → `true`
-- `isChargeTerminal('DROPPED')` → `true`
-- `getAvailableChargeStatuses('CONVICTED')` → `[]`
-- `getAvailableChargeStatuses('FILED')` → `['ACTIVE', 'ACQUITTED']`
-- `getAvailableChargeStatuses('ACTIVE')` → `['ACQUITTED']`
-- `formatDurationMonths(6)` → `"6 months"`
-- `formatDurationMonths(12)` → `"1 year"`
-- `formatDurationMonths(18)` → `"1 year, 6 months"`
-- `formatDurationMonths(60)` → `"5 years"`
-- `formatFineAmount(5000)` → `"5,000.00 ETB"`
+```tsx
+<PermissionGuard
+  permission={Permission.PERSONNEL_READ}
+  fallback={<ForbiddenState />}
+>
+  {/* page content */}
+</PermissionGuard>
+```
 
-## 28.2 Unit Tests — Zod Schemas
+## 26.2 PII reveal
 
-Create `src/features/legal/schemas/legal-schemas.test.ts`:
+The "Reveal" button on `SensitiveField` only renders when `hasPermission(Permission.PII_REVEAL)`. For roles below `admin`, the button is entirely absent — the masked value is rendered without any reveal affordance.
 
-**`createCourtCaseSchema`:**
-- Valid payload → no error
-- Missing `court` → validation error on `court`
-- Missing `filedAt` → validation error on `filedAt`
-- Invalid `hearingDates[0].type` → validation error on `hearingDates[0].type`
+```tsx
+<SensitiveField
+  canReveal={hasPermission(Permission.PII_REVEAL)}
+  ...
+/>
+```
 
-**`recordSentenceSchema`:**
-- `IMPRISONMENT` + `durationMonths: 60` → valid
-- `IMPRISONMENT` + `durationMonths: null` → error on `durationMonths`
-- `FINE` + `fineAmountETB: 5000` → valid
-- `FINE` + `fineAmountETB: null` → error on `fineAmountETB`
-- `DEATH_PENALTY` → valid with no duration or fine
-- `LIFE_IMPRISONMENT` → valid with no duration or fine
+## 26.3 Officer list scoping
 
-**`updateCourtCaseSchema`:**
-- `status: CONCLUDED` + `outcome: GUILTY` → valid
-- `status: CONCLUDED` + `outcome: null` → validation error on `outcome`
-- `status: ACTIVE` + no outcome → valid
+The backend scopes the officer list to the authenticated officer's department for `dept_head`. The frontend does not need to implement this scoping manually — it passes through to the API. However, the Department filter in the filter bar is hidden for `dept_head` (§19.1.3) since it would have no effect.
 
-## 28.3 Component Tests
+## 26.4 Admin-only actions on officer detail
 
-Create `src/features/legal/components/ChargesTable.test.tsx`:
-- Loading state renders skeleton rows
-- Empty state renders when no charges and no filters
-- Filtered empty state renders when filters active and no results
-- "Add Charge" button is visible when `legal:manage` permission is present
-- "Add Charge" button is absent when `legal:manage` permission is absent
-- Terminal charge row: kebab menu does NOT show "Update Status" or "Drop Charge"
-- `CONVICTED` charge row: kebab menu shows "View Sentence"
-- Non-terminal charge row: kebab shows "Update Status" and "Drop Charge"
-
-Create `src/features/legal/components/UpdateChargeStatusDrawer.test.tsx`:
-- Terminal charge renders the lock/read-only state, not the status select
-- Selecting CONVICTED reveals the sentencing fields section
-- Selecting ACQUITTED does NOT reveal sentencing fields
-- Form does not submit when CONVICTED is selected but sentencing fields are empty
-- Submit button label changes to "Record Conviction & Sentence" when CONVICTED is selected
-
-## 28.4 i18n Completeness
-
-Extend the existing i18n completeness test to cover the `legal` namespace. All keys in `en/legal.json` must have corresponding keys in `am/legal.json`. Test runner: `pnpm test`.
+The action buttons on the officer detail page header are all wrapped with `PermissionGuard permission={Permission.OFFICERS_MANAGE}`. For `dept_head` and lower roles, the page is viewable but no action buttons render.
 
 ---
 
-# 29. Anti-Pattern Reference
+# 27. Testing Requirements
 
-The following patterns are strictly forbidden. The agent must not implement any of them.
+## 27.1 Unit Tests — `personnelUtils.ts`
 
-**Terminal status violations:**
-- Rendering "Update Status" in the kebab menu for a `CONVICTED`, `ACQUITTED`, or `DROPPED` charge
-- Allowing `UpdateChargeStatusDrawer` to show a status select when `isChargeTerminal(charge.status) === true`
-- Creating a mutation that can change a charge FROM `CONVICTED` to any other status
-- Calling `useUpdateCharge` for a conviction — conviction is always via `useRecordSentence`
-- Adding a delete button to any charge row — charges cannot be deleted from the frontend
+Create `src/features/personnel/utils/personnelUtils.test.ts`:
 
-**Sentence immutability violations:**
-- Adding an edit button to `ViewSentenceDrawer` — sentences are permanent once recorded
-- Calling `recordSentence` without the amber conviction notice visible to the officer
-- Omitting the immutability notice bar from `ViewSentenceDrawer`
+- `hasRole(['SUSPECT', 'VICTIM'], 'SUSPECT')` → `true`
+- `hasRole(['SUSPECT', 'VICTIM'], 'WITNESS')` → `false`
+- `hasRole([], 'SUSPECT')` → `false`
+- `getUnassignedRoles(['SUSPECT'])` → `['VICTIM', 'WITNESS']`
+- `getUnassignedRoles(['SUSPECT', 'VICTIM', 'WITNESS'])` → `[]`
+- `getUnassignedRoles([])` → `['SUSPECT', 'VICTIM', 'WITNESS']`
+- `getFullName('Sara', 'Haile')` → `"Sara Haile"`
+- `getOfficerDisplayName('Sara', 'Haile', 'BD-082')` → `"Sara Haile (BD-082)"`
+- `RISK_LEVEL_VARIANTS.LOW` → `'success'`
+- `RISK_LEVEL_VARIANTS.HIGH` → `'destructive'`
+- `OFFICER_STATUS_VARIANTS.ACTIVE` → `'success'`
+- `OFFICER_STATUS_VARIANTS.INACTIVE` → `'muted'`
 
-**Court case creation violations:**
-- Adding a "Create Court Case" button to the `/legal/court-cases` list page — creation is scoped to the individual case's legal tab
-- Showing the "Create Court Case" CTA when `courtCase !== null` — exactly one court case per investigation case
-- Allowing `createCourtCase` to be called more than once for the same `caseId` — the backend enforces this, but the frontend must also hide the CTA once the court case is created
+## 27.2 Unit Tests — Zod Schemas
 
-**Query invalidation violations:**
-- Not invalidating `caseKeys.summary(caseId)` after `useCreateCharge` — the case overview tab charge count card will not update
-- Not invalidating `legalKeys.courtCaseByCase(caseId)` after `useCreateCharge` — the `CourtCaseCard`'s charge count will not update
-- Not invalidating `legalKeys.chargeList(courtCaseId)` after `useDropCharge` — the charge table will not reflect the dropped status
-- Not invalidating `legalKeys.courtCaseByCase(caseId)` after `useUpdateCourtCase` — the `CourtCaseCard` will show stale data
+Create `src/features/personnel/schemas/personnel-schemas.test.ts`:
 
-**DataTable violations:**
-- Using client-side filtering on the charges table — all filters must translate to API query parameters
-- Not syncing filter params to URL — the `useQueryStates` (nuqs) pattern from Phase 4 and 5 must be applied identically. All charge list filters must survive page refresh.
-- Using the same URL param names as other filter state on the page — use the `charge*` prefix to namespace charge filter params
+**`createPersonSchema`:**
+- Valid payload (firstName + lastName only) → no error
+- Missing `firstName` → validation error on `firstName`
+- Missing `lastName` → validation error on `lastName`
+- Both optional fields absent → valid (all optional fields are truly optional)
 
-**i18n violations:**
-- Hardcoding charge status labels (e.g. `"Convicted"`) in components instead of `t('charges.status.CONVICTED')`
-- Hardcoding court case status labels instead of `t('courtCase.status.*')`
-- Hardcoding sentence type labels instead of `t('charges.sentenceType.*')`
+**`promoteToSuspectSchema`:**
+- `riskLevel: 'HIGH'` → valid
+- Missing `riskLevel` → validation error on `riskLevel`
+- Invalid `riskLevel: 'CRITICAL'` → validation error
+
+**`promoteToWitnessSchema`:**
+- `isProtected: false` → valid without `protectionLevel`
+- `isProtected: true` + `protectionLevel: 'HIGH'` → valid
+- `isProtected: true` + no `protectionLevel` → validation error on `protectionLevel`
+- `isProtected: false` + `protectionLevel: 'HIGH'` → valid (protectionLevel is ignored when not protected)
+
+**`createOfficerSchema`:**
+- Valid payload → no error
+- `badgeNumber: 'bd-123'` (lowercase) → validation error on `badgeNumber`
+- Invalid email → validation error on `email`
+- Missing `departmentId` → validation error
+
+## 27.3 Component Tests — PersonsList
+
+Create `src/features/personnel/components/persons/PersonsList.test.tsx`:
+- Loading state renders skeleton rows
+- Empty state renders when no persons and no filters
+- Filtered empty state renders when filters active and no results
+- "Add Person" button is visible when `PERSONNEL_MANAGE` permission is present
+- "Add Person" button is absent when `PERSONNEL_MANAGE` is absent
+- National ID column shows masked value (`***-***-1234`), not full value
+- Role badges render for each role in the person's `roles` array
+- Risk level badge renders for persons with `riskLevel` set; `—` for null
+- "Protected" badge renders only when `isProtectedWitness === true`
+
+## 27.4 Component Tests — PersonRoleCards
+
+Create `src/features/personnel/components/persons/PersonRoleCards.test.tsx`:
+- When `suspectProfile` is null: Suspect card is NOT rendered
+- When `suspectProfile` is populated: Suspect card renders with correct risk badge
+- When `victimProfile` is null: Victim card is NOT rendered
+- When `witnessProfile` is null: Witness card is NOT rendered
+- When `witnessProfile.isProtected === true`: "Protected Witness" accent badge renders
+- When all three profiles are null: "No roles assigned" empty state renders
+- Promote dropdown shows only unassigned roles
+- Promote dropdown hidden entirely when all three roles are assigned
+
+## 27.5 Component Tests — OfficersList
+
+Create `src/features/personnel/components/officers/OfficersList.test.tsx`:
+- "Add Officer" button is visible for `OFFICERS_MANAGE` permission
+- "Add Officer" button is absent for lower roles
+- Department filter is visible for `OFFICERS_MANAGE` and absent for `dept_head`
+- Inactive officer rows render with `opacity-60`
+- Kebab for active officer shows "Deactivate", not "Activate"
+- Kebab for inactive officer shows "Activate", not "Deactivate"
+- `lastActivityAt` column renders only for `OFFICERS_MANAGE` permission
+
+## 27.6 i18n Completeness
+
+Extend the existing i18n completeness test to cover the `personnel` namespace. All keys in `en/personnel.json` must have corresponding keys in `am/personnel.json`. Test runner: `pnpm test`.
+
+---
+
+# 28. Anti-Pattern Reference
+
+The following patterns are strictly forbidden.
+
+**PII masking violations:**
+- Rendering the `pii.nationalId` raw value anywhere other than inside a `SensitiveField` component — the field must always be wrapped
+- Showing the "Reveal" button for roles below `Permission.PII_REVEAL` — the button must be absent, not disabled
+- Skipping the `logPIIRevealEvent` call when the reveal button is clicked — the audit trail is mandatory
+- Allowing the `logPIIRevealEvent` error to surface to the user — it must fail silently
+- Displaying the full national ID or DOB in the persons LIST view — the list always uses `nationalIdMasked` (the pre-masked field)
+
+**Role promotion violations:**
+- Showing "Add as Suspect" in the promote dropdown when `person.roles` already includes `SUSPECT` — check `hasRole()` first
+- Omitting the permanence notice bar from any promotion drawer — officers must be clearly warned
+- Creating a "Remove role" or "De-promote" button — de-promotion is backend-only in this phase
+- Calling a promotion mutation without the permanence notice being visually present in the drawer
+
+**Officer access violations:**
+- Rendering the `lastActivityAt` field for roles below `OFFICERS_MANAGE` — this field is admin-only
+- Showing the Department filter dropdown to `dept_head` — their list is already scoped by the backend; the filter is hidden
+- Allowing `dept_head` to see the "Add Officer" button — officer creation is `OFFICERS_MANAGE` (admin+) only
 
 **Optimistic update violations:**
-- Adding optimistic updates for charge status changes — the blueprint explicitly prohibits optimistic updates for status transitions with legal significance
-- Adding optimistic updates for `useDropCharge` — terminal state changes must be confirmed by the server
+- Adding optimistic updates for `useDeactivateOfficer` — the blueprint explicitly prohibits optimistic updates for officer deactivation. It is a security-sensitive action that must be confirmed by the server.
+- Adding optimistic updates for `useActivateOfficer` — same rule
+- Adding optimistic updates for role promotion mutations — promotions are permanent and must be server-confirmed
 
-**Form field visibility violations:**
-- Showing sentencing fields in `UpdateChargeStatusDrawer` when the selected status is NOT `CONVICTED`
-- Leaving sentencing field values in the form state when the officer switches from CONVICTED to a different status — clear them on status change: `setValue('durationMonths', null)` etc.
+**Query invalidation violations:**
+- Not invalidating `personnelKeys.person(personId)` after a role promotion — the role card for the new role will not appear
+- Not invalidating `personnelKeys.personList()` after a role promotion — the roles column in the list will show stale data
+- Not invalidating `personnelKeys.officer(officerId)` after `useDeactivateOfficer` or `useActivateOfficer` — the status badge on the detail page will remain stale
+- Not invalidating `personnelKeys.officerList()` after officer status changes — the list rows will not reflect the new status
 
-**Sentence type conditional rendering violations:**
-- Showing the `durationMonths` field for `FINE` sentence type
-- Showing the `fineAmountETB` field for `IMPRISONMENT` sentence type
-- Not clearing hidden conditional fields when sentence type changes
+**DataTable violations:**
+- Using client-side filtering on either the persons or officers list — all filters must translate to API query parameters
+- Not syncing filter params to URL — filter state must survive page refresh using the `useQueryStates` (nuqs) pattern
+- Rendering the full unmasked national ID in the table column — always use `person.nationalIdMasked`
 
-**Permission violations:**
-- Hardcoding role strings (`'legal_officer'`) in guard components — use `Permission.*` constants only
-- Skipping `PermissionGuard` on the "Add Charge" button — this guard is mandatory
-- Using `RoleGuard` instead of `PermissionGuard` for the "Add Charge" and "Edit Court Case" actions — permission-based guards are required, not role-based
+**i18n violations:**
+- Hardcoding risk level labels (`"High"`) instead of `t('persons.riskLevel.HIGH')`
+- Hardcoding officer role labels instead of `t('officers.officerRole.*')`
+- Hardcoding officer status labels instead of `t('officers.officerStatus.*')`
+- Hardcoding role-on-case labels in the PersonCasesTable instead of `t('persons.role.*')`
+
+**Layout violations:**
+- Using a tabbed layout for `PersonDetail` or `OfficerDetail` — the blueprint explicitly specifies single-column full pages (not tabbed) for these entities
+- Placing action buttons (Deactivate, Activate, Reset Password) inside a kebab menu on the officer detail page — they are primary actions in the `PageHeader` right zone
 
 ---
 
-# 30. Final Verification Checklist
+# 29. Final Verification Checklist
 
-## 30.1 Legal Tab — Court Case Panel
+## 29.1 Person List Page
 
-- [ ] `/cases/[caseId]/legal` renders the real legal tab for `legal_officer` (not the Phase 3 skeleton)
-- [ ] Empty state (no court case) renders with `Scale` icon, title, description, and "Create Court Case" button
-- [ ] "Create Court Case" button is absent for roles without `legal:manage`
-- [ ] "Create Court Case" button is absent once a court case is linked
-- [ ] `CreateCourtCaseDrawer` opens and shows all sections
-- [ ] Hearing date can be added and removed via field array in the drawer
-- [ ] Submitting with missing required fields (court, filedAt) shows inline validation errors
-- [ ] Successful creation: drawer closes, `CourtCaseCard` appears, toast confirms
-- [ ] `CourtCaseCard` displays all metadata fields: court case number, court, status badge, outcome, filed date, charge count
-- [ ] Status badge colours match `COURT_CASE_STATUS_VARIANTS` mapping
-- [ ] `HearingDatesList` renders hearing dates chronologically, oldest first
-- [ ] Upcoming hearings have a `primary` left-border accent
-- [ ] Past hearings have no accent
-- [ ] Empty hearing dates list renders the "No hearing scheduled" fallback
-- [ ] "Edit Court Case" button is visible for `legal:manage`
-- [ ] "Edit Court Case" button is absent for roles without `legal:manage`
-- [ ] `UpdateCourtCaseDrawer` opens pre-populated with current court case data
-- [ ] Selecting `CONCLUDED` status without an outcome shows validation error
-- [ ] Successful update: drawer closes, `CourtCaseCard` refreshes, toast confirms
-
-## 30.2 Legal Tab — Charges Table
-
-- [ ] `ChargesTable` renders below `CourtCaseCard` when a court case exists
-- [ ] Filter bar: search input updates `chargeSearch` URL param and refetches
-- [ ] Status filter chips appear and can be dismissed
-- [ ] Filter state survives page refresh (URL params persist)
-- [ ] "Add Charge" button is visible for `legal:manage`
-- [ ] "Add Charge" button is absent for non-`legal:manage` roles
+- [ ] `/personnel/persons` renders the full DataTable (not the skeleton)
+- [ ] Search filter updates `search` URL param and refetches
+- [ ] Role filter chips (Suspect, Victim, Witness) appear and can be dismissed
+- [ ] Risk Level filter chips appear and can be dismissed
+- [ ] Filter state survives page refresh
+- [ ] `nationalIdMasked` column shows masked value for all roles
+- [ ] Role badges column shows one badge per assigned role
+- [ ] Risk badge renders for suspects; `—` for others
+- [ ] "Protected" badge renders only when `isProtectedWitness === true`
+- [ ] "Add Person" button visible for `PERSONNEL_MANAGE`
+- [ ] "Add Person" button absent for roles without `PERSONNEL_MANAGE`
+- [ ] Row click navigates to `/personnel/persons/[personId]`
 - [ ] Loading skeleton renders on initial load
-- [ ] Empty state (no charges, no filters) shows title, description, and text CTA
-- [ ] Filtered empty state (no results) shows filtered empty message without CTA
-- [ ] Charge rows render: suspect name, crime type, status badge, filed date
-- [ ] `FILED` badge: blue (`primary`)
-- [ ] `ACTIVE` badge: amber (`warning`)
-- [ ] `CONVICTED` badge: red (`destructive`)
-- [ ] `ACQUITTED` badge: green (`success`)
-- [ ] `DROPPED` badge: slate (`muted`)
-- [ ] Non-terminal charge kebab: shows "Update Status" and "Drop Charge"
-- [ ] `CONVICTED` charge kebab: shows "View Sentence" only (no "Update Status", no "Drop Charge")
-- [ ] `ACQUITTED` charge kebab: no actions (terminal — no update, no drop)
-- [ ] `DROPPED` charge kebab: no actions (terminal)
-- [ ] Sentence indicator: `CONVICTED` + `hasSentence === true` → green "Recorded" chip
-- [ ] Sentence indicator: `CONVICTED` + `hasSentence === false` → amber "Pending" chip
-- [ ] Sentence indicator: other statuses → `—`
-- [ ] Pagination controls render and function correctly
+- [ ] Empty state renders when no persons
+- [ ] Filtered empty state renders when filters yield no results
 
-## 30.3 Add Charge Drawer
+## 29.2 Person Detail Page
 
-- [ ] `AddChargeDrawer` opens and shows suspect and crime type selects
-- [ ] Suspect search shows only suspects linked to this case
-- [ ] If no suspects exist, dropdown shows the "No suspects" empty state
-- [ ] Crime type `SearchableSelect` fetches from reference data endpoint
-- [ ] Submitting with no suspect selected shows validation error
-- [ ] Submitting with no crime type selected shows validation error
-- [ ] On success: drawer closes, charges table refreshes, case overview charge count updates
+- [ ] `/personnel/persons/[personId]` renders the single-column detail page (NOT tabbed)
+- [ ] Breadcrumb shows: Persons > [Person Full Name]
+- [ ] `PersonIdentityCard` renders all identity fields
+- [ ] National ID field uses `SensitiveField` — masked by default
+- [ ] Date of Birth field uses `SensitiveField` — year only by default
+- [ ] Phone field uses `SensitiveField` — masked by default
+- [ ] "Reveal" button is visible for `PII_REVEAL` permission
+- [ ] "Reveal" button is absent for roles without `PII_REVEAL`
+- [ ] Clicking "Reveal" shows full value and fires `logPIIRevealEvent` (no error to user)
+- [ ] Risk Level field shows badge when person is SUSPECT; `—` otherwise
+- [ ] `PersonRoleCards` shows Suspect card only if `suspectProfile` is non-null
+- [ ] `PersonRoleCards` shows Victim card only if `victimProfile` is non-null
+- [ ] `PersonRoleCards` shows Witness card only if `witnessProfile` is non-null
+- [ ] "Protected Witness" accent badge renders on Witness card when `isProtected === true`
+- [ ] "No roles assigned" empty state renders when all role profiles are null
+- [ ] "Promote to" dropdown shows only unassigned roles
+- [ ] "Promote to" dropdown is absent when all three roles are assigned
+- [ ] "Promote to" dropdown is absent for roles without `PERSONNEL_MANAGE`
+- [ ] `PromoteToSuspectDrawer` opens; permanence notice bar is visible
+- [ ] Risk Level select is required; submitting without it shows validation error
+- [ ] On successful suspect promotion: drawer closes, Suspect card appears on detail page
+- [ ] `PromoteToVictimDrawer` opens; permanence notice bar is visible
+- [ ] On successful victim promotion: drawer closes, Victim card appears
+- [ ] `PromoteToWitnessDrawer` opens; Protection Level field is hidden when toggle is OFF
+- [ ] Protection Level field appears when toggle is switched ON
+- [ ] Submitting `isProtected: true` without Protection Level shows validation error
+- [ ] On successful witness promotion: drawer closes, Witness card appears; "Protected Witness" badge visible when `isProtected` is true
+- [ ] `PersonCasesTable` shows associated cases in compact DataTable
+- [ ] Case number links navigate to `/cases/[caseId]`
+- [ ] Empty state renders when no linked cases
+
+## 29.3 Officer List Page
+
+- [ ] `/personnel/officers` renders the full DataTable (not the skeleton)
+- [ ] Search filter updates URL param and refetches
+- [ ] Status filter chips appear and can be dismissed
+- [ ] Role filter chips appear and can be dismissed
+- [ ] Department filter is visible for `OFFICERS_MANAGE` and absent for `dept_head`
+- [ ] Filter state survives page refresh
+- [ ] Badge number renders in monospace `xs` font
+- [ ] Role badge uses `OFFICER_ROLE_VARIANTS` colour mapping
+- [ ] Status badge uses `OFFICER_STATUS_VARIANTS` colour mapping
+- [ ] Inactive officer rows render with `opacity-60`
+- [ ] `lastActivityAt` column renders for `OFFICERS_MANAGE`; absent for `dept_head`
+- [ ] "Add Officer" button visible for `OFFICERS_MANAGE`
+- [ ] "Add Officer" button absent for lower roles
+- [ ] Kebab for active officer: shows "Deactivate" (destructive), hides "Activate"
+- [ ] Kebab for inactive officer: shows "Activate", hides "Deactivate"
+- [ ] Row click navigates to `/personnel/officers/[officerId]`
+
+## 29.4 Officer Detail Page
+
+- [ ] `/personnel/officers/[officerId]` renders the single-column detail page (NOT tabbed)
+- [ ] Breadcrumb shows: Officers > [Officer Full Name]
+- [ ] `OfficerIdentityCard` renders all identity fields
+- [ ] `lastActivityAt` field renders for `OFFICERS_MANAGE`; absent for `dept_head`
+- [ ] Status badge colour matches `OFFICER_STATUS_VARIANTS`
+- [ ] `activeCaseCount` and `totalCaseCount` render correctly
+- [ ] Action buttons in PageHeader: "Deactivate" for active officers, "Activate" for inactive
+- [ ] Both action buttons are absent for roles without `OFFICERS_MANAGE`
+- [ ] "Reset Password" button is visible for `OFFICERS_MANAGE`
+- [ ] "Reset Password" button absent for lower roles
+- [ ] `DeactivateOfficerDialog` opens on "Deactivate"; shows officer name and badge in description
+- [ ] Confirming deactivation: dialog closes, officer status updates to Inactive, toast confirms
+- [ ] `ActivateOfficerDialog` opens on "Activate"; shows officer name
+- [ ] Confirming activation: dialog closes, officer status updates to Active, toast confirms
+- [ ] `ResetPasswordDialog` opens on "Reset Password"; shows officer email in description
+- [ ] Confirming reset: dialog closes, success toast confirms
+- [ ] `OfficerCasesSummary` shows up to 10 recent cases in compact DataTable
+- [ ] "View all cases" link navigates to `/cases?assignedOfficerId=[officerId]`
+- [ ] Empty state renders when officer has no assigned cases
+
+## 29.5 Create Person Drawer
+
+- [ ] Opens from "Add Person" button on list page
+- [ ] First Name and Last Name are required; other fields optional
+- [ ] PII hint renders below National ID field
+- [ ] Dirty state guard triggers on close when form is dirty
+- [ ] On success: drawer closes, persons list refreshes, toast confirms
 - [ ] On error: drawer stays open, error toast shown
 
-## 30.4 Update Charge Status Drawer
+## 29.6 Create Officer Drawer
 
-- [ ] `UpdateChargeStatusDrawer` opens for non-terminal charges showing the current status
-- [ ] Status select shows available options based on `getAvailableChargeStatuses()`
-- [ ] `CONVICTED` option is always shown, separated by a divider, with red label
-- [ ] Selecting `CONVICTED` expands the sentencing fields section with amber notice bar
-- [ ] Selecting any other status does NOT show sentencing fields
-- [ ] Switching from `CONVICTED` to another status collapses sentencing fields and clears values
-- [ ] `IMPRISONMENT` sentence type: `durationMonths` field is required and visible; `fineAmountETB` is hidden
-- [ ] `FINE` sentence type: `fineAmountETB` field is required and visible; `durationMonths` is hidden
-- [ ] `DEATH_PENALTY` sentence type: neither duration nor fine fields are shown
-- [ ] `LIFE_IMPRISONMENT` sentence type: neither duration nor fine fields are shown
-- [ ] Submit button label: "Update Status" for non-CONVICTED, "Record Conviction & Sentence" for CONVICTED
-- [ ] Submitting CONVICTED without sentencing required fields shows inline errors
-- [ ] On non-CONVICTED success: drawer closes, charge status badge updates in the table
-- [ ] On CONVICTED success: drawer closes, charge badge becomes red CONVICTED, sentence indicator shows "Pending" (until sentence detail is separately confirmed)
-- [ ] Terminal charge opens the drawer in read-only terminal state (no select, lock icon visible)
+- [ ] Opens from "Add Officer" button on officer list page
+- [ ] Badge number format validation fires: lowercase characters trigger inline error
+- [ ] Email format validation fires
+- [ ] Department `SearchableSelect` populates from departments endpoint
+- [ ] Role select does not include `SUPERADMIN` unless authenticated officer is superadmin
+- [ ] Dirty state guard triggers on close when form is dirty
+- [ ] On success: drawer closes, officers list refreshes, toast confirms, email info in toast
+- [ ] On error: drawer stays open, error toast (including 422 field errors mapped correctly)
 
-## 30.5 Drop Charge Dialog
+## 29.7 i18n
 
-- [ ] `DropChargeDialog` shows the suspect name and crime type in the description
-- [ ] Confirm button is labelled "Drop Charge"
-- [ ] Confirm button shows loading spinner during mutation
-- [ ] On success: dialog closes, charge status badge becomes DROPPED in the table, toast confirms
-- [ ] On error: dialog stays open, error shown inline
+- [ ] All personnel UI text is retrieved from message files (no hardcoded English)
+- [ ] Switching to Amharic updates all text in persons list, person detail, all drawers, officers list, officer detail, all dialogs
+- [ ] i18n completeness test passes with zero missing keys in `personnel` namespace
+- [ ] Risk level labels render in selected locale
+- [ ] Officer role labels render in selected locale
+- [ ] Officer status labels render in selected locale
+- [ ] Person role labels render in selected locale
 
-## 30.6 View Sentence Drawer
-
-- [ ] `ViewSentenceDrawer` opens for CONVICTED charges with `hasSentence === true`
-- [ ] Immutability notice bar is visible at the top of the drawer
-- [ ] Lock icon is visible in the drawer header with tooltip
-- [ ] No edit or delete buttons rendered anywhere in this drawer
-- [ ] Duration renders as human-readable: "5 years" / "6 months" / "2 years, 3 months"
-- [ ] Duration renders as `—` when `durationMonths === null`
-- [ ] Fine amount renders as formatted currency: "5,000.00 ETB"
-- [ ] Fine amount renders as `—` when `fineAmountETB === null`
-- [ ] Judge name renders or falls back to "Not recorded"
-
-## 30.7 Court Cases List Page
-
-- [ ] `/legal/court-cases` renders the full DataTable (not the Phase 3 skeleton)
-- [ ] Filter bar: search, status filter, date range all functional
-- [ ] Row click navigates to `/cases/{investigationCaseId}/legal`
-- [ ] Kebab "View Investigation Case" also navigates to the legal tab
-- [ ] No "Create Court Case" button exists on this page
-- [ ] Outcome column renders outcome badge for concluded cases and `—` for others
-- [ ] `nextHearingDate` column renders the date or `—`
-- [ ] Pagination controls function correctly
-
-## 30.8 Case Overview Tab — Count Card
-
-- [ ] After filing a charge: charge count card on the case overview tab increments
-- [ ] After dropping a charge: charge count card reflects the updated total on next render
-
-## 30.9 i18n
-
-- [ ] All legal UI text is retrieved from message files (no hardcoded English)
-- [ ] Switching to Amharic updates all text in the legal tab, court case card, all drawers, and the court cases list page
-- [ ] i18n completeness test passes with zero missing keys in the `legal` namespace
-- [ ] Charge status labels render in the selected locale
-- [ ] Court case status and outcome labels render in the selected locale
-- [ ] Sentence type labels render in the selected locale
-- [ ] Hearing type labels render in the selected locale
-
-## 30.10 Tooling
+## 29.8 Tooling
 
 - [ ] `pnpm type-check` exits with zero errors
 - [ ] `pnpm lint` exits with zero warnings
-- [ ] `pnpm test` — all legal module tests pass (unit tests for schemas, chargeUtils, component tests)
+- [ ] `pnpm test` — all personnel module tests pass
 - [ ] `pnpm build` — production build succeeds without errors
 
 ---
 
-*End of CCMS Phase 6 Instruction — Legal Module*
+*End of CCMS Phase 7 Instruction — Personnel Module*
 *Prepared for AI Agent execution — 2026 production-grade engineering standards*
 *Package manager: pnpm throughout*
-*Next phase: Phase 7 will implement the Personnel module (person list, person detail, officer list, officer detail, role promotion drawers)*
+*Next phase: Phase 8 will implement the Departments module and Admin module (department list, department detail, head officer assignment, admin reference data pages — locations, crime types — and system health panel)*

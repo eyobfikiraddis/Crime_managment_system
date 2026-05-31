@@ -4,7 +4,11 @@ import { personnelKeys } from '@services/query/keys/personnelKeys'
 
 export function useOfficersSearch(search?: string) {
   return useQuery({
-    queryKey: personnelKeys.list({ search: search ?? '' }),
+    queryKey: personnelKeys.officerListFiltered({
+      search: search ?? '',
+      page: 1,
+      pageSize: 10,
+    }),
     queryFn: () => searchOfficers(search),
     staleTime: 5 * 60 * 1000,
   })

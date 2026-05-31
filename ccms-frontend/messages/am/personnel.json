@@ -1,15 +1,326 @@
 {
-  "pageTitle": "ሰራተኞች",
-  "officers": {
-    "listHeading": "መኮንኖች",
-    "listSkeleton": "መኮንኖች በመጫን ላይ...",
-    "detailHeading": "የመኮንን ዝርዝር",
-    "detailSkeleton": "የመኮንን ዝርዝር በመጫን ላይ..."
-  },
   "persons": {
-    "listHeading": "ሰዎች",
-    "listSkeleton": "ሰዎች በመጫን ላይ...",
-    "detailHeading": "የሰው ዝርዝር",
-    "detailSkeleton": "የሰው ዝርዝር በመጫን ላይ..."
+    "pageTitle": "ሰዎች",
+    "list": {
+      "heading": "ሰዎች",
+      "entityCount": "{count} ሰው(ዎች)",
+      "addPersonButton": "ሰው ጨምር",
+      "filters": {
+        "search": "በስም ወይም ፓስፖርት ፈልግ...",
+        "roles": "ሚና",
+        "riskLevel": "የስጋት ደረጃ",
+        "protectedWitness": "የተጠበቁ ምስክሮች ብቻ",
+        "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+      },
+      "loading": "ሰዎችን እየጫነ ነው...",
+      "empty": {
+        "title": "ምንም ሰዎች አልተገኙም",
+        "description": "ምንም የሰው መዝገቦች ገና አልተፈጠሩም።",
+        "cta": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ሰው ያስፈልጋሉ።"
+      },
+      "emptyFiltered": "ምንም ሰዎች ከማጣሪያዎ ጋር አይዛመዱም።",
+      "columns": {
+        "name": "ስም",
+        "nationalId": "ብሔራዊ መታወቂያ",
+        "roles": "ሚናዎች",
+        "riskLevel": "ስጋት",
+        "protected": "ጥበቃ",
+        "createdAt": "ቀን",
+        "actions": "ድርጊቶች"
+      },
+      "protectedYes": "ጥበቃ ስር",
+      "rowActions": {
+        "view": "ዝርዝሮች ተመልከት"
+      }
+    },
+    "detail": {
+      "breadcrumb": "ሰዎች",
+      "identityCard": {
+        "title": "ማንነት",
+        "firstName": "የመጀመሪያ ስም",
+        "lastName": "የአባት ስም",
+        "gender": "ፆታ",
+        "nationalId": "ብሔራዊ መታወቂያ",
+        "dateOfBirth": "የትውልድ ቀን",
+        "phone": "ስልክ",
+        "address": "አድራሻ",
+        "noAddress": "አልተመዘገበም",
+        "createdAt": "መዝገብ ቀን",
+        "updatedAt": "መጨረሻ ዝማኔ"
+      },
+      "pii": {
+        "masked": "ለግላዊነት ተደብቋል",
+        "revealButton": "አሳይ",
+        "hideButton": "ደብቅ",
+        "dobYearOnly": "ለሚናዎ ዓመቱ ብቻ ይታያል",
+        "revealAuditNotice": "ይህን መስክ ማሳየት በኦዲት ዱካ ይመዘገባል።"
+      },
+      "rolesSection": {
+        "title": "ሚናዎች እና መገለጫዎች",
+        "noRoles": "ምንም ሚናዎች ገና አልተሰጡም።",
+        "noRolesDescription": "ይህ ሰው ለምርመራ ሚና ገና አልተጣበቀም።",
+        "promoteSection": "ሚናዎች ሰጥ",
+        "promoteHint": "ይህን ሰው ለምርመራ ሚና ለመሰጠት ከታች ያሉ አዝራሮች ይጠቀሙ። እያንዳንዱ ሚና ቋሚ ነው።"
+      },
+      "suspectCard": {
+        "title": "የተጠርጣሪ መገለጫ",
+        "riskLevel": "የስጋት ደረጃ",
+        "notes": "ማስታወሻ",
+        "noNotes": "ምንም ማስታወሻ የለም።",
+        "promotedAt": "ተሰጥቷል",
+        "promotedBy": "በ"
+      },
+      "victimCard": {
+        "title": "የሰለባ መገለጫ",
+        "notes": "ማስታወሻ",
+        "noNotes": "ምንም ማስታወሻ የለም።",
+        "promotedAt": "ተሰጥቷል",
+        "promotedBy": "በ"
+      },
+      "witnessCard": {
+        "title": "የምስክር መገለጫ",
+        "credibilityNotes": "የአስተማማኝነት ማስታወሻ",
+        "noNotes": "ምንም ማስታወሻ የለም።",
+        "isProtected": "ጥበቃ ስር",
+        "protectionLevel": "የጥበቃ ደረጃ",
+        "notProtected": "ምንም ጥበቃ የለም",
+        "promotedAt": "ተሰጥቷል",
+        "promotedBy": "በ"
+      },
+      "casesSection": {
+        "title": "ተያያዥ ጉዳዮች",
+        "entityCount": "{count} ጉዳይ(ዎች)",
+        "loading": "ጉዳዮችን እየጫነ ነው...",
+        "empty": "ይህ ሰው ከምንም ጉዳዮች ጋር አልተጣበቀም።",
+        "columns": {
+          "caseNumber": "ጉዳይ ቁ.",
+          "title": "ርዕስ",
+          "roleOnCase": "ሚና",
+          "caseStatus": "ሁኔታ",
+          "createdAt": "ጀምሮ"
+        }
+      },
+      "actions": {
+        "promoteToSuspect": "ተጠርጣሪ አድርግ",
+        "promoteToVictim": "ሰለባ አድርግ",
+        "promoteToWitness": "ምስክር አድርግ"
+      }
+    },
+    "riskLevel": {
+      "LOW": "ዝቅተኛ",
+      "MEDIUM": "መካከለኛ",
+      "HIGH": "ከፍተኛ"
+    },
+    "role": {
+      "SUSPECT": "ተጠርጣሪ",
+      "VICTIM": "ሰለባ",
+      "WITNESS": "ምስክር"
+    },
+    "gender": {
+      "MALE": "ወንድ",
+      "FEMALE": "ሴት",
+      "OTHER": "ሌላ"
+    },
+    "create": {
+      "drawerTitle": "ሰው ጨምር",
+      "drawerDescription": "ለስርዓቱ አዲስ የሰው መዝገብ ፍጠር።",
+      "section1Title": "መሰረታዊ መረጃ",
+      "section2Title": "ግኑኝነት እና ማንነት",
+      "firstNameLabel": "የመጀመሪያ ስም",
+      "firstNamePlaceholder": "ለምሳሌ አለም",
+      "lastNameLabel": "የአባት ስም",
+      "lastNamePlaceholder": "ለምሳሌ ታደሰ",
+      "genderLabel": "ፆታ (አማራጭ)",
+      "nationalIdLabel": "ብሔራዊ መታወቂያ (አማራጭ)",
+      "nationalIdPlaceholder": "ለምሳሌ ETH-1234567890",
+      "nationalIdHint": "ይህ መስክ እንደ ሚስጥራዊ ፒአይአይ ይቆጠራል።",
+      "dateOfBirthLabel": "የትውልድ ቀን (አማራጭ)",
+      "phoneLabel": "ስልክ ቁጥር (አማራጭ)",
+      "phonePlaceholder": "ለምሳሌ +251 91 234 5678",
+      "addressLabel": "አድራሻ (አማራጭ)",
+      "addressPlaceholder": "ለምሳሌ ቦሌ ክፍለ ከተማ፣ አዲስ አበባ",
+      "submitButton": "ሰው ጨምር",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የሰው መዝገብ በተሳካ ሁኔታ ተፈጥሯል።",
+      "errorMessage": "የሰው መዝገብ ለመፍጠር አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "promoteToSuspect": {
+      "drawerTitle": "ተጠርጣሪ አድርግ",
+      "drawerDescription": "ይህን ሰው ለምርመራ ተጠርጣሪ ሆኖ ያጣምሩ። ይህ ሚና ቋሚ ነው።",
+      "permanenceNotice": "አንድ ሰው ተጠርጣሪ ሆኖ ከተሰጠ፣ ከUI ሊቀለበስ አይችልም። ስህተት ከሆነ አስተዳዳሪን ያነጋግሩ።",
+      "section1Title": "የተጠርጣሪ ዝርዝሮች",
+      "riskLevelLabel": "የስጋት ደረጃ",
+      "riskLevelHint": "ከሚገኝ መረጃ ስጋቱን ይገምቱ።",
+      "notesLabel": "ማስታወሻ (አማራጭ)",
+      "notesPlaceholder": "ስለ ተጠርጣሪ ሚናው ማናቸውም ማስታወሻዎች...",
+      "submitButton": "አረጋግጥ — ተጠርጣሪ አድርግ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ሰው ተጠርጣሪ ሆኖ ተሰጥቷል።",
+      "errorMessage": "ተጠርጣሪ ለማድረግ አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "promoteToVictim": {
+      "drawerTitle": "ሰለባ አድርግ",
+      "drawerDescription": "ይህን ሰው ለምርመራ ሰለባ ሆኖ ያጣምሩ። ይህ ሚና ቋሚ ነው።",
+      "permanenceNotice": "አንድ ሰው ሰለባ ሆኖ ከተሰጠ፣ ከUI ሊቀለበስ አይችልም።",
+      "section1Title": "የሰለባ ዝርዝሮች",
+      "notesLabel": "ማስታወሻ (አማራጭ)",
+      "notesPlaceholder": "ስለ ሰለባ ሚናው ማናቸውም ማስታወሻዎች...",
+      "submitButton": "አረጋግጥ — ሰለባ አድርግ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ሰው ሰለባ ሆኖ ተሰጥቷል።",
+      "errorMessage": "ሰለባ ለማድረግ አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "promoteToWitness": {
+      "drawerTitle": "ምስክር አድርግ",
+      "drawerDescription": "ይህን ሰው ለምርመራ ምስክር ሆኖ ያጣምሩ። ይህ ሚና ቋሚ ነው።",
+      "permanenceNotice": "አንድ ሰው ምስክር ሆኖ ከተሰጠ፣ ከUI ሊቀለበስ አይችልም።",
+      "section1Title": "የምስክር ዝርዝሮች",
+      "section2Title": "የምስክር ጥበቃ",
+      "credibilityNotesLabel": "የአስተማማኝነት ማስታወሻ (አማራጭ)",
+      "credibilityNotesPlaceholder": "ስለ ምስክሩ አስተማማኝነት ማስታወሻዎች...",
+      "isProtectedLabel": "ጥበቃ ስር",
+      "protectionLevelLabel": "የጥበቃ ደረጃ",
+      "protectionLevelPlaceholder": "ለምሳሌ STANDARD፣ HIGH",
+      "protectionLevelHint": "ጥበቃ ሲበቃ ያስፈልጋል።",
+      "protectedBadge": "የተጠበቀ ምስክር",
+      "submitButton": "አረጋግጥ — ምስክር አድርግ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ሰው ምስክር ሆኖ ተሰጥቷል።",
+      "errorMessage": "ምስክር ለማድረግ አልተሳካም። እንደገና ይሞክሩ።"
+    }
+  },
+  "officers": {
+    "pageTitle": "ፖሊሶች",
+    "list": {
+      "heading": "ፖሊሶች",
+      "entityCount": "{count} ፖሊስ(ዎች)",
+      "addOfficerButton": "ፖሊስ ጨምር",
+      "filters": {
+        "search": "በባጅ ቁጥር ወይም ስም ፈልግ...",
+        "status": "ሁኔታ",
+        "role": "ሚና",
+        "department": "ክፍል",
+        "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+      },
+      "loading": "ፖሊሶችን እየጫነ ነው...",
+      "empty": {
+        "title": "ምንም ፖሊሶች አልተገኙም",
+        "description": "ምንም የፖሊስ መለያዎች በዚህ ወሰን ውስጥ የሉም።"
+      },
+      "emptyFiltered": "ምንም ፖሊሶች ከማጣሪያዎ ጋር አይዛመዱም።",
+      "columns": {
+        "badgeNumber": "ባጅ",
+        "name": "ስም",
+        "role": "ሚና",
+        "department": "ክፍል",
+        "status": "ሁኔታ",
+        "lastActivity": "መጨረሻ ንቁ",
+        "actions": "ድርጊቶች"
+      },
+      "lastActivityNever": "ፈጽሞ አይደለም",
+      "rowActions": {
+        "view": "ዝርዝሮች ተመልከት",
+        "activate": "ንቁ አድርግ",
+        "deactivate": "አቁም",
+        "resetPassword": "የይለፍ ቃል ዳግም አስጀምር"
+      }
+    },
+    "detail": {
+      "breadcrumb": "ፖሊሶች",
+      "identityCard": {
+        "title": "የፖሊስ ማንነት",
+        "badgeNumber": "ባጅ ቁጥር",
+        "firstName": "የመጀመሪያ ስም",
+        "lastName": "የአባት ስም",
+        "email": "ኢሜይል",
+        "phone": "ስልክ",
+        "noPhone": "አልተመዘገበም",
+        "role": "ሚና",
+        "department": "ክፍል",
+        "status": "ሁኔታ",
+        "lastActivity": "መጨረሻ ንቁ",
+        "lastActivityNever": "ፈጽሞ አይደለም",
+        "activeCases": "ንቁ ጉዳዮች",
+        "totalCases": "ጠቅላላ ጉዳዮች",
+        "createdAt": "መለያ ተፈጥሯል"
+      },
+      "casesSection": {
+        "title": "ቅርብ ጊዜ የተሰጡ ጉዳዮች",
+        "loading": "ጉዳዮችን እየጫነ ነው...",
+        "empty": "ለዚህ ፖሊስ ምንም ጉዳዮች አልተሰጡም።",
+        "viewAll": "ሁሉም ጉዳዮች ተመልከት",
+        "columns": {
+          "caseNumber": "ጉዳይ ቁ.",
+          "title": "ርዕስ",
+          "status": "ሁኔታ",
+          "assignedAt": "ተሰጥቷል"
+        }
+      },
+      "actions": {
+        "deactivate": "ፖሊስ አቁም",
+        "activate": "ፖሊስ ንቁ አድርግ",
+        "resetPassword": "የይለፍ ቃል ዳግም አስጀምር"
+      }
+    },
+    "officerRole": {
+      "INVESTIGATOR": "መርማሪ",
+      "FORENSIC": "ፎረንሲክ ፖሊስ",
+      "LEGAL_OFFICER": "ሕጋዊ ባለሙያ",
+      "DEPT_HEAD": "የክፍል ኃላፊ",
+      "ADMIN": "አስተዳዳሪ",
+      "SUPERADMIN": "ከፍተኛ አስተዳዳሪ"
+    },
+    "officerStatus": {
+      "ACTIVE": "ንቁ",
+      "INACTIVE": "ንቁ ያይደለ"
+    },
+    "create": {
+      "drawerTitle": "ፖሊስ ጨምር",
+      "drawerDescription": "አዲስ የፖሊስ መለያ ፍጠር። ፖሊሱ የይለፍ ቃል ለማስቀናት ኢሜይል ይቀበላል።",
+      "section1Title": "ማንነት",
+      "section2Title": "የመለያ ዝርዝሮች",
+      "badgeNumberLabel": "ባጅ ቁጥር",
+      "badgeNumberPlaceholder": "ለምሳሌ BD-00142",
+      "badgeNumberHint": "ልዩ መሆን አለበት። ትልቁ ፊደሎች፣ ቁጥሮች፣ እና ሰረዞች ብቻ።",
+      "firstNameLabel": "የመጀመሪያ ስም",
+      "firstNamePlaceholder": "ለምሳሌ ሳራ",
+      "lastNameLabel": "የአባት ስም",
+      "lastNamePlaceholder": "ለምሳሌ ሃይሌ",
+      "emailLabel": "ኢሜይል አድራሻ",
+      "emailPlaceholder": "ለምሳሌ sara.haile@police.gov.et",
+      "phoneLabel": "ስልክ ቁጥር (አማራጭ)",
+      "phonePlaceholder": "ለምሳሌ +251 91 234 5678",
+      "roleLabel": "የፖሊስ ሚና",
+      "departmentLabel": "ክፍል",
+      "departmentPlaceholder": "ክፍል ምረጥ...",
+      "submitButton": "የፖሊስ መለያ ፍጠር",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የፖሊስ መለያ ተፈጥሯል። ለመግቢያ መመሪያዎች ኢሜይል ተልኳል።",
+      "errorMessage": "የፖሊስ መለያ ለመፍጠር አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "deactivate": {
+      "confirmTitle": "ፖሊሱን ያቁሙ?",
+      "confirmDescription": "ፖሊስ {badgeNumber} — {officerName} ይቆማል እና ከእንግዲህ ወዲህ መግባት አይችልም። ሁሉም ንቁ ክፍለ ጊዜዎች ይዘጋሉ።",
+      "confirmButton": "ፖሊስ አቁም",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ፖሊስ በተሳካ ሁኔታ ቆሟል።",
+      "errorMessage": "ፖሊሱን ለማቆም አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "activate": {
+      "confirmTitle": "ፖሊሱን ያንቁ?",
+      "confirmDescription": "ፖሊስ {badgeNumber} — {officerName} እንደገና ንቁ ይሆናል እና ወደ ስርዓቱ መግባት ይችላል።",
+      "confirmButton": "ፖሊስ ንቁ አድርግ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ፖሊስ በተሳካ ሁኔታ ንቁ ሆኗል።",
+      "errorMessage": "ፖሊሱን ለማንቃት አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "resetPassword": {
+      "confirmTitle": "የፖሊስ የይለፍ ቃል ዳግም ያስጀምሩ?",
+      "confirmDescription": "ለ {officerEmail} የይለፍ ቃል ዳግም የማስጀመሪያ ኢሜይል ይላካል። የፖሊሱ አሁናዊ የይለፍ ቃል ወዲያውኑ ይሰረዛል።",
+      "confirmButton": "ዳግም ማስጀመሪያ ኢሜይል ላክ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የይለፍ ቃል ዳግም ኢሜይል በተሳካ ሁኔታ ተልኳል።",
+      "errorMessage": "የይለፍ ቃል ዳግም ለማስጀመር አልተሳካም። እንደገና ይሞክሩ።"
+    }
   }
 }

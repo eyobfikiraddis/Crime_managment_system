@@ -1,15 +1,326 @@
 {
-  "pageTitle": "Personnel",
-  "officers": {
-    "listHeading": "Officers",
-    "listSkeleton": "Loading officers...",
-    "detailHeading": "Officer Details",
-    "detailSkeleton": "Loading officer details..."
-  },
   "persons": {
-    "listHeading": "Persons",
-    "listSkeleton": "Loading persons...",
-    "detailHeading": "Person Details",
-    "detailSkeleton": "Loading person details..."
+    "pageTitle": "Persons",
+    "list": {
+      "heading": "Persons",
+      "entityCount": "{count} person(s)",
+      "addPersonButton": "Add Person",
+      "filters": {
+        "search": "Search by name or ID...",
+        "roles": "Role",
+        "riskLevel": "Risk Level",
+        "protectedWitness": "Protected Witness Only",
+        "clearAll": "Clear all filters"
+      },
+      "loading": "Loading persons...",
+      "empty": {
+        "title": "No Persons Found",
+        "description": "No person records have been created yet.",
+        "cta": "Add the first person using the button above."
+      },
+      "emptyFiltered": "No persons match your current filters.",
+      "columns": {
+        "name": "Name",
+        "nationalId": "National ID",
+        "roles": "Roles",
+        "riskLevel": "Risk",
+        "protected": "Protected",
+        "createdAt": "Added",
+        "actions": "Actions"
+      },
+      "protectedYes": "Protected",
+      "rowActions": {
+        "view": "View Details"
+      }
+    },
+    "detail": {
+      "breadcrumb": "Persons",
+      "identityCard": {
+        "title": "Identity",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "gender": "Gender",
+        "nationalId": "National ID",
+        "dateOfBirth": "Date of Birth",
+        "phone": "Phone",
+        "address": "Address",
+        "noAddress": "Not recorded",
+        "createdAt": "Record Created",
+        "updatedAt": "Last Updated"
+      },
+      "pii": {
+        "masked": "Hidden for privacy",
+        "revealButton": "Reveal",
+        "hideButton": "Hide",
+        "dobYearOnly": "Year only visible for your role",
+        "revealAuditNotice": "Revealing this field will be logged in the audit trail."
+      },
+      "rolesSection": {
+        "title": "Roles & Profiles",
+        "noRoles": "No roles assigned yet.",
+        "noRolesDescription": "This person has not been linked to any investigation roles.",
+        "promoteSection": "Assign Roles",
+        "promoteHint": "Use the buttons below to assign this person to an investigative role. Each assignment is permanent."
+      },
+      "suspectCard": {
+        "title": "Suspect Profile",
+        "riskLevel": "Risk Level",
+        "notes": "Notes",
+        "noNotes": "No notes.",
+        "promotedAt": "Designated",
+        "promotedBy": "By"
+      },
+      "victimCard": {
+        "title": "Victim Profile",
+        "notes": "Notes",
+        "noNotes": "No notes.",
+        "promotedAt": "Designated",
+        "promotedBy": "By"
+      },
+      "witnessCard": {
+        "title": "Witness Profile",
+        "credibilityNotes": "Credibility Notes",
+        "noNotes": "No notes.",
+        "isProtected": "Under Protection",
+        "protectionLevel": "Protection Level",
+        "notProtected": "No protection",
+        "promotedAt": "Designated",
+        "promotedBy": "By"
+      },
+      "casesSection": {
+        "title": "Associated Cases",
+        "entityCount": "{count} case(s)",
+        "loading": "Loading cases...",
+        "empty": "This person is not linked to any cases.",
+        "columns": {
+          "caseNumber": "Case No.",
+          "title": "Case Title",
+          "roleOnCase": "Role",
+          "caseStatus": "Status",
+          "createdAt": "Since"
+        }
+      },
+      "actions": {
+        "promoteToSuspect": "Add as Suspect",
+        "promoteToVictim": "Add as Victim",
+        "promoteToWitness": "Add as Witness"
+      }
+    },
+    "riskLevel": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High"
+    },
+    "role": {
+      "SUSPECT": "Suspect",
+      "VICTIM": "Victim",
+      "WITNESS": "Witness"
+    },
+    "gender": {
+      "MALE": "Male",
+      "FEMALE": "Female",
+      "OTHER": "Other"
+    },
+    "create": {
+      "drawerTitle": "Add Person",
+      "drawerDescription": "Create a new person record in the system.",
+      "section1Title": "Basic Information",
+      "section2Title": "Contact & Identity",
+      "firstNameLabel": "First Name",
+      "firstNamePlaceholder": "e.g. Alem",
+      "lastNameLabel": "Last Name",
+      "lastNamePlaceholder": "e.g. Tadesse",
+      "genderLabel": "Gender (optional)",
+      "nationalIdLabel": "National ID (optional)",
+      "nationalIdPlaceholder": "e.g. ETH-1234567890",
+      "nationalIdHint": "This field is treated as sensitive PII and will be masked for lower roles.",
+      "dateOfBirthLabel": "Date of Birth (optional)",
+      "phoneLabel": "Phone Number (optional)",
+      "phonePlaceholder": "e.g. +251 91 234 5678",
+      "addressLabel": "Address (optional)",
+      "addressPlaceholder": "e.g. Bole Sub-City, Addis Ababa",
+      "submitButton": "Add Person",
+      "cancelButton": "Cancel",
+      "successMessage": "Person record created successfully.",
+      "errorMessage": "Failed to create person record. Please try again."
+    },
+    "promoteToSuspect": {
+      "drawerTitle": "Add as Suspect",
+      "drawerDescription": "Link this person to the investigation as a suspect. This assignment is permanent.",
+      "permanenceNotice": "Once a person is designated as a Suspect, this cannot be undone from the UI. Contact an administrator if this was made in error.",
+      "section1Title": "Suspect Details",
+      "riskLevelLabel": "Risk Level",
+      "riskLevelHint": "Assess the risk level based on available intelligence.",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Any notes relevant to the suspect designation...",
+      "submitButton": "Confirm - Add as Suspect",
+      "cancelButton": "Cancel",
+      "successMessage": "Person designated as Suspect successfully.",
+      "errorMessage": "Failed to designate as Suspect. Please try again."
+    },
+    "promoteToVictim": {
+      "drawerTitle": "Add as Victim",
+      "drawerDescription": "Link this person to the investigation as a victim. This assignment is permanent.",
+      "permanenceNotice": "Once a person is designated as a Victim, this cannot be undone from the UI.",
+      "section1Title": "Victim Details",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Any notes relevant to the victim designation...",
+      "submitButton": "Confirm - Add as Victim",
+      "cancelButton": "Cancel",
+      "successMessage": "Person designated as Victim successfully.",
+      "errorMessage": "Failed to designate as Victim. Please try again."
+    },
+    "promoteToWitness": {
+      "drawerTitle": "Add as Witness",
+      "drawerDescription": "Link this person to the investigation as a witness. This assignment is permanent.",
+      "permanenceNotice": "Once a person is designated as a Witness, this cannot be undone from the UI.",
+      "section1Title": "Witness Details",
+      "section2Title": "Witness Protection",
+      "credibilityNotesLabel": "Credibility Notes (optional)",
+      "credibilityNotesPlaceholder": "Notes on witness credibility and reliability...",
+      "isProtectedLabel": "Under Witness Protection",
+      "protectionLevelLabel": "Protection Level",
+      "protectionLevelPlaceholder": "e.g. STANDARD, HIGH",
+      "protectionLevelHint": "Required when witness protection is enabled.",
+      "protectedBadge": "Protected Witness",
+      "submitButton": "Confirm - Add as Witness",
+      "cancelButton": "Cancel",
+      "successMessage": "Person designated as Witness successfully.",
+      "errorMessage": "Failed to designate as Witness. Please try again."
+    }
+  },
+  "officers": {
+    "pageTitle": "Officers",
+    "list": {
+      "heading": "Officers",
+      "entityCount": "{count} officer(s)",
+      "addOfficerButton": "Add Officer",
+      "filters": {
+        "search": "Search by badge or name...",
+        "status": "Status",
+        "role": "Role",
+        "department": "Department",
+        "clearAll": "Clear all filters"
+      },
+      "loading": "Loading officers...",
+      "empty": {
+        "title": "No Officers Found",
+        "description": "No officer accounts exist in this scope."
+      },
+      "emptyFiltered": "No officers match your current filters.",
+      "columns": {
+        "badgeNumber": "Badge",
+        "name": "Name",
+        "role": "Role",
+        "department": "Department",
+        "status": "Status",
+        "lastActivity": "Last Active",
+        "actions": "Actions"
+      },
+      "lastActivityNever": "Never",
+      "rowActions": {
+        "view": "View Details",
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "resetPassword": "Reset Password"
+      }
+    },
+    "detail": {
+      "breadcrumb": "Officers",
+      "identityCard": {
+        "title": "Officer Identity",
+        "badgeNumber": "Badge Number",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone",
+        "noPhone": "Not recorded",
+        "role": "Role",
+        "department": "Department",
+        "status": "Status",
+        "lastActivity": "Last Active",
+        "lastActivityNever": "Never",
+        "activeCases": "Active Cases",
+        "totalCases": "Total Cases",
+        "createdAt": "Account Created"
+      },
+      "casesSection": {
+        "title": "Recent Assigned Cases",
+        "loading": "Loading cases...",
+        "empty": "No cases assigned to this officer.",
+        "viewAll": "View all cases",
+        "columns": {
+          "caseNumber": "Case No.",
+          "title": "Title",
+          "status": "Status",
+          "assignedAt": "Assigned"
+        }
+      },
+      "actions": {
+        "deactivate": "Deactivate Officer",
+        "activate": "Activate Officer",
+        "resetPassword": "Reset Password"
+      }
+    },
+    "officerRole": {
+      "INVESTIGATOR": "Investigator",
+      "FORENSIC": "Forensic Officer",
+      "LEGAL_OFFICER": "Legal Officer",
+      "DEPT_HEAD": "Department Head",
+      "ADMIN": "Administrator",
+      "SUPERADMIN": "Super Administrator"
+    },
+    "officerStatus": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive"
+    },
+    "create": {
+      "drawerTitle": "Add Officer",
+      "drawerDescription": "Create a new officer account. The officer will receive an email to set their password.",
+      "section1Title": "Identity",
+      "section2Title": "Account Details",
+      "badgeNumberLabel": "Badge Number",
+      "badgeNumberPlaceholder": "e.g. BD-00142",
+      "badgeNumberHint": "Must be unique. Use uppercase letters, digits, and hyphens only.",
+      "firstNameLabel": "First Name",
+      "firstNamePlaceholder": "e.g. Sara",
+      "lastNameLabel": "Last Name",
+      "lastNamePlaceholder": "e.g. Haile",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "e.g. sara.haile@police.gov.et",
+      "phoneLabel": "Phone Number (optional)",
+      "phonePlaceholder": "e.g. +251 91 234 5678",
+      "roleLabel": "Officer Role",
+      "departmentLabel": "Department",
+      "departmentPlaceholder": "Select department...",
+      "submitButton": "Create Officer Account",
+      "cancelButton": "Cancel",
+      "successMessage": "Officer account created. An email has been sent with login instructions.",
+      "errorMessage": "Failed to create officer account. Please try again."
+    },
+    "deactivate": {
+      "confirmTitle": "Deactivate this officer?",
+      "confirmDescription": "Officer {badgeNumber} - {officerName} will be deactivated and will no longer be able to log in. All active sessions will be terminated. This action is logged.",
+      "confirmButton": "Deactivate Officer",
+      "cancelButton": "Cancel",
+      "successMessage": "Officer deactivated successfully.",
+      "errorMessage": "Failed to deactivate officer. Please try again."
+    },
+    "activate": {
+      "confirmTitle": "Activate this officer?",
+      "confirmDescription": "Officer {badgeNumber} - {officerName} will be reactivated and will be able to log in again.",
+      "confirmButton": "Activate Officer",
+      "cancelButton": "Cancel",
+      "successMessage": "Officer activated successfully.",
+      "errorMessage": "Failed to activate officer. Please try again."
+    },
+    "resetPassword": {
+      "confirmTitle": "Reset officer password?",
+      "confirmDescription": "A password reset email will be sent to {officerEmail}. The officer's current password will be invalidated immediately. This action is logged.",
+      "confirmButton": "Send Reset Email",
+      "cancelButton": "Cancel",
+      "successMessage": "Password reset email sent successfully.",
+      "errorMessage": "Failed to send password reset. Please try again."
+    }
   }
 }
