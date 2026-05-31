@@ -1,7 +1,17 @@
 export const adminKeys = {
-  all: ['admin'] as const,
-  lists: () => [...adminKeys.all, 'list'] as const,
-  list: (filters: Record<string, unknown>) => [...adminKeys.lists(), filters] as const,
-  details: () => [...adminKeys.all, 'detail'] as const,
-  detail: (id: string) => [...adminKeys.details(), id] as const,
+  // ── Health ─────────────────────────────────────────────────────────────────
+  health: () => ['admin', 'health'] as const,
+  readiness: () => ['admin', 'readiness'] as const,
+
+  // ── Locations ──────────────────────────────────────────────────────────────
+  locations: () => ['admin', 'locations'] as const,
+  locationList: () => [...adminKeys.locations(), 'list'] as const,
+  locationListFiltered: (filters: Record<string, unknown>) =>
+    [...adminKeys.locationList(), filters] as const,
+
+  // ── Crime Types ────────────────────────────────────────────────────────────
+  crimeTypes: () => ['admin', 'crime-types'] as const,
+  crimeTypeList: () => [...adminKeys.crimeTypes(), 'list'] as const,
+  crimeTypeListFiltered: (filters: Record<string, unknown>) =>
+    [...adminKeys.crimeTypeList(), filters] as const,
 } as const

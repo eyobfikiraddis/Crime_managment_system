@@ -1,25 +1,12 @@
-import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
+import { DepartmentsList } from '@features/departments'
+import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('departments')
   return { title: t('pageTitle') }
 }
 
-type PageProps = {
-  params: Record<string, string>
-  searchParams: Record<string, string | string[] | undefined>
-}
-
-export default async function DepartmentsPage({ params, searchParams }: PageProps) {
-  void params
-  void searchParams
-
-  const t = await getTranslations('departments')
-
-  return (
-    <div>
-      <h1>{t('list.heading')}</h1>
-    </div>
-  )
+export default function DepartmentsPage() {
+  return <DepartmentsList />
 }

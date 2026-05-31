@@ -2,10 +2,151 @@
   "pageTitle": "ክፍሎች",
   "list": {
     "heading": "ክፍሎች",
-    "skeleton": "ክፍሎች በመጫን ላይ..."
+    "entityCount": "{count} ክፍል(ዎች)",
+    "addDepartmentButton": "አዲስ ክፍል",
+    "filters": {
+      "search": "በስም ወይም ኮድ ፈልግ...",
+      "location": "ቦታ",
+      "hasHead": "ኃላፊ ያለው",
+      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+    },
+    "loading": "ክፍሎችን እየጫነ ነው...",
+    "empty": {
+      "title": "ምንም ክፍሎች አልተገኙም",
+      "description": "ምንም የክፍል መዝገቦች ገና የሉም።",
+      "cta": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ክፍል ፍጠር።"
+    },
+    "emptyFiltered": "ምንም ክፍሎች ከማጣሪያዎ ጋር አይዛመዱም።",
+    "columns": {
+      "name": "ክፍል",
+      "location": "ቦታ",
+      "headOfficer": "ኃላፊ ፖሊስ",
+      "officerCount": "ፖሊሶች",
+      "activeCases": "ንቁ ጉዳዮች",
+      "createdAt": "ተፈጥሯል",
+      "actions": "ድርጊቶች"
+    },
+    "noHead": "ኃላፊ የለም",
+    "noLocation": "ቦታ የለም",
+    "rowActions": {
+      "view": "ዝርዝሮች ተመልከት",
+      "edit": "ክፍሉን ቀይር",
+      "assignHead": "ኃላፊ ፖሊስ ሰጥ",
+      "delete": "ክፍሉን ሰርዝ"
+    }
   },
   "detail": {
-    "heading": "የክፍል ዝርዝር",
-    "skeleton": "የክፍል ዝርዝር በመጫን ላይ..."
+    "breadcrumb": "ክፍሎች",
+    "metadataCard": {
+      "title": "የክፍል መረጃ",
+      "name": "ስም",
+      "code": "ኮድ",
+      "noCode": "አልተሰጠም",
+      "location": "ቦታ",
+      "noLocation": "ቦታ አልተሰጠም",
+      "description": "መግለጫ",
+      "noDescription": "መግለጫ የለም።",
+      "officerCount": "ጠቅላላ ፖሊሶች",
+      "activeCaseCount": "ንቁ ጉዳዮች",
+      "activeCasesLink": "ሁሉም ጉዳዮች ተመልከት →",
+      "createdAt": "ተፈጥሯል",
+      "updatedAt": "መጨረሻ ዝማኔ"
+    },
+    "headCard": {
+      "title": "የክፍል ኃላፊ",
+      "badge": "ባጅ",
+      "email": "ኢሜይል",
+      "phone": "ስልክ",
+      "noPhone": "አልተመዘገበም",
+      "noHead": "ምንም ኃላፊ ፖሊስ አልተሰጠም",
+      "noHeadDescription": "ይህ ክፍል አሁን ያለው ኃላፊ ፖሊስ የለውም።"
+    },
+    "officersSection": {
+      "title": "ፖሊሶች",
+      "entityCount": "{count} ፖሊስ(ዎች)",
+      "viewAll": "ሁሉም ፖሊሶች ተመልከት →",
+      "loading": "ፖሊሶችን እየጫነ ነው...",
+      "empty": "ለዚህ ክፍል ምንም ፖሊሶች አልተሰጡም።",
+      "columns": {
+        "badgeNumber": "ባጅ",
+        "name": "ስም",
+        "role": "ሚና",
+        "status": "ሁኔታ",
+        "joinedAt": "ቀን"
+      }
+    },
+    "actions": {
+      "edit": "ክፍሉን ቀይር",
+      "assignHead": "ኃላፊ ፖሊስ ሰጥ",
+      "changeHead": "ኃላፊ ፖሊስ ቀይር",
+      "removeHead": "ኃላፊ ፖሊስ አስወግድ",
+      "delete": "ክፍሉን ሰርዝ"
+    }
+  },
+  "create": {
+    "drawerTitle": "አዲስ ክፍል",
+    "drawerDescription": "አዲስ የድርጅት ክፍል ፍጠር።",
+    "section1Title": "የክፍል ማንነት",
+    "section2Title": "አማራጭ ዝርዝሮች",
+    "nameLabel": "የክፍሉ ስም",
+    "namePlaceholder": "ለምሳሌ የወንጀል ምርመራ ዋና ክፍል",
+    "codeLabel": "አጭር ኮድ (አማራጭ)",
+    "codePlaceholder": "ለምሳሌ CID",
+    "codeHint": "ትልቅ ፊደሎች እና ቁጥሮች ብቻ። ከፍተኛ 10 ፊደሎች።",
+    "locationLabel": "ቦታ (አማራጭ)",
+    "locationPlaceholder": "ቦታ ምረጥ...",
+    "descriptionLabel": "መግለጫ (አማራጭ)",
+    "descriptionPlaceholder": "የዚህ ክፍል ዓላማ አጭር መግለጫ...",
+    "submitButton": "ክፍሉን ፍጠር",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "ክፍሉ በተሳካ ሁኔታ ተፈጥሯል።",
+    "errorMessage": "ክፍሉን ለመፍጠር አልተሳካም። እንደገና ይሞክሩ።"
+  },
+  "update": {
+    "drawerTitle": "ክፍሉን ቀይር",
+    "drawerDescription": "የክፍሉን መረጃ ዝማኔ አድርግ።",
+    "section1Title": "የክፍል ማንነት",
+    "section2Title": "አማራጭ ዝርዝሮች",
+    "nameLabel": "የክፍሉ ስም",
+    "codeLabel": "አጭር ኮድ",
+    "codeHint": "ትልቅ ፊደሎች እና ቁጥሮች ብቻ። ከፍተኛ 10 ፊደሎች።",
+    "locationLabel": "ቦታ",
+    "locationPlaceholder": "ቦታ ምረጥ...",
+    "descriptionLabel": "መግለጫ",
+    "descriptionPlaceholder": "የዚህ ክፍል ዓላማ አጭር መግለጫ...",
+    "submitButton": "ለውጦችን አስቀምጥ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "ክፍሉ በተሳካ ሁኔታ ተዘምኗል።",
+    "errorMessage": "ክፍሉን ለማዘምን አልተሳካም። እንደገና ይሞክሩ።"
+  },
+  "delete": {
+    "confirmTitle": "ይህን ክፍል ሰርዝ?",
+    "confirmDescription": "ክፍሉ \"{departmentName}\" ቋሚ ሆኖ ይሰረዛል። ይህ ድርጊት ሊቀለበስ አይችልም።",
+    "warningHasOfficers": "ይህ ክፍል {officerCount} ፖሊስ(ዎች) አሉት። ሁሉም ፖሊሶች ከተወሰዱ ወይም ካልተሰረዙ ይህ ክፍል ሊሰረዝ አይችልም።",
+    "confirmButton": "ክፍሉን ሰርዝ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "ክፍሉ በተሳካ ሁኔታ ተሰርዟል።",
+    "errorMessage": "ክፍሉን ለመሰረዝ አልተሳካም።"
+  },
+  "assignHead": {
+    "drawerTitle": "ኃላፊ ፖሊስ ሰጥ",
+    "drawerDescription": "ለዚህ ክፍል ኃላፊ ሆኖ የሚያገለግል ንቁ ፖሊስ ምረጥ።",
+    "officerLabel": "ኃላፊ ፖሊስ",
+    "officerPlaceholder": "በስም ወይም ባጅ ቁጥር ፈልግ...",
+    "officerHint": "ንቁ ፖሊሶች ብቻ ለክፍል ኃላፊ ሊሰጡ ይችላሉ።",
+    "currentHead": "አሁናዊ ኃላፊ",
+    "replaceNotice": "አዲስ ኃላፊ ሲሰጥ የአሁኑ ኃላፊ ፖሊስ ይተካል።",
+    "submitButton": "ኃላፊ አድርግ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "ኃላፊ ፖሊስ በተሳካ ሁኔታ ተሰጥቷል።",
+    "errorMessage": "ኃላፊ ፖሊስ ለመሰጠት አልተሳካም። እንደገና ይሞክሩ።"
+  },
+  "removeHead": {
+    "confirmTitle": "ኃላፊ ፖሊስ ያስወግዱ?",
+    "confirmDescription": "ፖሊስ {officerName} ({badgeNumber}) ከ{departmentName} ኃላፊነት ይወሰዳል። አዲስ ኃላፊ እስኪሰጥ ክፍሉ ያለ ኃላፊ ይሆናል።",
+    "confirmButton": "ኃላፊ ፖሊስ አስወግድ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "ኃላፊ ፖሊስ በተሳካ ሁኔታ ተወስዷል።",
+    "errorMessage": "ኃላፊ ፖሊስ ለማስወገድ አልተሳካም። እንደገና ይሞክሩ።"
   }
 }

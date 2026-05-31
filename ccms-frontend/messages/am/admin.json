@@ -1,5 +1,154 @@
 {
-  "pageTitle": "አስተዳዳሪ",
-  "heading": "አስተዳደር",
-  "skeleton": "የአስተዳደር መሣሪያዎች በመጫን ላይ..."
+  "locations": {
+    "pageTitle": "ቦታዎች",
+    "list": {
+      "heading": "ቦታዎች",
+      "entityCount": "{count} ቦታ(ዎች)",
+      "addLocationButton": "አዲስ ቦታ",
+      "filters": {
+        "search": "በስም ወይም ክልል ፈልግ...",
+        "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+      },
+      "loading": "ቦታዎችን እየጫነ ነው...",
+      "empty": {
+        "title": "ምንም ቦታዎች አልተገኙም",
+        "description": "ምንም የቦታ መዝገቦች ገና የሉም።",
+        "cta": "ከላይ ያለውን አዝራር ተጠቀሞ የመጀመሪያ ቦታ ጨምር።"
+      },
+      "emptyFiltered": "ምንም ቦታዎች ከማጣሪያዎ ጋር አይዛመዱም።",
+      "columns": {
+        "name": "የቦታ ስም",
+        "region": "ክልል",
+        "country": "አገር",
+        "createdAt": "ቀን",
+        "actions": "ድርጊቶች"
+      },
+      "noRegion": "—",
+      "rowActions": {
+        "delete": "ቦታ ሰርዝ"
+      }
+    },
+    "create": {
+      "drawerTitle": "አዲስ ቦታ",
+      "drawerDescription": "ለማጣቀሻ ቤተ-ፋይሉ የጂኦግራፊ ቦታ ጨምር።",
+      "nameLabel": "የቦታ ስም",
+      "namePlaceholder": "ለምሳሌ ቦሌ ክፍለ ከተማ",
+      "regionLabel": "ክልል (አማራጭ)",
+      "regionPlaceholder": "ለምሳሌ አዲስ አበባ",
+      "countryLabel": "አገር",
+      "countryPlaceholder": "ለምሳሌ ኢትዮጵያ",
+      "submitButton": "ቦታ ጨምር",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ቦታ በተሳካ ሁኔታ ተጨምሯል።",
+      "errorMessage": "ቦታ ለመጨምር አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "delete": {
+      "confirmTitle": "ይህን ቦታ ሰርዝ?",
+      "confirmDescription": "\"{locationName}\" ከማጣቀሻ ቤተ-ፋይሉ ቋሚ ሆኖ ይወሰዳል።",
+      "confirmButton": "ቦታ ሰርዝ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ቦታ በተሳካ ሁኔታ ሰርዟል።",
+      "errorMessage": "ቦታ ለመሰረዝ አልተሳካም።"
+    }
+  },
+  "crimeTypes": {
+    "pageTitle": "የወንጀል ዓይነቶች",
+    "list": {
+      "heading": "የወንጀል ዓይነቶች",
+      "entityCount": "{count} ዓይነት(ዎች)",
+      "addCrimeTypeButton": "አዲስ የወንጀል ዓይነት",
+      "filters": {
+        "search": "በስም ወይም ኮድ ፈልግ...",
+        "severity": "ክብደት",
+        "category": "ምድብ",
+        "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+      },
+      "loading": "የወንጀል ዓይነቶችን እየጫነ ነው...",
+      "empty": {
+        "title": "ምንም የወንጀል ዓይነቶች አልተገኙም",
+        "description": "ምንም የወንጀል ዓይነት ትርጓሜዎች ገና የሉም።",
+        "cta": "ከላይ ያለውን አዝራር ተጠቅሞ የመጀመሪያ ዓይነት ጨምር።"
+      },
+      "emptyFiltered": "ምንም ዓይነቶች ከማጣሪያዎ ጋር አይዛመዱም።",
+      "columns": {
+        "name": "የወንጀል ዓይነት",
+        "code": "ኮድ",
+        "category": "ምድብ",
+        "severity": "ክብደት",
+        "createdAt": "ቀን",
+        "actions": "ድርጊቶች"
+      },
+      "noCategory": "—",
+      "noSeverity": "—",
+      "rowActions": {
+        "delete": "ዓይነት ሰርዝ"
+      }
+    },
+    "severity": {
+      "MISDEMEANOR": "ቀላል ወንጀል",
+      "FELONY": "ከባድ ወንጀል",
+      "CAPITAL": "የሞት ቅጣት ወንጀል"
+    },
+    "create": {
+      "drawerTitle": "አዲስ የወንጀል ዓይነት",
+      "drawerDescription": "ለማጣቀሻ ቤተ-ፋይሉ የወንጀል ዓይነት ትርጓሜ ጨምር።",
+      "nameLabel": "የወንጀል ዓይነት ስም",
+      "namePlaceholder": "ለምሳሌ ትጥቅ ዘረፋ",
+      "codeLabel": "ኮድ",
+      "codePlaceholder": "ለምሳሌ ROB_ARMED",
+      "codeHint": "ልዩ ኮድ። ትልቅ ፊደሎች፣ ቁጥሮች፣ ሰረዞች ብቻ። ከፍተኛ 20 ፊደሎች።",
+      "categoryLabel": "ምድብ (አማራጭ)",
+      "categoryPlaceholder": "ለምሳሌ የንብረት ወንጀል",
+      "severityLabel": "ክብደት (አማራጭ)",
+      "submitButton": "ዓይነት ጨምር",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የወንጀል ዓይነት በተሳካ ሁኔታ ተጨምሯል።",
+      "errorMessage": "ዓይነት ለመጨምር አልተሳካም። ኮዱ ቀድሞ ሊሆን ይችላል።"
+    },
+    "delete": {
+      "confirmTitle": "ይህን ዓይነት ሰርዝ?",
+      "confirmDescription": "ዓይነት \"{crimeTypeName}\" ({code}) ቋሚ ሆኖ ይወሰዳል።",
+      "confirmButton": "ዓይነት ሰርዝ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ዓይነት በተሳካ ሁኔታ ተሰርዟል።",
+      "errorMessage": "ዓይነት ለመሰረዝ አልተሳካም።"
+    }
+  },
+  "health": {
+    "pageTitle": "የስርዓት ጤና",
+    "overallStatus": "የስርዓት ሁኔታ",
+    "lastChecked": "መጨረሻ ምርመራ",
+    "pollingNotice": "በ15 ሰከንድ ልዩ ራሱ ያዘምናል።",
+    "status": {
+      "healthy": "ጤናማ",
+      "degraded": "ደካማ",
+      "down": "ወድቋል"
+    },
+    "services": {
+      "title": "የአገልግሎት ሁኔታ",
+      "database": "ዳታቤዝ",
+      "redis": "ሬዲስ ካሽ",
+      "api": "API ሰርቨር",
+      "responseTime": "የምላሽ ጊዜ",
+      "noResponseTime": "—",
+      "message": "ዝርዝሮች",
+      "noMessage": "ምንም ችግር አልተገኘም።"
+    },
+    "metrics": {
+      "title": "የስርዓት መለኪያዎች",
+      "activeSessions": "ንቁ ክፍለ ጊዜዎች",
+      "apiResponseTimeP95": "API P95 የምላሽ ጊዜ",
+      "lastBackup": "መጨረሻ ምትኬ",
+      "lastBackupNever": "ፈጽሞ አይደለም",
+      "noMetric": "—"
+    },
+    "readiness": {
+      "title": "የስርዓት ዝግጁነት",
+      "ready": "ዝግጁ",
+      "notReady": "ዝግጁ አይደለም"
+    },
+    "loading": "የስርዓት ጤናን እየፈተሸ ነው...",
+    "error": "የጤና ሁኔታ ኢንድ ፖይንቱ ሊደረስ አልቻለም። API ወድቆ ሊሆን ይችላል።",
+    "retryButton": "እንደገና ሞክር"
+  }
 }

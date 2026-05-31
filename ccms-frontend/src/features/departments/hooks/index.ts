@@ -1,0 +1,8 @@
+export { useDepartmentList } from './useDepartmentList'
+export { useDepartmentDetail } from './useDepartmentDetail'
+export { useCreateDepartment } from './useCreateDepartment'
+export { useUpdateDepartment } from './useUpdateDepartment'
+export { useDeleteDepartment } from './useDeleteDepartment'
+export { useAssignHeadOfficer } from './useAssignHeadOfficer'
+export { useRemoveHeadOfficer } from './useRemoveHeadOfficer'
+export { useDepartmentOfficers } from './useDepartmentOfficers'

@@ -13,12 +13,11 @@ import { SlideOverDrawer } from '@/shared/components/modals/SlideOverDrawer'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { FormField } from '@/shared/components/forms/FormField'
 import { FormSection } from '@/shared/components/forms/FormSection'
-import { SearchableSelect } from '@/shared/components/forms/SearchableSelect'
+import { DepartmentSelect } from '@/shared/components/forms/DepartmentSelect'
 
 import { createOfficerSchema, type CreateOfficerValues } from '@features/personnel/schemas/officer.schema'
 import { OfficerRole, CreateOfficerPayload } from '@features/personnel/types/personnel.types'
 import { useCreateOfficer } from '@features/personnel/hooks/useCreateOfficer'
-import { getDepartments } from '@services/domain/departments.service'
 import { useAuthStore } from '@shared/stores/auth.store'
 
 interface CreateOfficerDrawerProps {
@@ -35,21 +34,7 @@ export function CreateOfficerDrawer({ open, onOpenChange }: CreateOfficerDrawerP
   const currentUserRole = useAuthStore((state) => state.role)
   const createOfficerMutation = useCreateOfficer()
 
-  const { data: departments, isLoading: isDeptLoading } = useQuery({
-    queryKey: ['departments', 'list'],
-    queryFn: getDepartments,
-    enabled: open,
-    staleTime: 10 * 60 * 1000,
-  })
 
-  const departmentOptions = useMemo(() => {
-    return (
-      departments?.map((dept) => ({
-        value: dept.id,
-        label: dept.name,
-      })) ?? []
-    )
-  }, [departments])
 
   const form = useForm<CreateOfficerValues>({
     resolver: zodResolver(createOfficerSchema),
@@ -235,11 +220,9 @@ export function CreateOfficerDrawer({ open, onOpenChange }: CreateOfficerDrawerP
                 name="departmentId"
                 control={form.control}
                 render={({ field }) => (
-                  <SearchableSelect
-                    options={departmentOptions}
+                  <DepartmentSelect
                     value={field.value}
                     onChange={field.onChange}
-                    isLoading={isDeptLoading}
                     placeholder={t('officers.create.departmentPlaceholder')}
                   />
                 )}

@@ -70,7 +70,7 @@ export function OfficersList() {
 
   const { data: departments } = useQuery({
     queryKey: ['departments', 'list'],
-    queryFn: getDepartments,
+    queryFn: () => getDepartments({ pageSize: 100 }).then((res) => res.data),
     staleTime: 10 * 60 * 1000,
   })
 

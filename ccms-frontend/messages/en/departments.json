@@ -2,10 +2,151 @@
   "pageTitle": "Departments",
   "list": {
     "heading": "Departments",
-    "skeleton": "Loading departments..."
+    "entityCount": "{count} department(s)",
+    "addDepartmentButton": "New Department",
+    "filters": {
+      "search": "Search by name or code...",
+      "location": "Location",
+      "hasHead": "Has Head Officer",
+      "clearAll": "Clear all filters"
+    },
+    "loading": "Loading departments...",
+    "empty": {
+      "title": "No Departments Found",
+      "description": "No department records exist yet.",
+      "cta": "Create the first department using the button above."
+    },
+    "emptyFiltered": "No departments match your current filters.",
+    "columns": {
+      "name": "Department",
+      "location": "Location",
+      "headOfficer": "Head Officer",
+      "officerCount": "Officers",
+      "activeCases": "Active Cases",
+      "createdAt": "Created",
+      "actions": "Actions"
+    },
+    "noHead": "No Head",
+    "noLocation": "No Location",
+    "rowActions": {
+      "view": "View Details",
+      "edit": "Edit Department",
+      "assignHead": "Assign Head Officer",
+      "delete": "Delete Department"
+    }
   },
   "detail": {
-    "heading": "Department Details",
-    "skeleton": "Loading department details..."
+    "breadcrumb": "Departments",
+    "metadataCard": {
+      "title": "Department Info",
+      "name": "Name",
+      "code": "Code",
+      "noCode": "Not assigned",
+      "location": "Location",
+      "noLocation": "No location assigned",
+      "description": "Description",
+      "noDescription": "No description.",
+      "officerCount": "Total Officers",
+      "activeCaseCount": "Active Cases",
+      "activeCasesLink": "View all cases →",
+      "createdAt": "Created",
+      "updatedAt": "Last Updated"
+    },
+    "headCard": {
+      "title": "Department Head",
+      "badge": "Badge",
+      "email": "Email",
+      "phone": "Phone",
+      "noPhone": "Not recorded",
+      "noHead": "No Head Officer Assigned",
+      "noHeadDescription": "This department does not currently have a designated head officer."
+    },
+    "officersSection": {
+      "title": "Officers",
+      "entityCount": "{count} officer(s)",
+      "viewAll": "View all officers →",
+      "loading": "Loading officers...",
+      "empty": "No officers are assigned to this department.",
+      "columns": {
+        "badgeNumber": "Badge",
+        "name": "Name",
+        "role": "Role",
+        "status": "Status",
+        "joinedAt": "Joined"
+      }
+    },
+    "actions": {
+      "edit": "Edit Department",
+      "assignHead": "Assign Head Officer",
+      "changeHead": "Change Head Officer",
+      "removeHead": "Remove Head Officer",
+      "delete": "Delete Department"
+    }
+  },
+  "create": {
+    "drawerTitle": "New Department",
+    "drawerDescription": "Create a new organisational department.",
+    "section1Title": "Department Identity",
+    "section2Title": "Optional Details",
+    "nameLabel": "Department Name",
+    "namePlaceholder": "e.g. Criminal Investigation Division",
+    "codeLabel": "Short Code (optional)",
+    "codePlaceholder": "e.g. CID",
+    "codeHint": "Uppercase letters and digits only. Max 10 characters.",
+    "locationLabel": "Location (optional)",
+    "locationPlaceholder": "Select a location...",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "Brief description of this department's mandate...",
+    "submitButton": "Create Department",
+    "cancelButton": "Cancel",
+    "successMessage": "Department created successfully.",
+    "errorMessage": "Failed to create department. Please try again."
+  },
+  "update": {
+    "drawerTitle": "Edit Department",
+    "drawerDescription": "Update department information.",
+    "section1Title": "Department Identity",
+    "section2Title": "Optional Details",
+    "nameLabel": "Department Name",
+    "codeLabel": "Short Code",
+    "codeHint": "Uppercase letters and digits only. Max 10 characters.",
+    "locationLabel": "Location",
+    "locationPlaceholder": "Select a location...",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Brief description of this department's mandate...",
+    "submitButton": "Save Changes",
+    "cancelButton": "Cancel",
+    "successMessage": "Department updated successfully.",
+    "errorMessage": "Failed to update department. Please try again."
+  },
+  "delete": {
+    "confirmTitle": "Delete this department?",
+    "confirmDescription": "Department \"{departmentName}\" will be permanently deleted. This action cannot be undone.",
+    "warningHasOfficers": "This department currently has {officerCount} officer(s). You must reassign or remove all officers before this department can be deleted.",
+    "confirmButton": "Delete Department",
+    "cancelButton": "Cancel",
+    "successMessage": "Department deleted successfully.",
+    "errorMessage": "Failed to delete department. The department may still have assigned officers or active cases."
+  },
+  "assignHead": {
+    "drawerTitle": "Assign Head Officer",
+    "drawerDescription": "Select an active officer to serve as the head of this department.",
+    "officerLabel": "Head Officer",
+    "officerPlaceholder": "Search by name or badge number...",
+    "officerHint": "Only active officers are eligible to be department heads.",
+    "currentHead": "Current Head",
+    "replaceNotice": "Assigning a new head will replace the current head officer.",
+    "submitButton": "Assign as Head",
+    "cancelButton": "Cancel",
+    "successMessage": "Head officer assigned successfully.",
+    "errorMessage": "Failed to assign head officer. Please try again."
+  },
+  "removeHead": {
+    "confirmTitle": "Remove head officer?",
+    "confirmDescription": "Officer {officerName} ({badgeNumber}) will be removed as the head of {departmentName}. The department will have no designated head until a new one is assigned.",
+    "confirmButton": "Remove Head Officer",
+    "cancelButton": "Cancel",
+    "successMessage": "Head officer removed successfully.",
+    "errorMessage": "Failed to remove head officer. Please try again."
   }
 }

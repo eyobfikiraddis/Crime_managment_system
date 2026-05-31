@@ -22,9 +22,10 @@ interface DestructiveConfirmDialogProps {
   confirmLabel: string
   cancelLabel: string
   onConfirm: () => void
-  isConfirming?: boolean
-  confirmPhrase?: string
-  confirmPrompt?: string
+  isConfirming?: boolean | undefined
+  confirmPhrase?: string | undefined
+  confirmPrompt?: string | undefined
+  warning?: string | undefined
 }
 
 export function DestructiveConfirmDialog({
@@ -38,6 +39,7 @@ export function DestructiveConfirmDialog({
   isConfirming,
   confirmPhrase,
   confirmPrompt,
+  warning,
 }: DestructiveConfirmDialogProps) {
   const [inputValue, setInputValue] = useState('')
   const phraseMatches = confirmPhrase ? inputValue === confirmPhrase : true
@@ -49,6 +51,12 @@ export function DestructiveConfirmDialog({
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
+        {warning ? (
+          <div className="flex items-start gap-2 rounded-md border border-warning bg-warning/10 p-3 text-xs text-warning">
+            <span className="font-semibold text-sm">⚠️</span>
+            <div>{warning}</div>
+          </div>
+        ) : null}
         {confirmPhrase ? (
           <div className="space-y-2">
             {confirmPrompt ? (

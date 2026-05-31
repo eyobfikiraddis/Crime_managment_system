@@ -47,7 +47,7 @@ export function AddChargeDrawer({
 
   const { data: crimeTypes, isLoading: isCrimeTypeLoading } = useQuery({
     queryKey: [...caseKeys.crimeTypes(), { search: crimeTypeSearch }],
-    queryFn: () => getCrimeTypes({ search: crimeTypeSearch }),
+    queryFn: () => getCrimeTypes({ search: crimeTypeSearch }).then((res) => res.data),
     staleTime: 2 * 60 * 1000,
   })
 

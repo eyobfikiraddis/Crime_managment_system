@@ -1,5 +1,154 @@
 {
-  "pageTitle": "Admin",
-  "heading": "Administration",
-  "skeleton": "Loading admin tools..."
+  "locations": {
+    "pageTitle": "Locations",
+    "list": {
+      "heading": "Locations",
+      "entityCount": "{count} location(s)",
+      "addLocationButton": "New Location",
+      "filters": {
+        "search": "Search by name or region...",
+        "clearAll": "Clear all filters"
+      },
+      "loading": "Loading locations...",
+      "empty": {
+        "title": "No Locations Found",
+        "description": "No geographic location records exist yet.",
+        "cta": "Add the first location using the button above."
+      },
+      "emptyFiltered": "No locations match your current filters.",
+      "columns": {
+        "name": "Location Name",
+        "region": "Region",
+        "country": "Country",
+        "createdAt": "Added",
+        "actions": "Actions"
+      },
+      "noRegion": "—",
+      "rowActions": {
+        "delete": "Delete Location"
+      }
+    },
+    "create": {
+      "drawerTitle": "New Location",
+      "drawerDescription": "Add a geographic location to the reference data library.",
+      "nameLabel": "Location Name",
+      "namePlaceholder": "e.g. Bole Sub-City",
+      "regionLabel": "Region (optional)",
+      "regionPlaceholder": "e.g. Addis Ababa",
+      "countryLabel": "Country",
+      "countryPlaceholder": "e.g. Ethiopia",
+      "submitButton": "Add Location",
+      "cancelButton": "Cancel",
+      "successMessage": "Location added successfully.",
+      "errorMessage": "Failed to add location. Please try again."
+    },
+    "delete": {
+      "confirmTitle": "Delete this location?",
+      "confirmDescription": "\"{locationName}\" will be permanently removed from the reference library. Cases and departments that reference this location will retain their association, but the location will no longer be selectable.",
+      "confirmButton": "Delete Location",
+      "cancelButton": "Cancel",
+      "successMessage": "Location deleted successfully.",
+      "errorMessage": "Failed to delete location. It may be referenced by active records."
+    }
+  },
+  "crimeTypes": {
+    "pageTitle": "Crime Types",
+    "list": {
+      "heading": "Crime Types",
+      "entityCount": "{count} crime type(s)",
+      "addCrimeTypeButton": "New Crime Type",
+      "filters": {
+        "search": "Search by name or code...",
+        "severity": "Severity",
+        "category": "Category",
+        "clearAll": "Clear all filters"
+      },
+      "loading": "Loading crime types...",
+      "empty": {
+        "title": "No Crime Types Found",
+        "description": "No crime type definitions exist yet.",
+        "cta": "Add the first crime type using the button above."
+      },
+      "emptyFiltered": "No crime types match your current filters.",
+      "columns": {
+        "name": "Crime Type",
+        "code": "Code",
+        "category": "Category",
+        "severity": "Severity",
+        "createdAt": "Added",
+        "actions": "Actions"
+      },
+      "noCategory": "—",
+      "noSeverity": "—",
+      "rowActions": {
+        "delete": "Delete Crime Type"
+      }
+    },
+    "severity": {
+      "MISDEMEANOR": "Misdemeanor",
+      "FELONY": "Felony",
+      "CAPITAL": "Capital"
+    },
+    "create": {
+      "drawerTitle": "New Crime Type",
+      "drawerDescription": "Add a crime type definition to the reference data library.",
+      "nameLabel": "Crime Type Name",
+      "namePlaceholder": "e.g. Armed Robbery",
+      "codeLabel": "Code",
+      "codePlaceholder": "e.g. ROB_ARMED",
+      "codeHint": "Unique code. Uppercase letters, digits, and underscores only. Max 20 characters.",
+      "categoryLabel": "Category (optional)",
+      "categoryPlaceholder": "e.g. Property Crime",
+      "severityLabel": "Severity (optional)",
+      "submitButton": "Add Crime Type",
+      "cancelButton": "Cancel",
+      "successMessage": "Crime type added successfully.",
+      "errorMessage": "Failed to add crime type. The code may already be in use."
+    },
+    "delete": {
+      "confirmTitle": "Delete this crime type?",
+      "confirmDescription": "Crime type \"{crimeTypeName}\" ({code}) will be permanently removed from the reference library. Existing cases and charges that reference this type will retain their data.",
+      "confirmButton": "Delete Crime Type",
+      "cancelButton": "Cancel",
+      "successMessage": "Crime type deleted successfully.",
+      "errorMessage": "Failed to delete crime type. It may be referenced by active cases or charges."
+    }
+  },
+  "health": {
+    "pageTitle": "System Health",
+    "overallStatus": "System Status",
+    "lastChecked": "Last checked",
+    "pollingNotice": "Refreshes automatically every 15 seconds.",
+    "status": {
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "down": "Down"
+    },
+    "services": {
+      "title": "Service Status",
+      "database": "Database",
+      "redis": "Redis Cache",
+      "api": "API Server",
+      "responseTime": "Response Time",
+      "noResponseTime": "—",
+      "message": "Details",
+      "noMessage": "No issues detected."
+    },
+    "metrics": {
+      "title": "System Metrics",
+      "activeSessions": "Active Sessions",
+      "apiResponseTimeP95": "API P95 Response Time",
+      "lastBackup": "Last Backup",
+      "lastBackupNever": "Never",
+      "noMetric": "—"
+    },
+    "readiness": {
+      "title": "System Readiness",
+      "ready": "Ready",
+      "notReady": "Not Ready"
+    },
+    "loading": "Checking system health...",
+    "error": "Unable to reach the health endpoint. The API may be down.",
+    "retryButton": "Retry"
+  }
 }
