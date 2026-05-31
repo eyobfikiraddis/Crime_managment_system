@@ -1,4 +1,4 @@
-# CCMS Frontend — Phase 7: Personnel Module
+# CCMS Frontend — Phase 8: Departments & Admin Module
 ## Execution Specification for AI Agent
 ### Year: 2026 | Runtime: Modern 2026 Ecosystem | Package Manager: pnpm | Target: Production-Grade Enterprise Frontend
 
@@ -8,43 +8,46 @@
 
 ## 1.1 Current Project State
 
-Phases 1 through 6 are complete. The following is fully operational:
+Phases 1 through 7 are complete. The following is fully operational:
 
-- **Foundation & Infrastructure**: Project scaffold, design tokens, Tailwind v4, all three Zustand stores, Axios client with 401 refresh queue, React Query with all 12 key factories, App Shell (Sidebar, TopBar, Breadcrumb), middleware, all shared components, i18n (EN + AM)
+- **Foundation & Infrastructure**: Project scaffold, design tokens, Tailwind v4, all three Zustand stores, Axios client with 401 refresh queue, React Query with all key factories, App Shell (Sidebar, TopBar, Breadcrumb), middleware, all shared components, i18n (EN + AM)
 - **Auth Module**: Login, logout, forgot-password, reset-password, idle session timeout, silent token refresh
 - **Cases Module**: Cases list, multi-step case creation wizard, case detail layout (header card, interactive status badge, nine-tab navigation), case overview tab, case timeline tab, status transition drawer
 - **Evidence Module**: Evidence tab, upload drawer (Cloudinary three-step flow), chain of custody timeline, lightbox viewer
 - **Arrests Module**: Arrests tab (DataTable + filter bar), create arrest drawer, arrest detail drawer, update detention/bail status drawer
 - **Interrogations Module**: Interrogations tab (DataTable + filter bar), create interrogation drawer, read-only interrogation detail drawer
 - **Legal Module**: Legal tab (court case panel + charges table), create/update court case drawers, add/update/drop charge drawers, record/view sentence drawers, court cases list page
-- **Route coverage**: All nine case tab skeletons replaced with real content; `/personnel/persons`, `/personnel/persons/[personId]`, `/personnel/officers`, `/personnel/officers/[officerId]` skeleton routes are in place; admin and settings skeletons render
-- **i18n completeness**: Passes for `common`, `auth`, `navigation`, `errors`, `accessibility`, `cases`, `evidence`, `arrests`, `interrogations`, and `legal` namespaces
+- **Personnel Module**: Person list page (PII masking), person detail page (role cards, PII reveal), role promotion drawers (Suspect, Victim, Witness), officer list page, officer detail page, officer management dialogs (Deactivate, Activate, Reset Password), create person drawer, create officer drawer
+- **Route coverage**: All nine case tab skeletons replaced with real content; `/personnel/persons`, `/personnel/persons/[personId]`, `/personnel/officers`, `/personnel/officers/[officerId]` are fully operational; `/departments`, `/departments/[departmentId]`, `/admin/locations`, `/admin/crime-types`, `/admin/health` skeleton routes are in place; settings skeletons render
+- **i18n completeness**: Passes for `common`, `auth`, `navigation`, `errors`, `accessibility`, `cases`, `evidence`, `arrests`, `interrogations`, `legal`, and `personnel` namespaces
 
-## 1.2 Phase 7 Objective
+## 1.2 Phase 8 Objective
 
-Phase 7 delivers the **Personnel Module** — the system's directory of persons (civilians linked to investigations) and officers (authenticated users of the system). It is the authoritative source for identities referenced throughout every other module.
+Phase 8 delivers two modules:
 
-The personnel module introduces two concepts absent from prior phases:
+1. **Departments Module** — The organisational backbone of the system. Departments group officers into units, scope investigations, and determine which officers see which data. Every officer belongs to exactly one department; every case is assigned to a department. The department module exposes this structure for management.
 
-1. **PII Field Masking** — Personally Identifiable Information (national ID, date of birth, phone number) is masked by default for officers below `dept_head` rank. An admin-level reveal mechanism shows full values and logs an audit event.
-2. **Role Promotion Workflow** — A civilian person record starts neutral. It is promoted into specific investigative roles (Suspect, Victim, Witness) via dedicated drawers. Each promotion is permanent and role-specific; de-promotion is a backend-only admin action not exposed in this phase's UI.
+2. **Admin Module** — The system's reference data and health management layer. It provides admin-only management of locations (geographic reference data used in cases and departments), crime types (the taxonomy of offences used when creating cases and charges), and the live system health panel.
 
-**Phase 7 delivers six sub-systems:**
+**Phase 8 delivers six sub-systems:**
 
-1. **Person List Page** — Replaces the Phase 1 skeleton at `/personnel/persons`. Full DataTable with role filter, risk level filter, PII-masked national ID column.
-2. **Person Detail Page** — Replaces the Phase 1 skeleton at `/personnel/persons/[personId]`. Single-column page (NOT tabbed) with identity card (PII masking), role cards, promotion action buttons, and associated cases table.
-3. **Person Management Drawers** — `CreatePersonDrawer`, `PromoteToSuspectDrawer`, `PromoteToVictimDrawer`, `PromoteToWitnessDrawer`.
-4. **Officer List Page** — Replaces the Phase 1 skeleton at `/personnel/officers`. Full DataTable with status, department, and role filters.
-5. **Officer Detail Page** — Replaces the Phase 1 skeleton at `/personnel/officers/[officerId]`. Identity card, assigned cases summary, department info, activation status.
-6. **Officer Management Dialogs** — `CreateOfficerDrawer` (admin only), `DeactivateOfficerDialog`, `ActivateOfficerDialog`, `ResetPasswordDialog`.
+1. **Department List Page** — Replaces the Phase 1 skeleton at `/departments`. Full DataTable with search, location filter, head-officer filter. Shows officer count, active case count, head officer badge.
+2. **Department Detail Page** — Replaces the Phase 1 skeleton at `/departments/[departmentId]`. Single-column page (NOT tabbed) with metadata card, head officer card, compact officers table.
+3. **Department Management Drawers/Dialogs** — `CreateDepartmentDrawer`, `UpdateDepartmentDrawer`, `DeleteDepartmentDialog`, `AssignHeadOfficerDrawer`, `RemoveHeadOfficerDialog`.
+4. **Locations Admin Page** — Replaces the Phase 1 skeleton at `/admin/locations`. Simple DataTable of all geographic locations with create and delete actions.
+5. **Crime Types Admin Page** — Replaces the Phase 1 skeleton at `/admin/crime-types`. Simple DataTable of all crime type definitions with create and delete actions.
+6. **System Health Panel** — Replaces the Phase 1 skeleton at `/admin/health`. Live-polling panel showing database, Redis, and API service health plus system metrics.
 
 **Also in scope:**
 
-- `personnel` feature module: full type definitions, Zod schemas, service implementation, React Query hooks
-- Full population of `messages/en/personnel.json` and `messages/am/personnel.json`
-- `personnelKeys` query key factory at `src/services/query/keys/personnelKeys.ts`
-- `personnel.service.ts` replacing all stubs with real Axios calls (all 21 endpoints)
-- The `SensitiveField` shared component is already built in Phase 1. Personnel module consumes it — do not rebuild it.
+- `departments` feature module: full type definitions, Zod schemas, service implementation, React Query hooks
+- `admin` feature module: full type definitions, Zod schemas, service implementation, React Query hooks
+- `departmentKeys` query key factory at `src/services/query/keys/departmentKeys.ts`
+- `adminKeys` query key factory at `src/services/query/keys/adminKeys.ts`
+- `departments.service.ts` replacing all stubs with real Axios calls (all 8 endpoints)
+- `admin.service.ts` replacing all stubs with real Axios calls (all 7 endpoints)
+- Full population of `messages/en/departments.json`, `messages/am/departments.json`, `messages/en/admin.json`, `messages/am/admin.json`
+- New shared component `DepartmentSelect` at `shared/components/forms/DepartmentSelect.tsx` — consumed by the officer creation drawer (already referenced in Phase 7) and by department filter bars
 
 ## 1.3 Package Manager
 
@@ -52,67 +55,95 @@ All commands use **pnpm**. No npm or yarn.
 
 ## 1.4 What Must Be Completed
 
-**Personnel service (`src/services/domain/personnel.service.ts`):**
+**Departments service (`src/services/domain/departments.service.ts`):**
 - Replace all stubs with real Axios calls
-- All 21 endpoints across persons and officers (see §8)
+- All 8 endpoints (see §11)
 - Response validation via Zod `.parse()` on every response
 - Typed return values throughout — no `any`
 
-**Types and schemas:**
-- All person types: `Person`, `PersonListItem`, `PersonRole`, `RiskLevel`, `SuspectProfile`, `VictimProfile`, `WitnessProfile`, `PersonFilters`, `CreatePersonPayload`, `UpdatePersonPayload`, `PromoteToSuspectPayload`, `PromoteToVictimPayload`, `PromoteToWitnessPayload`, `PersonCaseSummary`
-- All officer types: `Officer`, `OfficerListItem`, `OfficerRole`, `OfficerStatus`, `OfficerFilters`, `CreateOfficerPayload`, `UpdateOfficerPayload`, `ResetPasswordPayload`, `OfficerCaseSummary`
-- All Zod schemas: create/update/promotion form schemas, API response schemas, filter schemas
+**Admin service (`src/services/domain/admin.service.ts`):**
+- Replace all stubs with real Axios calls
+- All 7 endpoints (see §12)
+- Response validation via Zod `.parse()` on every response
+- Typed return values throughout — no `any`
 
-**React Query hooks — Persons:**
-- `usePersonList(filters)` — paginated list
-- `usePersonDetail(personId)` — single person detail
-- `useCreatePerson()` — create mutation
-- `usePromoteToSuspect(personId)` — promotion mutation
-- `usePromoteToVictim(personId)` — promotion mutation
-- `usePromoteToWitness(personId)` — promotion mutation
-- `usePersonCases(personId)` — cases linked to this person
+**Departments types and schemas:**
+- `Department`, `DepartmentListItem`, `LocationRef`, `HeadOfficerRef`, `DepartmentOfficerSummary`, `DepartmentFilters`, `CreateDepartmentPayload`, `UpdateDepartmentPayload`, `AssignHeadOfficerPayload`
+- Zod schemas: `createDepartmentSchema`, `updateDepartmentSchema`, `assignHeadOfficerSchema`, all API response schemas, filter schema
 
-**React Query hooks — Officers:**
-- `useOfficerList(filters)` — paginated list
-- `useOfficerDetail(officerId)` — single officer detail
-- `useCreateOfficer()` — create mutation (admin+)
-- `useActivateOfficer(officerId)` — activate mutation (admin+)
-- `useDeactivateOfficer(officerId)` — deactivate mutation (admin+)
-- `useResetOfficerPassword(officerId)` — reset password mutation (admin+)
-- `useOfficerCases(officerId)` — recent cases assigned to this officer
+**Admin types and schemas:**
+- `Location`, `CreateLocationPayload`, `CrimeType`, `CrimeSeverity`, `CreateCrimeTypePayload`, `HealthStatus`, `ServiceHealth`, `SystemHealth`, `SystemReadiness`
+- Zod schemas: `createLocationSchema`, `createCrimeTypeSchema`, all API response schemas
+
+**React Query hooks — Departments:**
+- `useDepartmentList(filters)` — paginated list
+- `useDepartmentDetail(departmentId)` — single department detail
+- `useCreateDepartment()` — create mutation (admin+)
+- `useUpdateDepartment(departmentId)` — update mutation (admin+)
+- `useDeleteDepartment(departmentId)` — delete mutation (admin+)
+- `useAssignHeadOfficer(departmentId)` — assign head mutation (admin+)
+- `useRemoveHeadOfficer(departmentId)` — remove head mutation (admin+)
+- `useDepartmentOfficers(departmentId)` — officers in this department (compact list)
+
+**React Query hooks — Admin:**
+- `useSystemHealth()` — polling query, 15-second interval
+- `useSystemReadiness()` — polling query, 15-second interval
+- `useLocationList(filters)` — paginated list
+- `useCreateLocation()` — create mutation (admin+)
+- `useDeleteLocation(locationId)` — delete mutation (admin+)
+- `useCrimeTypeList(filters)` — paginated list
+- `useCreateCrimeType()` — create mutation (admin+)
+- `useDeleteCrimeType(crimeTypeId)` — delete mutation (admin+)
+
+**Shared component:**
+- `DepartmentSelect` at `src/shared/components/forms/DepartmentSelect.tsx`
 
 **i18n messages:**
-- Fully populate `messages/en/personnel.json`
-- Fully populate `messages/am/personnel.json`
+- Fully populate `messages/en/departments.json`
+- Fully populate `messages/am/departments.json`
+- Fully populate `messages/en/admin.json`
+- Fully populate `messages/am/admin.json`
 
 ## 1.5 What Must NOT Be Implemented
 
-- **Person de-promotion** — removing a role (SUSPECT/VICTIM/WITNESS) from a person is a backend-only admin action. No UI for it in this phase.
-- **Updating suspect/victim/witness profiles after promotion** — e.g., changing a suspect's risk level after the initial promotion. Deferred to Phase 11.
-- **Full audit history timeline on person/officer detail** — the full `AuditTimeline` component is a Phase 11 deliverable. Include only a compact "Recent Activity" section (last 5 audit entries as a simple list) for admin+ on the person and officer detail pages, using a lightweight separate endpoint.
-- **Bulk person or officer operations** — deferred to Phase 11.
-- **Person or officer CSV export** — deferred to Phase 11.
-- **Department management** — department list/detail/create/edit is Phase 8.
-- **Officer profile editing by the officer themselves** — that is handled by `/settings/profile` (already stubbed in Phase 1). The officer management in this phase is admin-level management only.
+- **Department head audit history** — the full `AuditTimeline` for department head changes is a Phase 11 deliverable. Do not implement.
+- **Department CSV export** — deferred to Phase 11.
+- **Bulk department operations** — deferred to Phase 11.
+- **Location editing (PATCH)** — locations are append-only reference data in Phase 8. To correct a location, delete and recreate it. The backend enforces immutability for locations referenced by active cases.
+- **Crime type editing (PATCH)** — same rule. Crime types are append-only in Phase 8.
+- **Officer transfer between departments via the Departments UI** — officer department assignment is managed from the officer detail page (Phase 7). The department detail page shows officers but does not provide a transfer action.
+- **Department head role promotion** — when an officer is assigned as department head, the backend may update their role to `DEPT_HEAD`. The frontend does not explicitly change the officer's role from this UI. It calls the assign-head endpoint and lets the backend handle role management.
+- **Sub-department / department hierarchy** — CCMS departments are flat. No parent-child relationships.
+- **Crime type category management** — categories are free-text strings on crime types. No separate category entity management in this phase.
+- **Historical health metrics / graphs** — the health panel shows current status only. No trend charts, no historical data. Charts are a Phase 11 concern.
 - **MSW mocking** — still deferred.
 
 ## 1.6 Handoff Standard
 
-When Phase 7 finishes:
-- Navigating to `/personnel/persons` shows the full persons DataTable (not the skeleton)
-- Persons list shows masked national IDs in the table for roles below `dept_head`
-- Clicking a person row navigates to `/personnel/persons/[personId]` which shows the single-column detail page
-- PII fields on person detail are masked for non-admin; admin+ sees a "Reveal" button that shows the full value after clicking
-- "Promote to Suspect" button (if role not yet assigned) opens `PromoteToSuspectDrawer`; completing it adds the suspect card to the detail page
-- Navigating to `/personnel/officers` shows the full officers DataTable
-- Officer rows show badge number, name, role badge, department, status badge; `dept_head` sees their own department only, `admin+` sees all
-- Clicking an officer row navigates to `/personnel/officers/[officerId]` showing the detail page
-- Admin-only "Deactivate" button on officer detail opens `DeactivateOfficerDialog`; confirming deactivates the officer and refreshes the list
-- Admin-only "Reset Password" button opens `ResetPasswordDialog`; confirming sends the reset
+When Phase 8 finishes:
+- Navigating to `/departments` shows the full departments DataTable (not the skeleton)
+- Departments list shows officer count, active case count, head officer name, location name
+- Departments with no head officer show a "No Head" muted badge in the head officer column
+- Admin+ sees "New Department" button; lower roles see the list read-only
+- Clicking a department row navigates to `/departments/[departmentId]`
+- Department detail shows metadata card, head officer card (or "No head assigned" with Assign button for admin+), and compact officers table
+- Admin+ "Edit" button opens `UpdateDepartmentDrawer`; saving refreshes the detail page
+- Admin+ "Assign Head" button opens `AssignHeadOfficerDrawer` with officer search; confirming refreshes the head officer card
+- Admin+ "Remove Head" button opens `RemoveHeadOfficerDialog`; confirming shows "No head assigned" state
+- Admin+ "Delete" button opens `DeleteDepartmentDialog`; if `officerCount > 0` the dialog warns that deletion will be rejected by the backend
+- Navigating to `/admin/locations` shows the locations DataTable
+- Admin+ sees "New Location" button; clicking opens `CreateLocationDrawer`
+- Admin+ delete action on a location opens `DeleteLocationDialog`; confirming removes the record (or shows API error if referenced)
+- Navigating to `/admin/crime-types` shows the crime types DataTable
+- Admin+ sees "New Crime Type" button; clicking opens `CreateCrimeTypeDrawer`
+- Admin+ delete action on a crime type opens `DeleteCrimeTypeDialog`
+- Navigating to `/admin/health` shows the live health panel; indicators update every 15 seconds without a page refresh
+- Health status uses green/amber/red visual indicators per service
+- `DepartmentSelect` shared component works correctly in the `CreateOfficerDrawer` (Phase 7 component) — it fetches real departments from the now-implemented service
 - `pnpm type-check` — zero errors
 - `pnpm lint` — zero warnings
 - `pnpm build` — production build succeeds
-- i18n completeness test passes for the `personnel` namespace in both EN and AM
+- i18n completeness test passes for `departments` and `admin` namespaces in both EN and AM
 
 ---
 
@@ -136,617 +167,578 @@ pnpm why lucide-react
 ```
 src/
 ├── features/
-│   └── personnel/
+│   ├── departments/
+│   │   ├── components/
+│   │   │   ├── DepartmentsList.tsx              # List page component
+│   │   │   ├── DepartmentDetail.tsx             # Detail page orchestration wrapper
+│   │   │   ├── DepartmentMetadataCard.tsx       # Name, code, location, description, stats
+│   │   │   ├── DepartmentHeadCard.tsx           # Head officer display + assign/remove actions
+│   │   │   ├── DepartmentOfficersTable.tsx      # Compact officers DataTable
+│   │   │   ├── CreateDepartmentDrawer.tsx       # SlideOverDrawer — create department
+│   │   │   ├── UpdateDepartmentDrawer.tsx       # SlideOverDrawer — update department
+│   │   │   ├── DeleteDepartmentDialog.tsx       # DestructiveConfirmDialog wrapper
+│   │   │   ├── AssignHeadOfficerDrawer.tsx      # SlideOverDrawer — assign head officer
+│   │   │   └── RemoveHeadOfficerDialog.tsx      # DestructiveConfirmDialog wrapper
+│   │   ├── hooks/
+│   │   │   ├── useDepartmentList.ts
+│   │   │   ├── useDepartmentDetail.ts
+│   │   │   ├── useCreateDepartment.ts
+│   │   │   ├── useUpdateDepartment.ts
+│   │   │   ├── useDeleteDepartment.ts
+│   │   │   ├── useAssignHeadOfficer.ts
+│   │   │   ├── useRemoveHeadOfficer.ts
+│   │   │   ├── useDepartmentOfficers.ts
+│   │   │   └── index.ts
+│   │   ├── schemas/
+│   │   │   ├── department.schema.ts
+│   │   │   └── department-api.schema.ts
+│   │   ├── types/
+│   │   │   ├── department.types.ts
+│   │   │   └── index.ts
+│   │   ├── utils/
+│   │   │   └── departmentUtils.ts
+│   │   └── index.ts
+│   │
+│   └── admin/
 │       ├── components/
-│       │   ├── persons/
-│       │   │   ├── PersonsList.tsx              # List page component
-│       │   │   ├── PersonDetail.tsx             # Detail page orchestration wrapper
-│       │   │   ├── PersonIdentityCard.tsx       # PII-aware identity metadata card
-│       │   │   ├── PersonRoleCards.tsx          # Suspect / Victim / Witness role cards
-│       │   │   ├── PersonCasesTable.tsx         # Associated cases compact DataTable
-│       │   │   ├── CreatePersonDrawer.tsx       # SlideOverDrawer — create person
-│       │   │   ├── PromoteToSuspectDrawer.tsx   # SlideOverDrawer — promote to suspect
-│       │   │   ├── PromoteToVictimDrawer.tsx    # SlideOverDrawer — promote to victim
-│       │   │   └── PromoteToWitnessDrawer.tsx   # SlideOverDrawer — promote to witness
-│       │   └── officers/
-│       │       ├── OfficersList.tsx             # List page component
-│       │       ├── OfficerDetail.tsx            # Detail page orchestration wrapper
-│       │       ├── OfficerIdentityCard.tsx      # Officer identity metadata card
-│       │       ├── OfficerCasesSummary.tsx      # Compact recent cases list
-│       │       ├── CreateOfficerDrawer.tsx      # SlideOverDrawer — create officer (admin+)
-│       │       ├── DeactivateOfficerDialog.tsx  # DestructiveConfirmDialog wrapper
-│       │       ├── ActivateOfficerDialog.tsx    # ConfirmDialog wrapper
-│       │       └── ResetPasswordDialog.tsx      # ConfirmDialog wrapper (admin+)
+│       │   ├── health/
+│       │   │   ├── SystemHealthPanel.tsx        # Orchestration wrapper
+│       │   │   ├── HealthStatusCard.tsx         # Per-service status card
+│       │   │   └── HealthMetricCard.tsx         # Metric display card (sessions, P95, backup)
+│       │   ├── locations/
+│       │   │   ├── LocationsList.tsx            # List + inline management
+│       │   │   ├── CreateLocationDrawer.tsx     # SlideOverDrawer — create location
+│       │   │   └── DeleteLocationDialog.tsx     # DestructiveConfirmDialog wrapper
+│       │   └── crime-types/
+│       │       ├── CrimeTypesList.tsx           # List + inline management
+│       │       ├── CreateCrimeTypeDrawer.tsx    # SlideOverDrawer — create crime type
+│       │       └── DeleteCrimeTypeDialog.tsx    # DestructiveConfirmDialog wrapper
 │       ├── hooks/
-│       │   ├── usePersonList.ts
-│       │   ├── usePersonDetail.ts
-│       │   ├── useCreatePerson.ts
-│       │   ├── usePromoteToSuspect.ts
-│       │   ├── usePromoteToVictim.ts
-│       │   ├── usePromoteToWitness.ts
-│       │   ├── usePersonCases.ts
-│       │   ├── useOfficerList.ts
-│       │   ├── useOfficerDetail.ts
-│       │   ├── useCreateOfficer.ts
-│       │   ├── useActivateOfficer.ts
-│       │   ├── useDeactivateOfficer.ts
-│       │   ├── useResetOfficerPassword.ts
-│       │   ├── useOfficerCases.ts
+│       │   ├── useSystemHealth.ts
+│       │   ├── useSystemReadiness.ts
+│       │   ├── useLocationList.ts
+│       │   ├── useCreateLocation.ts
+│       │   ├── useDeleteLocation.ts
+│       │   ├── useCrimeTypeList.ts
+│       │   ├── useCreateCrimeType.ts
+│       │   ├── useDeleteCrimeType.ts
 │       │   └── index.ts
 │       ├── schemas/
-│       │   ├── person.schema.ts
-│       │   ├── officer.schema.ts
-│       │   ├── personnel-api.schema.ts
-│       │   └── personnel-filters.schema.ts
+│       │   ├── location.schema.ts
+│       │   ├── crime-type.schema.ts
+│       │   └── admin-api.schema.ts
 │       ├── types/
-│       │   ├── personnel.types.ts
+│       │   ├── admin.types.ts
 │       │   └── index.ts
 │       ├── utils/
-│       │   └── personnelUtils.ts
+│       │   └── adminUtils.ts
 │       └── index.ts
+
+├── shared/
+│   └── components/
+│       └── forms/
+│           └── DepartmentSelect.tsx             # New shared component
 
 ├── services/
 │   └── query/
 │       └── keys/
-│           └── personnelKeys.ts                # New — query key factory
+│           ├── departmentKeys.ts               # New — query key factory
+│           └── adminKeys.ts                    # New — query key factory
 
 └── app/
     └── (dashboard)/
-        └── personnel/
-            ├── persons/
-            │   ├── page.tsx                    # Replaces Phase 1 skeleton
-            │   └── [personId]/
-            │       └── page.tsx               # Replaces Phase 1 skeleton
-            └── officers/
-                ├── page.tsx                    # Replaces Phase 1 skeleton
-                └── [officerId]/
-                    └── page.tsx               # Replaces Phase 1 skeleton
+        ├── departments/
+        │   ├── page.tsx                        # Replaces Phase 1 skeleton
+        │   └── [departmentId]/
+        │       └── page.tsx                    # Replaces Phase 1 skeleton
+        └── admin/
+            ├── locations/
+            │   └── page.tsx                    # Replaces Phase 1 skeleton
+            ├── crime-types/
+            │   └── page.tsx                    # Replaces Phase 1 skeleton
+            └── health/
+                └── page.tsx                    # Replaces Phase 1 skeleton
 
 messages/
 ├── en/
-│   └── personnel.json                         # Full EN population
+│   ├── departments.json                        # Full EN population
+│   └── admin.json                             # Full EN population
 └── am/
-    └── personnel.json                         # Full AM population
+    ├── departments.json                        # Full AM population
+    └── admin.json                             # Full AM population
 ```
 
 ---
 
-# 4. TypeScript Types
+# 4. TypeScript Types — Departments
 
-## 4.1 `src/features/personnel/types/personnel.types.ts`
+## 4.1 `src/features/departments/types/department.types.ts`
 
 ```typescript
-// ─── Person Role enum ─────────────────────────────────────────────────────────
-export const PersonRole = {
-  SUSPECT:  'SUSPECT',
-  VICTIM:   'VICTIM',
-  WITNESS:  'WITNESS',
-} as const
-export type PersonRole = (typeof PersonRole)[keyof typeof PersonRole]
-
-// ─── Risk Level enum ──────────────────────────────────────────────────────────
-export const RiskLevel = {
-  LOW:    'LOW',
-  MEDIUM: 'MEDIUM',
-  HIGH:   'HIGH',
-} as const
-export type RiskLevel = (typeof RiskLevel)[keyof typeof RiskLevel]
-
-// ─── Gender enum ──────────────────────────────────────────────────────────────
-export const Gender = {
-  MALE:    'MALE',
-  FEMALE:  'FEMALE',
-  OTHER:   'OTHER',
-} as const
-export type Gender = (typeof Gender)[keyof typeof Gender]
-
-// ─── Officer Role enum ────────────────────────────────────────────────────────
-export const OfficerRole = {
-  INVESTIGATOR:    'INVESTIGATOR',
-  FORENSIC:        'FORENSIC',
-  LEGAL_OFFICER:   'LEGAL_OFFICER',
-  DEPT_HEAD:       'DEPT_HEAD',
-  ADMIN:           'ADMIN',
-  SUPERADMIN:      'SUPERADMIN',
-} as const
-export type OfficerRole = (typeof OfficerRole)[keyof typeof OfficerRole]
-
-// ─── Officer Status enum ──────────────────────────────────────────────────────
-export const OfficerStatus = {
-  ACTIVE:   'ACTIVE',
-  INACTIVE: 'INACTIVE',
-} as const
-export type OfficerStatus = (typeof OfficerStatus)[keyof typeof OfficerStatus]
-
-// ─── Linked Role Profiles ─────────────────────────────────────────────────────
-export interface SuspectProfile {
-  riskLevel: RiskLevel
-  notes: string | null
-  promotedAt: string                 // ISO 8601
-  promotedByOfficerId: string
-}
-
-export interface VictimProfile {
-  notes: string | null
-  promotedAt: string
-  promotedByOfficerId: string
-}
-
-export interface WitnessProfile {
-  credibilityNotes: string | null
-  isProtected: boolean
-  protectionLevel: string | null     // e.g. "STANDARD", "HIGH" — null if not protected
-  promotedAt: string
-  promotedByOfficerId: string
-}
-
-// ─── PII container ────────────────────────────────────────────────────────────
-// The API returns masked values for roles below dept_head.
-// For admin+, values are full. The SensitiveField component handles the toggle.
-export interface PersonPII {
-  nationalId: string | null          // Masked: "***-***-1234" for < dept_head
-  dateOfBirth: string | null         // ISO 8601 full date; masked: year only for < dept_head
-  phone: string | null               // Masked: "+251 *** *** 789" for < dept_head
-}
-
-// ─── Person List Item (for DataTable) ────────────────────────────────────────
-export interface PersonListItem {
+// ─── Embedded Location reference ─────────────────────────────────────────────
+// Returned inline on department responses — not the full Location entity
+export interface LocationRef {
   id: string
+  name: string
+  region: string | null
+}
+
+// ─── Embedded Head Officer reference ─────────────────────────────────────────
+// Returned inline on department responses — not the full Officer entity
+export interface HeadOfficerRef {
+  id: string
+  badgeNumber: string
   firstName: string
   lastName: string
-  nationalIdMasked: string | null    // Always the masked version for all roles in list view
-  gender: Gender | null
-  roles: PersonRole[]
-  riskLevel: RiskLevel | null        // Non-null only if SUSPECT role is assigned
-  isProtectedWitness: boolean
-  createdAt: string
+  email: string
+  phone: string | null
 }
 
-// ─── Person Detail ────────────────────────────────────────────────────────────
-export interface Person {
+// ─── Department List Item (for DataTable) ────────────────────────────────────
+export interface DepartmentListItem {
   id: string
-  firstName: string
-  lastName: string
-  gender: Gender | null
-  pii: PersonPII                     // PII fields; values depend on caller's role
-  address: string | null
-  photoUrl: string | null
-  roles: PersonRole[]
-  riskLevel: RiskLevel | null
-  isProtectedWitness: boolean
-  suspectProfile: SuspectProfile | null
-  victimProfile: VictimProfile | null
-  witnessProfile: WitnessProfile | null
-  createdAt: string
+  name: string
+  code: string | null              // Short code e.g. "CID", "HOM", "FORNS"
+  location: LocationRef | null
+  headOfficer: HeadOfficerRef | null
+  officerCount: number             // Total officer accounts in this department
+  activeCaseCount: number          // Cases with status Open or Under Investigation
+  createdAt: string                // ISO 8601
+}
+
+// ─── Department Detail ────────────────────────────────────────────────────────
+export interface Department extends DepartmentListItem {
+  description: string | null
   updatedAt: string
 }
 
-// ─── Person Case Summary ──────────────────────────────────────────────────────
-export interface PersonCaseSummary {
-  caseId: string
-  caseNumber: string
-  title: string
-  roleOnCase: PersonRole
-  caseStatus: string                 // Case status string (maps to existing CaseStatus enum)
-  createdAt: string
-}
-
-// ─── Person Filters ───────────────────────────────────────────────────────────
-export interface PersonFilters {
-  search?: string                    // First name, last name, or masked national ID
-  roles?: PersonRole[]
-  riskLevel?: RiskLevel[]
-  isProtectedWitness?: boolean
-  page?: number
-  pageSize?: number
-  sortField?: 'firstName' | 'lastName' | 'createdAt' | 'riskLevel'
-  sortDirection?: 'asc' | 'desc'
-}
-
-// ─── Person Payloads ──────────────────────────────────────────────────────────
-export interface CreatePersonPayload {
-  firstName: string
-  lastName: string
-  gender?: Gender
-  nationalId?: string
-  dateOfBirth?: string               // ISO 8601 date
-  phone?: string
-  address?: string
-}
-
-export interface UpdatePersonPayload {
-  firstName?: string
-  lastName?: string
-  gender?: Gender | null
-  phone?: string | null
-  address?: string | null
-}
-
-export interface PromoteToSuspectPayload {
-  riskLevel: RiskLevel
-  notes?: string
-}
-
-export interface PromoteToVictimPayload {
-  notes?: string
-}
-
-export interface PromoteToWitnessPayload {
-  credibilityNotes?: string
-  isProtected: boolean
-  protectionLevel?: string | null
-}
-
-// ─── Officer List Item (for DataTable) ───────────────────────────────────────
-export interface OfficerListItem {
+// ─── Department Officer Summary (for compact officers table on detail page) ──
+// Uses string for role/status to avoid importing from @features/personnel
+// Values are identical to OfficerRole and OfficerStatus enums from personnel module
+export interface DepartmentOfficerSummary {
   id: string
   badgeNumber: string
   firstName: string
   lastName: string
-  email: string
-  role: OfficerRole
-  status: OfficerStatus
-  departmentId: string
-  departmentName: string
-  lastActivityAt: string | null      // Returned only for admin+; null for dept_head
-  createdAt: string
+  role: string                     // Matches OfficerRole enum values
+  status: string                   // Matches OfficerStatus enum values
+  joinedAt: string                 // When this officer's account was created in this department
 }
 
-// ─── Officer Detail ───────────────────────────────────────────────────────────
-export interface Officer extends OfficerListItem {
-  phone: string | null
-  activeCaseCount: number
-  totalCaseCount: number
-}
-
-// ─── Officer Case Summary ─────────────────────────────────────────────────────
-export interface OfficerCaseSummary {
-  caseId: string
-  caseNumber: string
-  title: string
-  status: string
-  assignedAt: string
-}
-
-// ─── Officer Filters ──────────────────────────────────────────────────────────
-export interface OfficerFilters {
-  search?: string                    // Badge number or full name
-  status?: OfficerStatus[]
-  role?: OfficerRole[]
-  departmentId?: string              // Admin+ can filter by department; dept_head sees only their dept
+// ─── Department Filters ───────────────────────────────────────────────────────
+export interface DepartmentFilters {
+  search?: string                  // Searches name and code
+  locationId?: string
+  hasHeadOfficer?: boolean
   page?: number
   pageSize?: number
-  sortField?: 'badgeNumber' | 'firstName' | 'lastName' | 'status' | 'lastActivityAt'
+  sortField?: 'name' | 'officerCount' | 'activeCaseCount' | 'createdAt'
   sortDirection?: 'asc' | 'desc'
 }
 
-// ─── Officer Payloads ──────────────────────────────────────────────────────────
-export interface CreateOfficerPayload {
-  badgeNumber: string
-  firstName: string
-  lastName: string
-  email: string
-  role: OfficerRole
-  departmentId: string
-  phone?: string
+// ─── Department Payloads ──────────────────────────────────────────────────────
+export interface CreateDepartmentPayload {
+  name: string
+  code?: string
+  locationId?: string
+  description?: string
 }
 
-export interface UpdateOfficerPayload {
-  role?: OfficerRole
-  departmentId?: string
-  phone?: string | null
+export interface UpdateDepartmentPayload {
+  name?: string
+  code?: string | null
+  locationId?: string | null
+  description?: string | null
 }
 
-export interface ResetPasswordPayload {
-  // No body required — backend triggers a reset email or generates temp password
+export interface AssignHeadOfficerPayload {
+  officerId: string
 }
 ```
 
-## 4.2 `src/features/personnel/types/index.ts`
+## 4.2 `src/features/departments/types/index.ts`
 
 ```typescript
-export * from './personnel.types'
+export * from './department.types'
 ```
 
 ---
 
-# 5. Zod Schemas
+# 5. TypeScript Types — Admin
 
-## 5.1 `src/features/personnel/schemas/person.schema.ts`
+## 5.1 `src/features/admin/types/admin.types.ts`
 
 ```typescript
-import { z } from 'zod'
-import { Gender, RiskLevel } from '../types/personnel.types'
+// ─── Location ─────────────────────────────────────────────────────────────────
+export interface Location {
+  id: string
+  name: string
+  region: string | null
+  country: string
+  createdAt: string
+}
 
-// ─── Create Person ────────────────────────────────────────────────────────────
-export const createPersonSchema = z.object({
-  firstName: z
-    .string()
-    .min(1, { message: 'First name is required.' })
-    .max(100),
-  lastName: z
-    .string()
-    .min(1, { message: 'Last name is required.' })
-    .max(100),
-  gender: z.nativeEnum(Gender).optional(),
-  nationalId: z.string().max(50).optional(),
-  dateOfBirth: z.string().optional(),    // ISO 8601 date string
-  phone: z.string().max(20).optional(),
-  address: z.string().max(500).optional(),
-})
+export interface LocationFilters {
+  search?: string
+  page?: number
+  pageSize?: number
+  sortField?: 'name' | 'country' | 'createdAt'
+  sortDirection?: 'asc' | 'desc'
+}
 
-export type CreatePersonValues = z.infer<typeof createPersonSchema>
+export interface CreateLocationPayload {
+  name: string
+  region?: string
+  country: string
+}
 
-// ─── Promote to Suspect ───────────────────────────────────────────────────────
-export const promoteToSuspectSchema = z.object({
-  riskLevel: z.nativeEnum(RiskLevel, {
-    errorMap: () => ({ message: 'Risk level is required.' }),
-  }),
-  notes: z.string().max(2000).optional(),
-})
+// ─── Crime Severity enum ──────────────────────────────────────────────────────
+export const CrimeSeverity = {
+  MISDEMEANOR: 'MISDEMEANOR',
+  FELONY:      'FELONY',
+  CAPITAL:     'CAPITAL',
+} as const
+export type CrimeSeverity = (typeof CrimeSeverity)[keyof typeof CrimeSeverity]
 
-export type PromoteToSuspectValues = z.infer<typeof promoteToSuspectSchema>
+// ─── Crime Type ───────────────────────────────────────────────────────────────
+export interface CrimeType {
+  id: string
+  name: string
+  code: string                     // Short uppercase code e.g. "ROB", "ASSAULT", "HOMICIDE"
+  category: string | null          // Free-text category grouping
+  severity: CrimeSeverity | null
+  createdAt: string
+}
 
-// ─── Promote to Victim ────────────────────────────────────────────────────────
-export const promoteToVictimSchema = z.object({
-  notes: z.string().max(2000).optional(),
-})
+export interface CrimeTypeFilters {
+  search?: string
+  category?: string
+  severity?: CrimeSeverity[]
+  page?: number
+  pageSize?: number
+  sortField?: 'name' | 'code' | 'category' | 'severity' | 'createdAt'
+  sortDirection?: 'asc' | 'desc'
+}
 
-export type PromoteToVictimValues = z.infer<typeof promoteToVictimSchema>
+export interface CreateCrimeTypePayload {
+  name: string
+  code: string                     // Must be unique, uppercase alphanumeric, max 20 chars
+  category?: string
+  severity?: CrimeSeverity
+}
 
-// ─── Promote to Witness ───────────────────────────────────────────────────────
-export const promoteToWitnessSchema = z.object({
-  credibilityNotes: z.string().max(2000).optional(),
-  isProtected: z.boolean().default(false),
-  protectionLevel: z.string().max(50).nullable().optional(),
-}).refine(
-  (data) => {
-    // protectionLevel is required when isProtected is true
-    if (data.isProtected && !data.protectionLevel) return false
-    return true
-  },
-  {
-    message: 'Protection level is required when witness protection is enabled.',
-    path: ['protectionLevel'],
-  },
-)
+// ─── Health Status enum ───────────────────────────────────────────────────────
+export const HealthStatus = {
+  HEALTHY:  'healthy',
+  DEGRADED: 'degraded',
+  DOWN:     'down',
+} as const
+export type HealthStatus = (typeof HealthStatus)[keyof typeof HealthStatus]
 
-export type PromoteToWitnessValues = z.infer<typeof promoteToWitnessSchema>
+// ─── Per-service health entry ─────────────────────────────────────────────────
+export interface ServiceHealth {
+  status: HealthStatus
+  responseTimeMs: number | null
+  message: string | null
+  checkedAt: string                // ISO 8601
+}
+
+// ─── Full system health (from GET /api/v1/health) ────────────────────────────
+export interface SystemHealth {
+  overall: HealthStatus
+  timestamp: string
+  services: {
+    database: ServiceHealth
+    redis: ServiceHealth
+    api: ServiceHealth
+  }
+  metrics: {
+    activeSessionCount: number
+    apiResponseTimeP95Ms: number | null
+    lastBackupAt: string | null    // ISO 8601; null if never backed up
+  }
+}
+
+// ─── System readiness (from GET /api/v1/readiness) ───────────────────────────
+export interface SystemReadiness {
+  ready: boolean
+  timestamp: string
+}
 ```
 
-## 5.2 `src/features/personnel/schemas/officer.schema.ts`
+## 5.2 `src/features/admin/types/index.ts`
+
+```typescript
+export * from './admin.types'
+```
+
+---
+
+# 6. Zod Schemas — Departments
+
+## 6.1 `src/features/departments/schemas/department.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { OfficerRole } from '../types/personnel.types'
 
-// ─── Create Officer ───────────────────────────────────────────────────────────
-export const createOfficerSchema = z.object({
-  badgeNumber: z
+// ─── Create Department ────────────────────────────────────────────────────────
+export const createDepartmentSchema = z.object({
+  name: z
     .string()
-    .min(1, { message: 'Badge number is required.' })
-    .max(20)
-    .regex(/^[A-Z0-9-]+$/, {
-      message: 'Badge number must contain only uppercase letters, digits, and hyphens.',
-    }),
-  firstName: z
-    .string()
-    .min(1, { message: 'First name is required.' })
-    .max(100),
-  lastName: z
-    .string()
-    .min(1, { message: 'Last name is required.' })
-    .max(100),
-  email: z
-    .string()
-    .email({ message: 'A valid email address is required.' })
+    .min(1, { message: 'Department name is required.' })
     .max(200),
-  role: z.nativeEnum(OfficerRole, {
-    errorMap: () => ({ message: 'Officer role is required.' }),
-  }),
-  departmentId: z
+  code: z
     .string()
-    .min(1, { message: 'Department is required.' }),
-  phone: z.string().max(20).optional(),
+    .max(10)
+    .regex(/^[A-Z0-9]+$/, {
+      message: 'Code must contain only uppercase letters and digits.',
+    })
+    .optional(),
+  locationId: z.string().uuid().optional(),
+  description: z.string().max(1000).optional(),
 })
 
-export type CreateOfficerValues = z.infer<typeof createOfficerSchema>
+export type CreateDepartmentValues = z.infer<typeof createDepartmentSchema>
+
+// ─── Update Department ────────────────────────────────────────────────────────
+export const updateDepartmentSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  code: z
+    .string()
+    .max(10)
+    .regex(/^[A-Z0-9]+$/, {
+      message: 'Code must contain only uppercase letters and digits.',
+    })
+    .nullable()
+    .optional(),
+  locationId: z.string().uuid().nullable().optional(),
+  description: z.string().max(1000).nullable().optional(),
+})
+
+export type UpdateDepartmentValues = z.infer<typeof updateDepartmentSchema>
+
+// ─── Assign Head Officer ──────────────────────────────────────────────────────
+export const assignHeadOfficerSchema = z.object({
+  officerId: z.string().uuid({ message: 'A valid officer must be selected.' }),
+})
+
+export type AssignHeadOfficerValues = z.infer<typeof assignHeadOfficerSchema>
 ```
 
-## 5.3 `src/features/personnel/schemas/personnel-api.schema.ts`
+## 6.2 `src/features/departments/schemas/department-api.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { Gender, RiskLevel, PersonRole, OfficerRole, OfficerStatus } from '../types/personnel.types'
 
-// ─── Shared sub-schemas ───────────────────────────────────────────────────────
-const suspectProfileSchema = z.object({
-  riskLevel: z.nativeEnum(RiskLevel),
-  notes: z.string().nullable(),
-  promotedAt: z.string(),
-  promotedByOfficerId: z.string().uuid(),
-})
-
-const victimProfileSchema = z.object({
-  notes: z.string().nullable(),
-  promotedAt: z.string(),
-  promotedByOfficerId: z.string().uuid(),
-})
-
-const witnessProfileSchema = z.object({
-  credibilityNotes: z.string().nullable(),
-  isProtected: z.boolean(),
-  protectionLevel: z.string().nullable(),
-  promotedAt: z.string(),
-  promotedByOfficerId: z.string().uuid(),
-})
-
-const personPIISchema = z.object({
-  nationalId: z.string().nullable(),
-  dateOfBirth: z.string().nullable(),
-  phone: z.string().nullable(),
-})
-
-// ─── Person List Item ─────────────────────────────────────────────────────────
-export const personListItemSchema = z.object({
+const locationRefSchema = z.object({
   id: z.string().uuid(),
-  firstName: z.string(),
-  lastName: z.string(),
-  nationalIdMasked: z.string().nullable(),
-  gender: z.nativeEnum(Gender).nullable(),
-  roles: z.array(z.nativeEnum(PersonRole)),
-  riskLevel: z.nativeEnum(RiskLevel).nullable(),
-  isProtectedWitness: z.boolean(),
-  createdAt: z.string(),
+  name: z.string(),
+  region: z.string().nullable(),
 })
 
-// ─── Person Detail ────────────────────────────────────────────────────────────
-export const personDetailSchema = z.object({
-  id: z.string().uuid(),
-  firstName: z.string(),
-  lastName: z.string(),
-  gender: z.nativeEnum(Gender).nullable(),
-  pii: personPIISchema,
-  address: z.string().nullable(),
-  photoUrl: z.string().nullable(),
-  roles: z.array(z.nativeEnum(PersonRole)),
-  riskLevel: z.nativeEnum(RiskLevel).nullable(),
-  isProtectedWitness: z.boolean(),
-  suspectProfile: suspectProfileSchema.nullable(),
-  victimProfile: victimProfileSchema.nullable(),
-  witnessProfile: witnessProfileSchema.nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-})
-
-// ─── Paginated persons ────────────────────────────────────────────────────────
-export const paginatedPersonsSchema = z.object({
-  data: z.array(personListItemSchema),
-  total: z.number(),
-  page: z.number(),
-  pageSize: z.number(),
-  totalPages: z.number(),
-})
-
-// ─── Person Case Summary ──────────────────────────────────────────────────────
-export const personCaseSummarySchema = z.object({
-  caseId: z.string().uuid(),
-  caseNumber: z.string(),
-  title: z.string(),
-  roleOnCase: z.nativeEnum(PersonRole),
-  caseStatus: z.string(),
-  createdAt: z.string(),
-})
-
-export const personCasesResponseSchema = z.object({
-  data: z.array(personCaseSummarySchema),
-  total: z.number(),
-})
-
-// ─── Officer List Item ────────────────────────────────────────────────────────
-export const officerListItemSchema = z.object({
+const headOfficerRefSchema = z.object({
   id: z.string().uuid(),
   badgeNumber: z.string(),
   firstName: z.string(),
   lastName: z.string(),
   email: z.string(),
-  role: z.nativeEnum(OfficerRole),
-  status: z.nativeEnum(OfficerStatus),
-  departmentId: z.string().uuid(),
-  departmentName: z.string(),
-  lastActivityAt: z.string().nullable(),
+  phone: z.string().nullable(),
+})
+
+// ─── Department List Item ─────────────────────────────────────────────────────
+export const departmentListItemSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  code: z.string().nullable(),
+  location: locationRefSchema.nullable(),
+  headOfficer: headOfficerRefSchema.nullable(),
+  officerCount: z.number(),
+  activeCaseCount: z.number(),
   createdAt: z.string(),
 })
 
-// ─── Officer Detail ───────────────────────────────────────────────────────────
-export const officerDetailSchema = officerListItemSchema.extend({
-  phone: z.string().nullable(),
-  activeCaseCount: z.number(),
-  totalCaseCount: z.number(),
+// ─── Department Detail ────────────────────────────────────────────────────────
+export const departmentDetailSchema = departmentListItemSchema.extend({
+  description: z.string().nullable(),
+  updatedAt: z.string(),
 })
 
-// ─── Paginated officers ───────────────────────────────────────────────────────
-export const paginatedOfficersSchema = z.object({
-  data: z.array(officerListItemSchema),
+// ─── Paginated Departments ────────────────────────────────────────────────────
+export const paginatedDepartmentsSchema = z.object({
+  data: z.array(departmentListItemSchema),
   total: z.number(),
   page: z.number(),
   pageSize: z.number(),
   totalPages: z.number(),
 })
 
-// ─── Officer Case Summary ─────────────────────────────────────────────────────
-export const officerCaseSummarySchema = z.object({
-  caseId: z.string().uuid(),
-  caseNumber: z.string(),
-  title: z.string(),
+// ─── Department Officer Summary ───────────────────────────────────────────────
+export const departmentOfficerSummarySchema = z.object({
+  id: z.string().uuid(),
+  badgeNumber: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  role: z.string(),
   status: z.string(),
-  assignedAt: z.string(),
+  joinedAt: z.string(),
 })
 
-export const officerCasesResponseSchema = z.object({
-  data: z.array(officerCaseSummarySchema),
+export const departmentOfficersResponseSchema = z.object({
+  data: z.array(departmentOfficerSummarySchema),
   total: z.number(),
 })
 ```
 
-## 5.4 `src/features/personnel/schemas/personnel-filters.schema.ts`
+## 6.3 `src/features/departments/schemas/department-filters.schema.ts`
 
 ```typescript
 import { z } from 'zod'
-import { PersonRole, RiskLevel, OfficerStatus, OfficerRole } from '../types/personnel.types'
 
-export const personFiltersSchema = z.object({
+export const departmentFiltersSchema = z.object({
   search: z.string().optional(),
-  roles: z.array(z.nativeEnum(PersonRole)).optional(),
-  riskLevel: z.array(z.nativeEnum(RiskLevel)).optional(),
-  isProtectedWitness: z.coerce.boolean().optional(),
+  locationId: z.string().optional(),
+  hasHeadOfficer: z.coerce.boolean().optional(),
   page: z.coerce.number().min(1).optional().default(1),
   pageSize: z.coerce.number().min(10).max(100).optional().default(25),
   sortField: z
-    .enum(['firstName', 'lastName', 'createdAt', 'riskLevel'])
+    .enum(['name', 'officerCount', 'activeCaseCount', 'createdAt'])
     .optional()
-    .default('lastName'),
-  sortDirection: z.enum(['asc', 'desc']).optional().default('asc'),
-})
-
-export const officerFiltersSchema = z.object({
-  search: z.string().optional(),
-  status: z.array(z.nativeEnum(OfficerStatus)).optional(),
-  role: z.array(z.nativeEnum(OfficerRole)).optional(),
-  departmentId: z.string().optional(),
-  page: z.coerce.number().min(1).optional().default(1),
-  pageSize: z.coerce.number().min(10).max(100).optional().default(25),
-  sortField: z
-    .enum(['badgeNumber', 'firstName', 'lastName', 'status', 'lastActivityAt'])
-    .optional()
-    .default('badgeNumber'),
+    .default('name'),
   sortDirection: z.enum(['asc', 'desc']).optional().default('asc'),
 })
 ```
 
 ---
 
-# 6. `src/features/personnel/utils/personnelUtils.ts`
+# 7. Zod Schemas — Admin
+
+## 7.1 `src/features/admin/schemas/location.schema.ts`
 
 ```typescript
-import { RiskLevel, OfficerRole, OfficerStatus, PersonRole } from '../types/personnel.types'
+import { z } from 'zod'
+
+export const createLocationSchema = z.object({
+  name: z
+    .string()
+    .min(1, { message: 'Location name is required.' })
+    .max(200),
+  region: z.string().max(100).optional(),
+  country: z
+    .string()
+    .min(1, { message: 'Country is required.' })
+    .max(100)
+    .default('Ethiopia'),
+})
+
+export type CreateLocationValues = z.infer<typeof createLocationSchema>
+```
+
+## 7.2 `src/features/admin/schemas/crime-type.schema.ts`
+
+```typescript
+import { z } from 'zod'
+import { CrimeSeverity } from '../types/admin.types'
+
+export const createCrimeTypeSchema = z.object({
+  name: z
+    .string()
+    .min(1, { message: 'Crime type name is required.' })
+    .max(200),
+  code: z
+    .string()
+    .min(1, { message: 'Code is required.' })
+    .max(20)
+    .regex(/^[A-Z0-9_]+$/, {
+      message: 'Code must contain only uppercase letters, digits, and underscores.',
+    }),
+  category: z.string().max(100).optional(),
+  severity: z.nativeEnum(CrimeSeverity).optional(),
+})
+
+export type CreateCrimeTypeValues = z.infer<typeof createCrimeTypeSchema>
+```
+
+## 7.3 `src/features/admin/schemas/admin-api.schema.ts`
+
+```typescript
+import { z } from 'zod'
+import { CrimeSeverity } from '../types/admin.types'
+
+// ─── Location schemas ─────────────────────────────────────────────────────────
+export const locationSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  region: z.string().nullable(),
+  country: z.string(),
+  createdAt: z.string(),
+})
+
+export const paginatedLocationsSchema = z.object({
+  data: z.array(locationSchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+  totalPages: z.number(),
+})
+
+// ─── Crime Type schemas ───────────────────────────────────────────────────────
+export const crimeTypeSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  code: z.string(),
+  category: z.string().nullable(),
+  severity: z.nativeEnum(CrimeSeverity).nullable(),
+  createdAt: z.string(),
+})
+
+export const paginatedCrimeTypesSchema = z.object({
+  data: z.array(crimeTypeSchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+  totalPages: z.number(),
+})
+
+// ─── System Health schemas ────────────────────────────────────────────────────
+const serviceHealthSchema = z.object({
+  status: z.enum(['healthy', 'degraded', 'down']),
+  responseTimeMs: z.number().nullable(),
+  message: z.string().nullable(),
+  checkedAt: z.string(),
+})
+
+export const systemHealthSchema = z.object({
+  overall: z.enum(['healthy', 'degraded', 'down']),
+  timestamp: z.string(),
+  services: z.object({
+    database: serviceHealthSchema,
+    redis: serviceHealthSchema,
+    api: serviceHealthSchema,
+  }),
+  metrics: z.object({
+    activeSessionCount: z.number(),
+    apiResponseTimeP95Ms: z.number().nullable(),
+    lastBackupAt: z.string().nullable(),
+  }),
+})
+
+export const systemReadinessSchema = z.object({
+  ready: z.boolean(),
+  timestamp: z.string(),
+})
+```
+
+---
+
+# 8. `src/features/departments/utils/departmentUtils.ts`
+
+```typescript
 import type { BadgeVariant } from '@shared/types/ui.types'
 
-// ─── Risk Level badge variant mapping ────────────────────────────────────────
-export const RISK_LEVEL_VARIANTS: Record<RiskLevel, BadgeVariant> = {
-  LOW:    'success',      // Green — low risk
-  MEDIUM: 'warning',      // Amber — medium risk
-  HIGH:   'destructive',  // Red — high risk
-}
-
-// ─── Officer Status badge variant mapping ────────────────────────────────────
-export const OFFICER_STATUS_VARIANTS: Record<OfficerStatus, BadgeVariant> = {
-  ACTIVE:   'success',  // Green — officer is active
-  INACTIVE: 'muted',    // Slate — officer is inactive
-}
-
-// ─── Officer Role badge variant mapping ──────────────────────────────────────
-export const OFFICER_ROLE_VARIANTS: Record<OfficerRole, BadgeVariant> = {
+// ─── Officer role badge variants (local to departments module) ─────────────────
+// Identical values to OFFICER_ROLE_VARIANTS in personnel module.
+// Defined locally to respect module boundary import rules.
+export const DEPT_OFFICER_ROLE_VARIANTS: Record<string, BadgeVariant> = {
   INVESTIGATOR:  'primary',
   FORENSIC:      'accent',
   LEGAL_OFFICER: 'accent',
@@ -755,21 +747,21 @@ export const OFFICER_ROLE_VARIANTS: Record<OfficerRole, BadgeVariant> = {
   SUPERADMIN:    'destructive',
 }
 
-// ─── Person Role badge variant mapping ───────────────────────────────────────
-export const PERSON_ROLE_VARIANTS: Record<PersonRole, BadgeVariant> = {
-  SUSPECT: 'warning',
-  VICTIM:  'muted',
-  WITNESS: 'primary',
+// ─── Officer status badge variants (local to departments module) ──────────────
+export const DEPT_OFFICER_STATUS_VARIANTS: Record<string, BadgeVariant> = {
+  ACTIVE:   'success',
+  INACTIVE: 'muted',
 }
 
-// ─── Full name helper ─────────────────────────────────────────────────────────
-export function getFullName(first: string, last: string): string {
-  return `${first} ${last}`.trim()
+// ─── Department display name ──────────────────────────────────────────────────
+// Returns: "Homicide Unit (HOM)" or "Homicide Unit" if no code
+export function getDepartmentDisplayName(name: string, code: string | null): string {
+  if (code) return `${name} (${code})`
+  return name
 }
 
-// ─── Officer display name helper ──────────────────────────────────────────────
-// Returns: "Insp. Alem Tadesse (BD-00142)"
-export function getOfficerDisplayName(
+// ─── Head officer full name ───────────────────────────────────────────────────
+export function getHeadOfficerLabel(
   firstName: string,
   lastName: string,
   badgeNumber: string,
@@ -777,2075 +769,1789 @@ export function getOfficerDisplayName(
   return `${firstName} ${lastName} (${badgeNumber})`
 }
 
-// ─── Risk level ordinal (for sorting) ────────────────────────────────────────
-export const RISK_LEVEL_ORDINAL: Record<RiskLevel, number> = {
-  LOW:    0,
-  MEDIUM: 1,
-  HIGH:   2,
+// ─── Check if department has a head officer ───────────────────────────────────
+export function hasHeadOfficer(dept: { headOfficer: unknown }): boolean {
+  return dept.headOfficer !== null && dept.headOfficer !== undefined
+}
+```
+
+## 8.1 `src/features/admin/utils/adminUtils.ts`
+
+```typescript
+import type { BadgeVariant } from '@shared/types/ui.types'
+import { HealthStatus, CrimeSeverity } from '../types/admin.types'
+
+// ─── Health status badge variants ─────────────────────────────────────────────
+export const HEALTH_STATUS_VARIANTS: Record<HealthStatus, BadgeVariant> = {
+  healthy:  'success',
+  degraded: 'warning',
+  down:     'destructive',
 }
 
-// ─── Check if a role is already assigned to a person ──────────────────────────
-export function hasRole(roles: PersonRole[], role: PersonRole): boolean {
-  return roles.includes(role)
+// ─── Crime severity badge variants ────────────────────────────────────────────
+export const CRIME_SEVERITY_VARIANTS: Record<CrimeSeverity, BadgeVariant> = {
+  MISDEMEANOR: 'muted',
+  FELONY:      'warning',
+  CAPITAL:     'destructive',
 }
 
-// ─── Roles not yet assigned to a person ──────────────────────────────────────
-export function getUnassignedRoles(roles: PersonRole[]): PersonRole[] {
-  return Object.values(PersonRole).filter((r) => !roles.includes(r))
+// ─── Health status icon name helper ──────────────────────────────────────────
+// Returns the lucide icon name appropriate for a given health status.
+export function getHealthStatusIcon(status: HealthStatus): 'check-circle' | 'alert-triangle' | 'x-circle' {
+  if (status === 'healthy') return 'check-circle'
+  if (status === 'degraded') return 'alert-triangle'
+  return 'x-circle'
+}
+
+// ─── Format response time ─────────────────────────────────────────────────────
+export function formatResponseTime(ms: number | null): string {
+  if (ms === null) return '—'
+  if (ms < 1000) return `${ms}ms`
+  return `${(ms / 1000).toFixed(1)}s`
 }
 ```
 
 ---
 
-# 7. Query Key Factory
+# 9. Query Key Factories
 
-## 7.1 `src/services/query/keys/personnelKeys.ts`
+## 9.1 `src/services/query/keys/departmentKeys.ts`
 
 ```typescript
-export const personnelKeys = {
-  // ── Persons root ─────────────────────────────────────────────────────────────
-  persons: () => ['persons'] as const,
+export const departmentKeys = {
+  // ── Root ──────────────────────────────────────────────────────────────────────
+  departments: () => ['departments'] as const,
 
-  personList: () => [...personnelKeys.persons(), 'list'] as const,
-  personListFiltered: (filters: Record<string, unknown>) =>
-    [...personnelKeys.personList(), filters] as const,
+  departmentList: () => [...departmentKeys.departments(), 'list'] as const,
+  departmentListFiltered: (filters: Record<string, unknown>) =>
+    [...departmentKeys.departmentList(), filters] as const,
 
-  personDetail: () => [...personnelKeys.persons(), 'detail'] as const,
-  person: (personId: string) =>
-    [...personnelKeys.personDetail(), personId] as const,
+  departmentDetail: () => [...departmentKeys.departments(), 'detail'] as const,
+  department: (departmentId: string) =>
+    [...departmentKeys.departmentDetail(), departmentId] as const,
 
-  personCases: (personId: string) =>
-    [...personnelKeys.person(personId), 'cases'] as const,
+  departmentOfficers: (departmentId: string) =>
+    [...departmentKeys.department(departmentId), 'officers'] as const,
+} as const
+```
 
-  // ── Officers root ─────────────────────────────────────────────────────────────
-  officers: () => ['officers'] as const,
+## 9.2 `src/services/query/keys/adminKeys.ts`
 
-  officerList: () => [...personnelKeys.officers(), 'list'] as const,
-  officerListFiltered: (filters: Record<string, unknown>) =>
-    [...personnelKeys.officerList(), filters] as const,
+```typescript
+export const adminKeys = {
+  // ── Health ─────────────────────────────────────────────────────────────────
+  health: () => ['admin', 'health'] as const,
+  readiness: () => ['admin', 'readiness'] as const,
 
-  officerDetail: () => [...personnelKeys.officers(), 'detail'] as const,
-  officer: (officerId: string) =>
-    [...personnelKeys.officerDetail(), officerId] as const,
+  // ── Locations ──────────────────────────────────────────────────────────────
+  locations: () => ['admin', 'locations'] as const,
+  locationList: () => [...adminKeys.locations(), 'list'] as const,
+  locationListFiltered: (filters: Record<string, unknown>) =>
+    [...adminKeys.locationList(), filters] as const,
 
-  officerCases: (officerId: string) =>
-    [...personnelKeys.officer(officerId), 'cases'] as const,
+  // ── Crime Types ────────────────────────────────────────────────────────────
+  crimeTypes: () => ['admin', 'crime-types'] as const,
+  crimeTypeList: () => [...adminKeys.crimeTypes(), 'list'] as const,
+  crimeTypeListFiltered: (filters: Record<string, unknown>) =>
+    [...adminKeys.crimeTypeList(), filters] as const,
 } as const
 ```
 
 ---
 
-# 8. Service Layer
+# 10. Service Layer — Departments
 
-## 8.1 `src/services/domain/personnel.service.ts`
+## 10.1 `src/services/domain/departments.service.ts`
 
 Replace all stubs. Every response validated with Zod. No `any` types.
 
 ```typescript
 import { apiClient } from '@services/api/client'
 import {
-  paginatedPersonsSchema,
-  personDetailSchema,
-  personCasesResponseSchema,
-  paginatedOfficersSchema,
-  officerDetailSchema,
-  officerCasesResponseSchema,
-} from '@features/personnel/schemas/personnel-api.schema'
+  paginatedDepartmentsSchema,
+  departmentDetailSchema,
+  departmentOfficersResponseSchema,
+} from '@features/departments/schemas/department-api.schema'
 import type {
-  Person,
-  PersonListItem,
-  PersonFilters,
-  PersonCaseSummary,
-  CreatePersonPayload,
-  PromoteToSuspectPayload,
-  PromoteToVictimPayload,
-  PromoteToWitnessPayload,
-  Officer,
-  OfficerListItem,
-  OfficerFilters,
-  OfficerCaseSummary,
-  CreateOfficerPayload,
-} from '@features/personnel/types/personnel.types'
+  Department,
+  DepartmentListItem,
+  DepartmentFilters,
+  DepartmentOfficerSummary,
+  CreateDepartmentPayload,
+  UpdateDepartmentPayload,
+  AssignHeadOfficerPayload,
+} from '@features/departments/types/department.types'
+import type { PaginatedResponse } from '@shared/types/api.types'
+
+// ─── Endpoints ────────────────────────────────────────────────────────────────
+
+/** GET /api/v1/departments — list with filters */
+export async function getDepartments(
+  filters: DepartmentFilters,
+): Promise<PaginatedResponse<DepartmentListItem>> {
+  const params = buildDepartmentParams(filters)
+  const raw = await apiClient.get(`/api/v1/departments?${params}`)
+  return paginatedDepartmentsSchema.parse(raw)
+}
+
+/** GET /api/v1/departments/:id — single department detail */
+export async function getDepartment(departmentId: string): Promise<Department> {
+  const raw = await apiClient.get(`/api/v1/departments/${departmentId}`)
+  return departmentDetailSchema.parse(raw)
+}
+
+/** POST /api/v1/departments — create new department (admin+) */
+export async function createDepartment(
+  payload: CreateDepartmentPayload,
+): Promise<Department> {
+  const raw = await apiClient.post('/api/v1/departments', payload)
+  return departmentDetailSchema.parse(raw)
+}
+
+/** PATCH /api/v1/departments/:id — update department metadata (admin+) */
+export async function updateDepartment(
+  departmentId: string,
+  payload: UpdateDepartmentPayload,
+): Promise<Department> {
+  const raw = await apiClient.patch(`/api/v1/departments/${departmentId}`, payload)
+  return departmentDetailSchema.parse(raw)
+}
+
+/** DELETE /api/v1/departments/:id — delete department (admin+) */
+export async function deleteDepartment(departmentId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/departments/${departmentId}`)
+}
+
+/**
+ * POST /api/v1/departments/:id/head
+ * Assigns an officer as the department head (admin+).
+ * The backend may update the officer's role to DEPT_HEAD.
+ */
+export async function assignHeadOfficer(
+  departmentId: string,
+  payload: AssignHeadOfficerPayload,
+): Promise<Department> {
+  const raw = await apiClient.post(`/api/v1/departments/${departmentId}/head`, payload)
+  return departmentDetailSchema.parse(raw)
+}
+
+/**
+ * DELETE /api/v1/departments/:id/head
+ * Removes the department head designation (admin+).
+ */
+export async function removeHeadOfficer(departmentId: string): Promise<Department> {
+  const raw = await apiClient.delete(`/api/v1/departments/${departmentId}/head`)
+  return departmentDetailSchema.parse(raw)
+}
+
+/**
+ * GET /api/v1/departments/:id/officers
+ * Compact officer list for the department detail page.
+ * Returns up to 50 officers sorted by lastName asc.
+ */
+export async function getDepartmentOfficers(
+  departmentId: string,
+  params: { page?: number; pageSize?: number } = {},
+): Promise<{ data: DepartmentOfficerSummary[]; total: number }> {
+  const p = new URLSearchParams()
+  p.set('page', String(params.page ?? 1))
+  p.set('pageSize', String(params.pageSize ?? 50))
+  p.set('sortField', 'lastName')
+  p.set('sortDirection', 'asc')
+  const raw = await apiClient.get(
+    `/api/v1/departments/${departmentId}/officers?${p.toString()}`,
+  )
+  return departmentOfficersResponseSchema.parse(raw)
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function buildDepartmentParams(filters: DepartmentFilters): string {
+  const p = new URLSearchParams()
+  if (filters.search) p.set('search', filters.search)
+  if (filters.locationId) p.set('locationId', filters.locationId)
+  if (filters.hasHeadOfficer !== undefined)
+    p.set('hasHeadOfficer', String(filters.hasHeadOfficer))
+  p.set('page', String(filters.page ?? 1))
+  p.set('pageSize', String(filters.pageSize ?? 25))
+  if (filters.sortField) p.set('sortField', filters.sortField)
+  if (filters.sortDirection) p.set('sortDirection', filters.sortDirection)
+  return p.toString()
+}
+```
+
+---
+
+# 11. Service Layer — Admin
+
+## 11.1 `src/services/domain/admin.service.ts`
+
+```typescript
+import { apiClient } from '@services/api/client'
+import {
+  paginatedLocationsSchema,
+  locationSchema,
+  paginatedCrimeTypesSchema,
+  crimeTypeSchema,
+  systemHealthSchema,
+  systemReadinessSchema,
+} from '@features/admin/schemas/admin-api.schema'
+import type {
+  Location,
+  LocationFilters,
+  CreateLocationPayload,
+  CrimeType,
+  CrimeTypeFilters,
+  CreateCrimeTypePayload,
+  SystemHealth,
+  SystemReadiness,
+} from '@features/admin/types/admin.types'
 import type { PaginatedResponse } from '@shared/types/api.types'
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PERSONS (12 endpoints)
+// SYSTEM HEALTH (2 endpoints)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/** GET /api/v1/personnel/persons — list with filters */
-export async function getPersons(
-  filters: PersonFilters,
-): Promise<PaginatedResponse<PersonListItem>> {
-  const params = buildPersonParams(filters)
-  const raw = await apiClient.get(`/api/v1/personnel/persons?${params}`)
-  return paginatedPersonsSchema.parse(raw)
+/** GET /api/v1/health — overall system health with per-service status */
+export async function getSystemHealth(): Promise<SystemHealth> {
+  const raw = await apiClient.get('/api/v1/health')
+  return systemHealthSchema.parse(raw)
 }
 
-/** GET /api/v1/personnel/persons/:id — single person detail */
-export async function getPerson(personId: string): Promise<Person> {
-  const raw = await apiClient.get(`/api/v1/personnel/persons/${personId}`)
-  return personDetailSchema.parse(raw)
-}
-
-/** POST /api/v1/personnel/persons — create new person */
-export async function createPerson(
-  payload: CreatePersonPayload,
-): Promise<Person> {
-  const raw = await apiClient.post('/api/v1/personnel/persons', payload)
-  return personDetailSchema.parse(raw)
-}
-
-/** POST /api/v1/personnel/persons/:id/suspect — promote to suspect */
-export async function promoteToSuspect(
-  personId: string,
-  payload: PromoteToSuspectPayload,
-): Promise<Person> {
-  const raw = await apiClient.post(
-    `/api/v1/personnel/persons/${personId}/suspect`,
-    payload,
-  )
-  return personDetailSchema.parse(raw)
-}
-
-/** POST /api/v1/personnel/persons/:id/victim — promote to victim */
-export async function promoteToVictim(
-  personId: string,
-  payload: PromoteToVictimPayload,
-): Promise<Person> {
-  const raw = await apiClient.post(
-    `/api/v1/personnel/persons/${personId}/victim`,
-    payload,
-  )
-  return personDetailSchema.parse(raw)
-}
-
-/** POST /api/v1/personnel/persons/:id/witness — promote to witness */
-export async function promoteToWitness(
-  personId: string,
-  payload: PromoteToWitnessPayload,
-): Promise<Person> {
-  const raw = await apiClient.post(
-    `/api/v1/personnel/persons/${personId}/witness`,
-    payload,
-  )
-  return personDetailSchema.parse(raw)
-}
-
-/**
- * GET /api/v1/personnel/persons/:id/cases
- * Cases this person is linked to (as suspect, victim, or witness).
- * page and pageSize supported; returns up to 100 for the detail page.
- */
-export async function getPersonCases(
-  personId: string,
-  params: { page?: number; pageSize?: number } = {},
-): Promise<{ data: PersonCaseSummary[]; total: number }> {
-  const p = new URLSearchParams()
-  p.set('page', String(params.page ?? 1))
-  p.set('pageSize', String(params.pageSize ?? 25))
-  const raw = await apiClient.get(
-    `/api/v1/personnel/persons/${personId}/cases?${p.toString()}`,
-  )
-  return personCasesResponseSchema.parse(raw)
+/** GET /api/v1/readiness — simple readiness probe */
+export async function getSystemReadiness(): Promise<SystemReadiness> {
+  const raw = await apiClient.get('/api/v1/readiness')
+  return systemReadinessSchema.parse(raw)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// OFFICERS (9 endpoints)
+// LOCATIONS (3 endpoints)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/** GET /api/v1/personnel/officers — list with filters */
-export async function getOfficers(
-  filters: OfficerFilters,
-): Promise<PaginatedResponse<OfficerListItem>> {
-  const params = buildOfficerParams(filters)
-  const raw = await apiClient.get(`/api/v1/personnel/officers?${params}`)
-  return paginatedOfficersSchema.parse(raw)
-}
-
-/** GET /api/v1/personnel/officers/:id — single officer detail */
-export async function getOfficer(officerId: string): Promise<Officer> {
-  const raw = await apiClient.get(`/api/v1/personnel/officers/${officerId}`)
-  return officerDetailSchema.parse(raw)
-}
-
-/** POST /api/v1/personnel/officers — create new officer (admin+) */
-export async function createOfficer(
-  payload: CreateOfficerPayload,
-): Promise<Officer> {
-  const raw = await apiClient.post('/api/v1/personnel/officers', payload)
-  return officerDetailSchema.parse(raw)
-}
-
-/** POST /api/v1/personnel/officers/:id/activate — reactivate officer (admin+) */
-export async function activateOfficer(officerId: string): Promise<Officer> {
-  const raw = await apiClient.post(
-    `/api/v1/personnel/officers/${officerId}/activate`,
-  )
-  return officerDetailSchema.parse(raw)
-}
-
-/** POST /api/v1/personnel/officers/:id/deactivate — deactivate officer (admin+) */
-export async function deactivateOfficer(officerId: string): Promise<Officer> {
-  const raw = await apiClient.post(
-    `/api/v1/personnel/officers/${officerId}/deactivate`,
-  )
-  return officerDetailSchema.parse(raw)
-}
-
-/** POST /api/v1/personnel/officers/:id/reset-password — trigger password reset (admin+) */
-export async function resetOfficerPassword(officerId: string): Promise<void> {
-  await apiClient.post(`/api/v1/personnel/officers/${officerId}/reset-password`)
-}
-
-/**
- * GET /api/v1/personnel/officers/:id/cases
- * Recent cases assigned to this officer. Returns last 10 by default.
- */
-export async function getOfficerCases(
-  officerId: string,
-): Promise<{ data: OfficerCaseSummary[]; total: number }> {
-  const raw = await apiClient.get(
-    `/api/v1/personnel/officers/${officerId}/cases?pageSize=10&sortField=assignedAt&sortDirection=desc`,
-  )
-  return officerCasesResponseSchema.parse(raw)
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-function buildPersonParams(filters: PersonFilters): string {
+/** GET /api/v1/admin/locations — list with filters */
+export async function getLocations(
+  filters: LocationFilters,
+): Promise<PaginatedResponse<Location>> {
   const p = new URLSearchParams()
   if (filters.search) p.set('search', filters.search)
-  if (filters.roles?.length) p.set('roles', filters.roles.join(','))
-  if (filters.riskLevel?.length) p.set('riskLevel', filters.riskLevel.join(','))
-  if (filters.isProtectedWitness !== undefined)
-    p.set('isProtectedWitness', String(filters.isProtectedWitness))
   p.set('page', String(filters.page ?? 1))
   p.set('pageSize', String(filters.pageSize ?? 25))
   if (filters.sortField) p.set('sortField', filters.sortField)
   if (filters.sortDirection) p.set('sortDirection', filters.sortDirection)
-  return p.toString()
+  const raw = await apiClient.get(`/api/v1/admin/locations?${p.toString()}`)
+  return paginatedLocationsSchema.parse(raw)
 }
 
-function buildOfficerParams(filters: OfficerFilters): string {
+/** POST /api/v1/admin/locations — create new location (admin+) */
+export async function createLocation(
+  payload: CreateLocationPayload,
+): Promise<Location> {
+  const raw = await apiClient.post('/api/v1/admin/locations', payload)
+  return locationSchema.parse(raw)
+}
+
+/** DELETE /api/v1/admin/locations/:id — delete location (admin+) */
+export async function deleteLocation(locationId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/admin/locations/${locationId}`)
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CRIME TYPES (2 endpoints)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** GET /api/v1/admin/crime-types — list with filters */
+export async function getCrimeTypes(
+  filters: CrimeTypeFilters,
+): Promise<PaginatedResponse<CrimeType>> {
   const p = new URLSearchParams()
   if (filters.search) p.set('search', filters.search)
-  if (filters.status?.length) p.set('status', filters.status.join(','))
-  if (filters.role?.length) p.set('role', filters.role.join(','))
-  if (filters.departmentId) p.set('departmentId', filters.departmentId)
+  if (filters.category) p.set('category', filters.category)
+  if (filters.severity?.length) p.set('severity', filters.severity.join(','))
   p.set('page', String(filters.page ?? 1))
   p.set('pageSize', String(filters.pageSize ?? 25))
   if (filters.sortField) p.set('sortField', filters.sortField)
   if (filters.sortDirection) p.set('sortDirection', filters.sortDirection)
-  return p.toString()
+  const raw = await apiClient.get(`/api/v1/admin/crime-types?${p.toString()}`)
+  return paginatedCrimeTypesSchema.parse(raw)
+}
+
+/** POST /api/v1/admin/crime-types — create new crime type (admin+) */
+export async function createCrimeType(
+  payload: CreateCrimeTypePayload,
+): Promise<CrimeType> {
+  const raw = await apiClient.post('/api/v1/admin/crime-types', payload)
+  return crimeTypeSchema.parse(raw)
 }
 ```
 
 ---
 
-# 9. React Query Hooks
+# 12. React Query Hooks — Departments
 
-Create all hooks in `src/features/personnel/hooks/`.
+Create all hooks in `src/features/departments/hooks/`.
 
-## 9.1 `usePersonList.ts`
+## 12.1 `useDepartmentList.ts`
 
 ```typescript
 import { useQuery } from '@tanstack/react-query'
-import { getPersons } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
-import type { PersonFilters } from '../types/personnel.types'
+import { getDepartments } from '@services/domain/departments.service'
+import { departmentKeys } from '@services/query/keys/departmentKeys'
+import type { DepartmentFilters } from '../types/department.types'
 
-export function usePersonList(filters: PersonFilters) {
+export function useDepartmentList(filters: DepartmentFilters) {
   return useQuery({
-    queryKey: personnelKeys.personListFiltered(filters as Record<string, unknown>),
-    queryFn: () => getPersons(filters),
+    queryKey: departmentKeys.departmentListFiltered(filters as Record<string, unknown>),
+    queryFn: () => getDepartments(filters),
     staleTime: 2 * 60 * 1000,
     placeholderData: (prev) => prev,
   })
 }
 ```
 
-## 9.2 `usePersonDetail.ts`
+## 12.2 `useDepartmentDetail.ts`
 
 ```typescript
 import { useQuery } from '@tanstack/react-query'
-import { getPerson } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { getDepartment } from '@services/domain/departments.service'
+import { departmentKeys } from '@services/query/keys/departmentKeys'
 
-export function usePersonDetail(personId: string) {
+export function useDepartmentDetail(departmentId: string) {
   return useQuery({
-    queryKey: personnelKeys.person(personId),
-    queryFn: () => getPerson(personId),
+    queryKey: departmentKeys.department(departmentId),
+    queryFn: () => getDepartment(departmentId),
     staleTime: 2 * 60 * 1000,
-    enabled: Boolean(personId),
+    enabled: Boolean(departmentId),
   })
 }
 ```
 
-## 9.3 `useCreatePerson.ts`
+## 12.3 `useCreateDepartment.ts`
 
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { createPerson } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { createDepartment } from '@services/domain/departments.service'
+import { departmentKeys } from '@services/query/keys/departmentKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
 import { ApiError } from '@services/api/errors'
-import type { CreatePersonPayload } from '../types/personnel.types'
+import type { CreateDepartmentPayload } from '../types/department.types'
 
-export function useCreatePerson() {
+export function useCreateDepartment() {
   const queryClient = useQueryClient()
   const { addToast } = useNotificationStore()
-  const t = useTranslations('personnel')
+  const t = useTranslations('departments')
 
   return useMutation({
-    mutationFn: (payload: CreatePersonPayload) => createPerson(payload),
+    mutationFn: (payload: CreateDepartmentPayload) => createDepartment(payload),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.personList() })
-      addToast({ message: t('persons.create.successMessage'), variant: 'success' })
+      void queryClient.invalidateQueries({ queryKey: departmentKeys.departmentList() })
+      addToast({ message: t('create.successMessage'), variant: 'success' })
     },
     onError: (err: unknown) => {
       const message =
-        err instanceof ApiError ? err.message : t('persons.create.errorMessage')
+        err instanceof ApiError ? err.message : t('create.errorMessage')
       addToast({ message, variant: 'error' })
     },
   })
 }
 ```
 
-## 9.4 `usePromoteToSuspect.ts`
+## 12.4 `useUpdateDepartment.ts`
 
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { promoteToSuspect } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { updateDepartment } from '@services/domain/departments.service'
+import { departmentKeys } from '@services/query/keys/departmentKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
 import { ApiError } from '@services/api/errors'
-import type { PromoteToSuspectPayload } from '../types/personnel.types'
+import type { UpdateDepartmentPayload } from '../types/department.types'
 
-export function usePromoteToSuspect(personId: string) {
+export function useUpdateDepartment(departmentId: string) {
   const queryClient = useQueryClient()
   const { addToast } = useNotificationStore()
-  const t = useTranslations('personnel')
+  const t = useTranslations('departments')
 
   return useMutation({
-    mutationFn: (payload: PromoteToSuspectPayload) =>
-      promoteToSuspect(personId, payload),
+    mutationFn: (payload: UpdateDepartmentPayload) =>
+      updateDepartment(departmentId, payload),
     onSuccess: () => {
-      // Invalidate the person detail — the suspectProfile will now be populated
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.person(personId) })
-      // Invalidate the list — the roles column and risk badge update
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.personList() })
-      addToast({ message: t('persons.promoteToSuspect.successMessage'), variant: 'success' })
+      void queryClient.invalidateQueries({ queryKey: departmentKeys.department(departmentId) })
+      void queryClient.invalidateQueries({ queryKey: departmentKeys.departmentList() })
+      addToast({ message: t('update.successMessage'), variant: 'success' })
     },
     onError: (err: unknown) => {
       const message =
-        err instanceof ApiError
-          ? err.message
-          : t('persons.promoteToSuspect.errorMessage')
+        err instanceof ApiError ? err.message : t('update.errorMessage')
       addToast({ message, variant: 'error' })
     },
   })
 }
 ```
 
-## 9.5 `usePromoteToVictim.ts`
+## 12.5 `useDeleteDepartment.ts`
 
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { promoteToVictim } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { useRouter } from 'next/navigation'
+import { deleteDepartment } from '@services/domain/departments.service'
+import { departmentKeys } from '@services/query/keys/departmentKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
 import { ApiError } from '@services/api/errors'
-import type { PromoteToVictimPayload } from '../types/personnel.types'
 
-export function usePromoteToVictim(personId: string) {
+export function useDeleteDepartment(departmentId: string) {
   const queryClient = useQueryClient()
   const { addToast } = useNotificationStore()
-  const t = useTranslations('personnel')
+  const t = useTranslations('departments')
+  const router = useRouter()
 
   return useMutation({
-    mutationFn: (payload: PromoteToVictimPayload) =>
-      promoteToVictim(personId, payload),
+    // Never optimistic — deletion is irreversible
+    mutationFn: () => deleteDepartment(departmentId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.person(personId) })
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.personList() })
-      addToast({ message: t('persons.promoteToVictim.successMessage'), variant: 'success' })
+      void queryClient.invalidateQueries({ queryKey: departmentKeys.departmentList() })
+      // Remove the cached detail since the record no longer exists
+      queryClient.removeQueries({ queryKey: departmentKeys.department(departmentId) })
+      addToast({ message: t('delete.successMessage'), variant: 'success' })
+      router.push('/departments')
     },
     onError: (err: unknown) => {
       const message =
-        err instanceof ApiError
-          ? err.message
-          : t('persons.promoteToVictim.errorMessage')
+        err instanceof ApiError ? err.message : t('delete.errorMessage')
       addToast({ message, variant: 'error' })
     },
   })
 }
 ```
 
-## 9.6 `usePromoteToWitness.ts`
+## 12.6 `useAssignHeadOfficer.ts`
 
 ```typescript
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { promoteToWitness } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { assignHeadOfficer } from '@services/domain/departments.service'
+import { departmentKeys } from '@services/query/keys/departmentKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
 import { ApiError } from '@services/api/errors'
-import type { PromoteToWitnessPayload } from '../types/personnel.types'
+import type { AssignHeadOfficerPayload } from '../types/department.types'
 
-export function usePromoteToWitness(personId: string) {
+export function useAssignHeadOfficer(departmentId: string) {
   const queryClient = useQueryClient()
   const { addToast } = useNotificationStore()
-  const t = useTranslations('personnel')
+  const t = useTranslations('departments')
 
   return useMutation({
-    mutationFn: (payload: PromoteToWitnessPayload) =>
-      promoteToWitness(personId, payload),
+    mutationFn: (payload: AssignHeadOfficerPayload) =>
+      assignHeadOfficer(departmentId, payload),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.person(personId) })
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.personList() })
-      addToast({ message: t('persons.promoteToWitness.successMessage'), variant: 'success' })
+      void queryClient.invalidateQueries({ queryKey: departmentKeys.department(departmentId) })
+      void queryClient.invalidateQueries({ queryKey: departmentKeys.departmentList() })
+      addToast({ message: t('assignHead.successMessage'), variant: 'success' })
     },
     onError: (err: unknown) => {
       const message =
-        err instanceof ApiError
-          ? err.message
-          : t('persons.promoteToWitness.errorMessage')
+        err instanceof ApiError ? err.message : t('assignHead.errorMessage')
       addToast({ message, variant: 'error' })
     },
   })
 }
 ```
 
-## 9.7 `usePersonCases.ts`
+## 12.7 `useRemoveHeadOfficer.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { removeHeadOfficer } from '@services/domain/departments.service'
+import { departmentKeys } from '@services/query/keys/departmentKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+
+export function useRemoveHeadOfficer(departmentId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('departments')
+
+  return useMutation({
+    mutationFn: () => removeHeadOfficer(departmentId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: departmentKeys.department(departmentId) })
+      void queryClient.invalidateQueries({ queryKey: departmentKeys.departmentList() })
+      addToast({ message: t('removeHead.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('removeHead.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 12.8 `useDepartmentOfficers.ts`
 
 ```typescript
 import { useQuery } from '@tanstack/react-query'
-import { getPersonCases } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { getDepartmentOfficers } from '@services/domain/departments.service'
+import { departmentKeys } from '@services/query/keys/departmentKeys'
 
-export function usePersonCases(
-  personId: string,
+export function useDepartmentOfficers(
+  departmentId: string,
   params: { page?: number; pageSize?: number } = {},
 ) {
   return useQuery({
-    queryKey: [...personnelKeys.personCases(personId), params],
-    queryFn: () => getPersonCases(personId, params),
+    queryKey: [...departmentKeys.departmentOfficers(departmentId), params],
+    queryFn: () => getDepartmentOfficers(departmentId, params),
     staleTime: 2 * 60 * 1000,
     placeholderData: (prev) => prev,
-    enabled: Boolean(personId),
+    enabled: Boolean(departmentId),
   })
 }
 ```
 
-## 9.8 `useOfficerList.ts`
+## 12.9 `src/features/departments/hooks/index.ts`
 
 ```typescript
-import { useQuery } from '@tanstack/react-query'
-import { getOfficers } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
-import type { OfficerFilters } from '../types/personnel.types'
-
-export function useOfficerList(filters: OfficerFilters) {
-  return useQuery({
-    queryKey: personnelKeys.officerListFiltered(filters as Record<string, unknown>),
-    queryFn: () => getOfficers(filters),
-    staleTime: 2 * 60 * 1000,
-    placeholderData: (prev) => prev,
-  })
-}
-```
-
-## 9.9 `useOfficerDetail.ts`
-
-```typescript
-import { useQuery } from '@tanstack/react-query'
-import { getOfficer } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
-
-export function useOfficerDetail(officerId: string) {
-  return useQuery({
-    queryKey: personnelKeys.officer(officerId),
-    queryFn: () => getOfficer(officerId),
-    staleTime: 2 * 60 * 1000,
-    enabled: Boolean(officerId),
-  })
-}
-```
-
-## 9.10 `useCreateOfficer.ts`
-
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import { createOfficer } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
-import { useNotificationStore } from '@shared/stores/notification.store'
-import { ApiError } from '@services/api/errors'
-import type { CreateOfficerPayload } from '../types/personnel.types'
-
-export function useCreateOfficer() {
-  const queryClient = useQueryClient()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('personnel')
-
-  return useMutation({
-    mutationFn: (payload: CreateOfficerPayload) => createOfficer(payload),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.officerList() })
-      addToast({ message: t('officers.create.successMessage'), variant: 'success' })
-    },
-    onError: (err: unknown) => {
-      const message =
-        err instanceof ApiError ? err.message : t('officers.create.errorMessage')
-      addToast({ message, variant: 'error' })
-    },
-  })
-}
-```
-
-## 9.11 `useActivateOfficer.ts`
-
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import { activateOfficer } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
-import { useNotificationStore } from '@shared/stores/notification.store'
-
-export function useActivateOfficer(officerId: string) {
-  const queryClient = useQueryClient()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('personnel')
-
-  return useMutation({
-    mutationFn: () => activateOfficer(officerId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.officer(officerId) })
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.officerList() })
-      addToast({ message: t('officers.activate.successMessage'), variant: 'success' })
-    },
-  })
-}
-```
-
-## 9.12 `useDeactivateOfficer.ts`
-
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import { deactivateOfficer } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
-import { useNotificationStore } from '@shared/stores/notification.store'
-
-export function useDeactivateOfficer(officerId: string) {
-  const queryClient = useQueryClient()
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('personnel')
-
-  return useMutation({
-    // Not optimistic — officer deactivation is a security-sensitive action
-    mutationFn: () => deactivateOfficer(officerId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.officer(officerId) })
-      void queryClient.invalidateQueries({ queryKey: personnelKeys.officerList() })
-      addToast({ message: t('officers.deactivate.successMessage'), variant: 'success' })
-    },
-  })
-}
-```
-
-## 9.13 `useResetOfficerPassword.ts`
-
-```typescript
-import { useMutation } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
-import { resetOfficerPassword } from '@services/domain/personnel.service'
-import { useNotificationStore } from '@shared/stores/notification.store'
-import { ApiError } from '@services/api/errors'
-
-export function useResetOfficerPassword(officerId: string) {
-  const { addToast } = useNotificationStore()
-  const t = useTranslations('personnel')
-
-  return useMutation({
-    mutationFn: () => resetOfficerPassword(officerId),
-    onSuccess: () => {
-      addToast({ message: t('officers.resetPassword.successMessage'), variant: 'success' })
-    },
-    onError: (err: unknown) => {
-      const message =
-        err instanceof ApiError
-          ? err.message
-          : t('officers.resetPassword.errorMessage')
-      addToast({ message, variant: 'error' })
-    },
-  })
-}
-```
-
-## 9.14 `useOfficerCases.ts`
-
-```typescript
-import { useQuery } from '@tanstack/react-query'
-import { getOfficerCases } from '@services/domain/personnel.service'
-import { personnelKeys } from '@services/query/keys/personnelKeys'
-
-export function useOfficerCases(officerId: string) {
-  return useQuery({
-    queryKey: personnelKeys.officerCases(officerId),
-    queryFn: () => getOfficerCases(officerId),
-    staleTime: 5 * 60 * 1000,
-    enabled: Boolean(officerId),
-  })
-}
-```
-
-## 9.15 `src/features/personnel/hooks/index.ts`
-
-```typescript
-export { usePersonList } from './usePersonList'
-export { usePersonDetail } from './usePersonDetail'
-export { useCreatePerson } from './useCreatePerson'
-export { usePromoteToSuspect } from './usePromoteToSuspect'
-export { usePromoteToVictim } from './usePromoteToVictim'
-export { usePromoteToWitness } from './usePromoteToWitness'
-export { usePersonCases } from './usePersonCases'
-export { useOfficerList } from './useOfficerList'
-export { useOfficerDetail } from './useOfficerDetail'
-export { useCreateOfficer } from './useCreateOfficer'
-export { useActivateOfficer } from './useActivateOfficer'
-export { useDeactivateOfficer } from './useDeactivateOfficer'
-export { useResetOfficerPassword } from './useResetOfficerPassword'
-export { useOfficerCases } from './useOfficerCases'
+export { useDepartmentList } from './useDepartmentList'
+export { useDepartmentDetail } from './useDepartmentDetail'
+export { useCreateDepartment } from './useCreateDepartment'
+export { useUpdateDepartment } from './useUpdateDepartment'
+export { useDeleteDepartment } from './useDeleteDepartment'
+export { useAssignHeadOfficer } from './useAssignHeadOfficer'
+export { useRemoveHeadOfficer } from './useRemoveHeadOfficer'
+export { useDepartmentOfficers } from './useDepartmentOfficers'
 ```
 
 ---
 
-# 10. i18n Messages — Personnel
+# 13. React Query Hooks — Admin
 
-## 10.1 `messages/en/personnel.json` — Full Population
+Create all hooks in `src/features/admin/hooks/`.
+
+## 13.1 `useSystemHealth.ts`
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getSystemHealth } from '@services/domain/admin.service'
+import { adminKeys } from '@services/query/keys/adminKeys'
+
+export function useSystemHealth() {
+  return useQuery({
+    queryKey: adminKeys.health(),
+    queryFn: getSystemHealth,
+    refetchInterval: 15_000,           // Poll every 15 seconds
+    refetchIntervalInBackground: false, // Stop polling when tab is inactive
+    staleTime: 0,                       // Health data is always considered stale
+    retry: 1,                          // Only one retry — avoid hammering a down system
+  })
+}
+```
+
+## 13.2 `useSystemReadiness.ts`
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getSystemReadiness } from '@services/domain/admin.service'
+import { adminKeys } from '@services/query/keys/adminKeys'
+
+export function useSystemReadiness() {
+  return useQuery({
+    queryKey: adminKeys.readiness(),
+    queryFn: getSystemReadiness,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
+    staleTime: 0,
+    retry: 1,
+  })
+}
+```
+
+## 13.3 `useLocationList.ts`
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getLocations } from '@services/domain/admin.service'
+import { adminKeys } from '@services/query/keys/adminKeys'
+import type { LocationFilters } from '../types/admin.types'
+
+export function useLocationList(filters: LocationFilters) {
+  return useQuery({
+    queryKey: adminKeys.locationListFiltered(filters as Record<string, unknown>),
+    queryFn: () => getLocations(filters),
+    staleTime: 5 * 60 * 1000,     // Reference data changes infrequently
+    placeholderData: (prev) => prev,
+  })
+}
+```
+
+## 13.4 `useCreateLocation.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { createLocation } from '@services/domain/admin.service'
+import { adminKeys } from '@services/query/keys/adminKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { CreateLocationPayload } from '../types/admin.types'
+
+export function useCreateLocation() {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('admin')
+
+  return useMutation({
+    mutationFn: (payload: CreateLocationPayload) => createLocation(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: adminKeys.locationList() })
+      addToast({ message: t('locations.create.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('locations.create.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 13.5 `useDeleteLocation.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { deleteLocation } from '@services/domain/admin.service'
+import { adminKeys } from '@services/query/keys/adminKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+
+export function useDeleteLocation(locationId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('admin')
+
+  return useMutation({
+    mutationFn: () => deleteLocation(locationId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: adminKeys.locationList() })
+      addToast({ message: t('locations.delete.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('locations.delete.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 13.6 `useCrimeTypeList.ts`
+
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { getCrimeTypes } from '@services/domain/admin.service'
+import { adminKeys } from '@services/query/keys/adminKeys'
+import type { CrimeTypeFilters } from '../types/admin.types'
+
+export function useCrimeTypeList(filters: CrimeTypeFilters) {
+  return useQuery({
+    queryKey: adminKeys.crimeTypeListFiltered(filters as Record<string, unknown>),
+    queryFn: () => getCrimeTypes(filters),
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (prev) => prev,
+  })
+}
+```
+
+## 13.7 `useCreateCrimeType.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { createCrimeType } from '@services/domain/admin.service'
+import { adminKeys } from '@services/query/keys/adminKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { CreateCrimeTypePayload } from '../types/admin.types'
+
+export function useCreateCrimeType() {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('admin')
+
+  return useMutation({
+    mutationFn: (payload: CreateCrimeTypePayload) => createCrimeType(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: adminKeys.crimeTypeList() })
+      addToast({ message: t('crimeTypes.create.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('crimeTypes.create.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 13.8 `useDeleteCrimeType.ts`
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { deleteCrimeType } from '@services/domain/admin.service'
+import { adminKeys } from '@services/query/keys/adminKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+
+// Note: deleteCrimeType endpoint is not in the Phase 8 admin service (7 endpoints total).
+// If the backend exposes DELETE /api/v1/admin/crime-types/:id in a future update,
+// add it to admin.service.ts. This hook is provided for structural completeness;
+// activate it when the endpoint is confirmed.
+export function useDeleteCrimeType(crimeTypeId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('admin')
+
+  return useMutation({
+    mutationFn: () => deleteCrimeType(crimeTypeId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: adminKeys.crimeTypeList() })
+      addToast({ message: t('crimeTypes.delete.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('crimeTypes.delete.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 13.9 `src/features/admin/hooks/index.ts`
+
+```typescript
+export { useSystemHealth } from './useSystemHealth'
+export { useSystemReadiness } from './useSystemReadiness'
+export { useLocationList } from './useLocationList'
+export { useCreateLocation } from './useCreateLocation'
+export { useDeleteLocation } from './useDeleteLocation'
+export { useCrimeTypeList } from './useCrimeTypeList'
+export { useCreateCrimeType } from './useCreateCrimeType'
+export { useDeleteCrimeType } from './useDeleteCrimeType'
+```
+
+---
+
+# 14. i18n Messages
+
+## 14.1 `messages/en/departments.json` — Full Population
 
 ```json
 {
-  "persons": {
-    "pageTitle": "Persons",
-    "list": {
-      "heading": "Persons",
-      "entityCount": "{count} person(s)",
-      "addPersonButton": "Add Person",
-      "filters": {
-        "search": "Search by name or ID...",
-        "roles": "Role",
-        "riskLevel": "Risk Level",
-        "protectedWitness": "Protected Witness Only",
-        "clearAll": "Clear all filters"
-      },
-      "loading": "Loading persons...",
-      "empty": {
-        "title": "No Persons Found",
-        "description": "No person records have been created yet.",
-        "cta": "Add the first person using the button above."
-      },
-      "emptyFiltered": "No persons match your current filters.",
-      "columns": {
-        "name": "Name",
-        "nationalId": "National ID",
-        "roles": "Roles",
-        "riskLevel": "Risk",
-        "protected": "Protected",
-        "createdAt": "Added",
-        "actions": "Actions"
-      },
-      "protectedYes": "Protected",
-      "rowActions": {
-        "view": "View Details"
-      }
+  "pageTitle": "Departments",
+  "list": {
+    "heading": "Departments",
+    "entityCount": "{count} department(s)",
+    "addDepartmentButton": "New Department",
+    "filters": {
+      "search": "Search by name or code...",
+      "location": "Location",
+      "hasHead": "Has Head Officer",
+      "clearAll": "Clear all filters"
     },
-    "detail": {
-      "breadcrumb": "Persons",
-      "identityCard": {
-        "title": "Identity",
-        "firstName": "First Name",
-        "lastName": "Last Name",
-        "gender": "Gender",
-        "nationalId": "National ID",
-        "dateOfBirth": "Date of Birth",
-        "phone": "Phone",
-        "address": "Address",
-        "noAddress": "Not recorded",
-        "createdAt": "Record Created",
-        "updatedAt": "Last Updated"
-      },
-      "pii": {
-        "masked": "Hidden for privacy",
-        "revealButton": "Reveal",
-        "hideButton": "Hide",
-        "dobYearOnly": "Year only visible for your role",
-        "revealAuditNotice": "Revealing this field will be logged in the audit trail."
-      },
-      "rolesSection": {
-        "title": "Roles & Profiles",
-        "noRoles": "No roles assigned yet.",
-        "noRolesDescription": "This person has not been linked to any investigation roles.",
-        "promoteSection": "Assign Roles",
-        "promoteHint": "Use the buttons below to assign this person to an investigative role. Each assignment is permanent."
-      },
-      "suspectCard": {
-        "title": "Suspect Profile",
-        "riskLevel": "Risk Level",
-        "notes": "Notes",
-        "noNotes": "No notes.",
-        "promotedAt": "Designated",
-        "promotedBy": "By"
-      },
-      "victimCard": {
-        "title": "Victim Profile",
-        "notes": "Notes",
-        "noNotes": "No notes.",
-        "promotedAt": "Designated",
-        "promotedBy": "By"
-      },
-      "witnessCard": {
-        "title": "Witness Profile",
-        "credibilityNotes": "Credibility Notes",
-        "noNotes": "No notes.",
-        "isProtected": "Under Protection",
-        "protectionLevel": "Protection Level",
-        "notProtected": "No protection",
-        "promotedAt": "Designated",
-        "promotedBy": "By"
-      },
-      "casesSection": {
-        "title": "Associated Cases",
-        "entityCount": "{count} case(s)",
-        "loading": "Loading cases...",
-        "empty": "This person is not linked to any cases.",
-        "columns": {
-          "caseNumber": "Case No.",
-          "title": "Case Title",
-          "roleOnCase": "Role",
-          "caseStatus": "Status",
-          "createdAt": "Since"
-        }
-      },
-      "actions": {
-        "promoteToSuspect": "Add as Suspect",
-        "promoteToVictim": "Add as Victim",
-        "promoteToWitness": "Add as Witness"
-      }
+    "loading": "Loading departments...",
+    "empty": {
+      "title": "No Departments Found",
+      "description": "No department records exist yet.",
+      "cta": "Create the first department using the button above."
     },
-    "riskLevel": {
-      "LOW": "Low",
-      "MEDIUM": "Medium",
-      "HIGH": "High"
+    "emptyFiltered": "No departments match your current filters.",
+    "columns": {
+      "name": "Department",
+      "location": "Location",
+      "headOfficer": "Head Officer",
+      "officerCount": "Officers",
+      "activeCases": "Active Cases",
+      "createdAt": "Created",
+      "actions": "Actions"
     },
-    "role": {
-      "SUSPECT": "Suspect",
-      "VICTIM": "Victim",
-      "WITNESS": "Witness"
-    },
-    "gender": {
-      "MALE": "Male",
-      "FEMALE": "Female",
-      "OTHER": "Other"
-    },
-    "create": {
-      "drawerTitle": "Add Person",
-      "drawerDescription": "Create a new person record in the system.",
-      "section1Title": "Basic Information",
-      "section2Title": "Contact & Identity",
-      "firstNameLabel": "First Name",
-      "firstNamePlaceholder": "e.g. Alem",
-      "lastNameLabel": "Last Name",
-      "lastNamePlaceholder": "e.g. Tadesse",
-      "genderLabel": "Gender (optional)",
-      "nationalIdLabel": "National ID (optional)",
-      "nationalIdPlaceholder": "e.g. ETH-1234567890",
-      "nationalIdHint": "This field is treated as sensitive PII and will be masked for lower roles.",
-      "dateOfBirthLabel": "Date of Birth (optional)",
-      "phoneLabel": "Phone Number (optional)",
-      "phonePlaceholder": "e.g. +251 91 234 5678",
-      "addressLabel": "Address (optional)",
-      "addressPlaceholder": "e.g. Bole Sub-City, Addis Ababa",
-      "submitButton": "Add Person",
-      "cancelButton": "Cancel",
-      "successMessage": "Person record created successfully.",
-      "errorMessage": "Failed to create person record. Please try again."
-    },
-    "promoteToSuspect": {
-      "drawerTitle": "Add as Suspect",
-      "drawerDescription": "Link this person to the investigation as a suspect. This assignment is permanent.",
-      "permanenceNotice": "Once a person is designated as a Suspect, this cannot be undone from the UI. Contact an administrator if this was made in error.",
-      "section1Title": "Suspect Details",
-      "riskLevelLabel": "Risk Level",
-      "riskLevelHint": "Assess the risk level based on available intelligence.",
-      "notesLabel": "Notes (optional)",
-      "notesPlaceholder": "Any notes relevant to the suspect designation...",
-      "submitButton": "Confirm — Add as Suspect",
-      "cancelButton": "Cancel",
-      "successMessage": "Person designated as Suspect successfully.",
-      "errorMessage": "Failed to designate as Suspect. Please try again."
-    },
-    "promoteToVictim": {
-      "drawerTitle": "Add as Victim",
-      "drawerDescription": "Link this person to the investigation as a victim. This assignment is permanent.",
-      "permanenceNotice": "Once a person is designated as a Victim, this cannot be undone from the UI.",
-      "section1Title": "Victim Details",
-      "notesLabel": "Notes (optional)",
-      "notesPlaceholder": "Any notes relevant to the victim designation...",
-      "submitButton": "Confirm — Add as Victim",
-      "cancelButton": "Cancel",
-      "successMessage": "Person designated as Victim successfully.",
-      "errorMessage": "Failed to designate as Victim. Please try again."
-    },
-    "promoteToWitness": {
-      "drawerTitle": "Add as Witness",
-      "drawerDescription": "Link this person to the investigation as a witness. This assignment is permanent.",
-      "permanenceNotice": "Once a person is designated as a Witness, this cannot be undone from the UI.",
-      "section1Title": "Witness Details",
-      "section2Title": "Witness Protection",
-      "credibilityNotesLabel": "Credibility Notes (optional)",
-      "credibilityNotesPlaceholder": "Notes on witness credibility and reliability...",
-      "isProtectedLabel": "Under Witness Protection",
-      "protectionLevelLabel": "Protection Level",
-      "protectionLevelPlaceholder": "e.g. STANDARD, HIGH",
-      "protectionLevelHint": "Required when witness protection is enabled.",
-      "protectedBadge": "Protected Witness",
-      "submitButton": "Confirm — Add as Witness",
-      "cancelButton": "Cancel",
-      "successMessage": "Person designated as Witness successfully.",
-      "errorMessage": "Failed to designate as Witness. Please try again."
+    "noHead": "No Head",
+    "noLocation": "No Location",
+    "rowActions": {
+      "view": "View Details",
+      "edit": "Edit Department",
+      "assignHead": "Assign Head Officer",
+      "delete": "Delete Department"
     }
   },
-  "officers": {
-    "pageTitle": "Officers",
-    "list": {
-      "heading": "Officers",
+  "detail": {
+    "breadcrumb": "Departments",
+    "metadataCard": {
+      "title": "Department Info",
+      "name": "Name",
+      "code": "Code",
+      "noCode": "Not assigned",
+      "location": "Location",
+      "noLocation": "No location assigned",
+      "description": "Description",
+      "noDescription": "No description.",
+      "officerCount": "Total Officers",
+      "activeCaseCount": "Active Cases",
+      "activeCasesLink": "View all cases →",
+      "createdAt": "Created",
+      "updatedAt": "Last Updated"
+    },
+    "headCard": {
+      "title": "Department Head",
+      "badge": "Badge",
+      "email": "Email",
+      "phone": "Phone",
+      "noPhone": "Not recorded",
+      "noHead": "No Head Officer Assigned",
+      "noHeadDescription": "This department does not currently have a designated head officer."
+    },
+    "officersSection": {
+      "title": "Officers",
       "entityCount": "{count} officer(s)",
-      "addOfficerButton": "Add Officer",
-      "filters": {
-        "search": "Search by badge or name...",
-        "status": "Status",
-        "role": "Role",
-        "department": "Department",
-        "clearAll": "Clear all filters"
-      },
+      "viewAll": "View all officers →",
       "loading": "Loading officers...",
-      "empty": {
-        "title": "No Officers Found",
-        "description": "No officer accounts exist in this scope."
-      },
-      "emptyFiltered": "No officers match your current filters.",
+      "empty": "No officers are assigned to this department.",
       "columns": {
         "badgeNumber": "Badge",
         "name": "Name",
         "role": "Role",
-        "department": "Department",
         "status": "Status",
-        "lastActivity": "Last Active",
-        "actions": "Actions"
-      },
-      "lastActivityNever": "Never",
-      "rowActions": {
-        "view": "View Details",
-        "activate": "Activate",
-        "deactivate": "Deactivate",
-        "resetPassword": "Reset Password"
+        "joinedAt": "Joined"
       }
     },
-    "detail": {
-      "breadcrumb": "Officers",
-      "identityCard": {
-        "title": "Officer Identity",
-        "badgeNumber": "Badge Number",
-        "firstName": "First Name",
-        "lastName": "Last Name",
-        "email": "Email",
-        "phone": "Phone",
-        "noPhone": "Not recorded",
-        "role": "Role",
-        "department": "Department",
-        "status": "Status",
-        "lastActivity": "Last Active",
-        "lastActivityNever": "Never",
-        "activeCases": "Active Cases",
-        "totalCases": "Total Cases",
-        "createdAt": "Account Created"
-      },
-      "casesSection": {
-        "title": "Recent Assigned Cases",
-        "loading": "Loading cases...",
-        "empty": "No cases assigned to this officer.",
-        "viewAll": "View all cases",
-        "columns": {
-          "caseNumber": "Case No.",
-          "title": "Title",
-          "status": "Status",
-          "assignedAt": "Assigned"
-        }
-      },
-      "actions": {
-        "deactivate": "Deactivate Officer",
-        "activate": "Activate Officer",
-        "resetPassword": "Reset Password"
-      }
-    },
-    "officerRole": {
-      "INVESTIGATOR": "Investigator",
-      "FORENSIC": "Forensic Officer",
-      "LEGAL_OFFICER": "Legal Officer",
-      "DEPT_HEAD": "Department Head",
-      "ADMIN": "Administrator",
-      "SUPERADMIN": "Super Administrator"
-    },
-    "officerStatus": {
-      "ACTIVE": "Active",
-      "INACTIVE": "Inactive"
-    },
-    "create": {
-      "drawerTitle": "Add Officer",
-      "drawerDescription": "Create a new officer account. The officer will receive an email to set their password.",
-      "section1Title": "Identity",
-      "section2Title": "Account Details",
-      "badgeNumberLabel": "Badge Number",
-      "badgeNumberPlaceholder": "e.g. BD-00142",
-      "badgeNumberHint": "Must be unique. Use uppercase letters, digits, and hyphens only.",
-      "firstNameLabel": "First Name",
-      "firstNamePlaceholder": "e.g. Sara",
-      "lastNameLabel": "Last Name",
-      "lastNamePlaceholder": "e.g. Haile",
-      "emailLabel": "Email Address",
-      "emailPlaceholder": "e.g. sara.haile@police.gov.et",
-      "phoneLabel": "Phone Number (optional)",
-      "phonePlaceholder": "e.g. +251 91 234 5678",
-      "roleLabel": "Officer Role",
-      "departmentLabel": "Department",
-      "departmentPlaceholder": "Select department...",
-      "submitButton": "Create Officer Account",
-      "cancelButton": "Cancel",
-      "successMessage": "Officer account created. An email has been sent with login instructions.",
-      "errorMessage": "Failed to create officer account. Please try again."
-    },
-    "deactivate": {
-      "confirmTitle": "Deactivate this officer?",
-      "confirmDescription": "Officer {badgeNumber} — {officerName} will be deactivated and will no longer be able to log in. All active sessions will be terminated. This action is logged.",
-      "confirmButton": "Deactivate Officer",
-      "cancelButton": "Cancel",
-      "successMessage": "Officer deactivated successfully.",
-      "errorMessage": "Failed to deactivate officer. Please try again."
-    },
-    "activate": {
-      "confirmTitle": "Activate this officer?",
-      "confirmDescription": "Officer {badgeNumber} — {officerName} will be reactivated and will be able to log in again.",
-      "confirmButton": "Activate Officer",
-      "cancelButton": "Cancel",
-      "successMessage": "Officer activated successfully.",
-      "errorMessage": "Failed to activate officer. Please try again."
-    },
-    "resetPassword": {
-      "confirmTitle": "Reset officer password?",
-      "confirmDescription": "A password reset email will be sent to {officerEmail}. The officer's current password will be invalidated immediately. This action is logged.",
-      "confirmButton": "Send Reset Email",
-      "cancelButton": "Cancel",
-      "successMessage": "Password reset email sent successfully.",
-      "errorMessage": "Failed to send password reset. Please try again."
+    "actions": {
+      "edit": "Edit Department",
+      "assignHead": "Assign Head Officer",
+      "changeHead": "Change Head Officer",
+      "removeHead": "Remove Head Officer",
+      "delete": "Delete Department"
     }
+  },
+  "create": {
+    "drawerTitle": "New Department",
+    "drawerDescription": "Create a new organisational department.",
+    "section1Title": "Department Identity",
+    "section2Title": "Optional Details",
+    "nameLabel": "Department Name",
+    "namePlaceholder": "e.g. Criminal Investigation Division",
+    "codeLabel": "Short Code (optional)",
+    "codePlaceholder": "e.g. CID",
+    "codeHint": "Uppercase letters and digits only. Max 10 characters.",
+    "locationLabel": "Location (optional)",
+    "locationPlaceholder": "Select a location...",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "Brief description of this department's mandate...",
+    "submitButton": "Create Department",
+    "cancelButton": "Cancel",
+    "successMessage": "Department created successfully.",
+    "errorMessage": "Failed to create department. Please try again."
+  },
+  "update": {
+    "drawerTitle": "Edit Department",
+    "drawerDescription": "Update department information.",
+    "section1Title": "Department Identity",
+    "section2Title": "Optional Details",
+    "nameLabel": "Department Name",
+    "codeLabel": "Short Code",
+    "codeHint": "Uppercase letters and digits only. Max 10 characters.",
+    "locationLabel": "Location",
+    "locationPlaceholder": "Select a location...",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Brief description of this department's mandate...",
+    "submitButton": "Save Changes",
+    "cancelButton": "Cancel",
+    "successMessage": "Department updated successfully.",
+    "errorMessage": "Failed to update department. Please try again."
+  },
+  "delete": {
+    "confirmTitle": "Delete this department?",
+    "confirmDescription": "Department \"{departmentName}\" will be permanently deleted. This action cannot be undone.",
+    "warningHasOfficers": "This department currently has {officerCount} officer(s). You must reassign or remove all officers before this department can be deleted.",
+    "confirmButton": "Delete Department",
+    "cancelButton": "Cancel",
+    "successMessage": "Department deleted successfully.",
+    "errorMessage": "Failed to delete department. The department may still have assigned officers or active cases."
+  },
+  "assignHead": {
+    "drawerTitle": "Assign Head Officer",
+    "drawerDescription": "Select an active officer to serve as the head of this department.",
+    "officerLabel": "Head Officer",
+    "officerPlaceholder": "Search by name or badge number...",
+    "officerHint": "Only active officers are eligible to be department heads.",
+    "currentHead": "Current Head",
+    "replaceNotice": "Assigning a new head will replace the current head officer.",
+    "submitButton": "Assign as Head",
+    "cancelButton": "Cancel",
+    "successMessage": "Head officer assigned successfully.",
+    "errorMessage": "Failed to assign head officer. Please try again."
+  },
+  "removeHead": {
+    "confirmTitle": "Remove head officer?",
+    "confirmDescription": "Officer {officerName} ({badgeNumber}) will be removed as the head of {departmentName}. The department will have no designated head until a new one is assigned.",
+    "confirmButton": "Remove Head Officer",
+    "cancelButton": "Cancel",
+    "successMessage": "Head officer removed successfully.",
+    "errorMessage": "Failed to remove head officer. Please try again."
   }
 }
 ```
 
-## 10.2 `messages/am/personnel.json` — Full Amharic Equivalent
-
-Every key in `en/personnel.json` must appear with the identical key path:
+## 14.2 `messages/am/departments.json` — Full Amharic Equivalent
 
 ```json
 {
-  "persons": {
-    "pageTitle": "ሰዎች",
-    "list": {
-      "heading": "ሰዎች",
-      "entityCount": "{count} ሰው(ዎች)",
-      "addPersonButton": "ሰው ጨምር",
-      "filters": {
-        "search": "በስም ወይም ፓስፖርት ፈልግ...",
-        "roles": "ሚና",
-        "riskLevel": "የስጋት ደረጃ",
-        "protectedWitness": "የተጠበቁ ምስክሮች ብቻ",
-        "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
-      },
-      "loading": "ሰዎችን እየጫነ ነው...",
-      "empty": {
-        "title": "ምንም ሰዎች አልተገኙም",
-        "description": "ምንም የሰው መዝገቦች ገና አልተፈጠሩም።",
-        "cta": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ሰው ያስፈልጋሉ።"
-      },
-      "emptyFiltered": "ምንም ሰዎች ከማጣሪያዎ ጋር አይዛመዱም።",
-      "columns": {
-        "name": "ስም",
-        "nationalId": "ብሔራዊ መታወቂያ",
-        "roles": "ሚናዎች",
-        "riskLevel": "ስጋት",
-        "protected": "ጥበቃ",
-        "createdAt": "ቀን",
-        "actions": "ድርጊቶች"
-      },
-      "protectedYes": "ጥበቃ ስር",
-      "rowActions": {
-        "view": "ዝርዝሮች ተመልከት"
-      }
+  "pageTitle": "ክፍሎች",
+  "list": {
+    "heading": "ክፍሎች",
+    "entityCount": "{count} ክፍል(ዎች)",
+    "addDepartmentButton": "አዲስ ክፍል",
+    "filters": {
+      "search": "በስም ወይም ኮድ ፈልግ...",
+      "location": "ቦታ",
+      "hasHead": "ኃላፊ ያለው",
+      "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
     },
-    "detail": {
-      "breadcrumb": "ሰዎች",
-      "identityCard": {
-        "title": "ማንነት",
-        "firstName": "የመጀመሪያ ስም",
-        "lastName": "የአባት ስም",
-        "gender": "ፆታ",
-        "nationalId": "ብሔራዊ መታወቂያ",
-        "dateOfBirth": "የትውልድ ቀን",
-        "phone": "ስልክ",
-        "address": "አድራሻ",
-        "noAddress": "አልተመዘገበም",
-        "createdAt": "መዝገብ ቀን",
-        "updatedAt": "መጨረሻ ዝማኔ"
-      },
-      "pii": {
-        "masked": "ለግላዊነት ተደብቋል",
-        "revealButton": "አሳይ",
-        "hideButton": "ደብቅ",
-        "dobYearOnly": "ለሚናዎ ዓመቱ ብቻ ይታያል",
-        "revealAuditNotice": "ይህን መስክ ማሳየት በኦዲት ዱካ ይመዘገባል።"
-      },
-      "rolesSection": {
-        "title": "ሚናዎች እና መገለጫዎች",
-        "noRoles": "ምንም ሚናዎች ገና አልተሰጡም።",
-        "noRolesDescription": "ይህ ሰው ለምርመራ ሚና ገና አልተጣበቀም።",
-        "promoteSection": "ሚናዎች ሰጥ",
-        "promoteHint": "ይህን ሰው ለምርመራ ሚና ለመሰጠት ከታች ያሉ አዝራሮች ይጠቀሙ። እያንዳንዱ ሚና ቋሚ ነው።"
-      },
-      "suspectCard": {
-        "title": "የተጠርጣሪ መገለጫ",
-        "riskLevel": "የስጋት ደረጃ",
-        "notes": "ማስታወሻ",
-        "noNotes": "ምንም ማስታወሻ የለም።",
-        "promotedAt": "ተሰጥቷል",
-        "promotedBy": "በ"
-      },
-      "victimCard": {
-        "title": "የሰለባ መገለጫ",
-        "notes": "ማስታወሻ",
-        "noNotes": "ምንም ማስታወሻ የለም።",
-        "promotedAt": "ተሰጥቷል",
-        "promotedBy": "በ"
-      },
-      "witnessCard": {
-        "title": "የምስክር መገለጫ",
-        "credibilityNotes": "የአስተማማኝነት ማስታወሻ",
-        "noNotes": "ምንም ማስታወሻ የለም።",
-        "isProtected": "ጥበቃ ስር",
-        "protectionLevel": "የጥበቃ ደረጃ",
-        "notProtected": "ምንም ጥበቃ የለም",
-        "promotedAt": "ተሰጥቷል",
-        "promotedBy": "በ"
-      },
-      "casesSection": {
-        "title": "ተያያዥ ጉዳዮች",
-        "entityCount": "{count} ጉዳይ(ዎች)",
-        "loading": "ጉዳዮችን እየጫነ ነው...",
-        "empty": "ይህ ሰው ከምንም ጉዳዮች ጋር አልተጣበቀም።",
-        "columns": {
-          "caseNumber": "ጉዳይ ቁ.",
-          "title": "ርዕስ",
-          "roleOnCase": "ሚና",
-          "caseStatus": "ሁኔታ",
-          "createdAt": "ጀምሮ"
-        }
-      },
-      "actions": {
-        "promoteToSuspect": "ተጠርጣሪ አድርግ",
-        "promoteToVictim": "ሰለባ አድርግ",
-        "promoteToWitness": "ምስክር አድርግ"
-      }
+    "loading": "ክፍሎችን እየጫነ ነው...",
+    "empty": {
+      "title": "ምንም ክፍሎች አልተገኙም",
+      "description": "ምንም የክፍል መዝገቦች ገና የሉም።",
+      "cta": "ከላይ ያለውን አዝራር በመጠቀም የመጀመሪያ ክፍል ፍጠር።"
     },
-    "riskLevel": {
-      "LOW": "ዝቅተኛ",
-      "MEDIUM": "መካከለኛ",
-      "HIGH": "ከፍተኛ"
+    "emptyFiltered": "ምንም ክፍሎች ከማጣሪያዎ ጋር አይዛመዱም።",
+    "columns": {
+      "name": "ክፍል",
+      "location": "ቦታ",
+      "headOfficer": "ኃላፊ ፖሊስ",
+      "officerCount": "ፖሊሶች",
+      "activeCases": "ንቁ ጉዳዮች",
+      "createdAt": "ተፈጥሯል",
+      "actions": "ድርጊቶች"
     },
-    "role": {
-      "SUSPECT": "ተጠርጣሪ",
-      "VICTIM": "ሰለባ",
-      "WITNESS": "ምስክር"
-    },
-    "gender": {
-      "MALE": "ወንድ",
-      "FEMALE": "ሴት",
-      "OTHER": "ሌላ"
-    },
-    "create": {
-      "drawerTitle": "ሰው ጨምር",
-      "drawerDescription": "ለስርዓቱ አዲስ የሰው መዝገብ ፍጠር።",
-      "section1Title": "መሰረታዊ መረጃ",
-      "section2Title": "ግኑኝነት እና ማንነት",
-      "firstNameLabel": "የመጀመሪያ ስም",
-      "firstNamePlaceholder": "ለምሳሌ አለም",
-      "lastNameLabel": "የአባት ስም",
-      "lastNamePlaceholder": "ለምሳሌ ታደሰ",
-      "genderLabel": "ፆታ (አማራጭ)",
-      "nationalIdLabel": "ብሔራዊ መታወቂያ (አማራጭ)",
-      "nationalIdPlaceholder": "ለምሳሌ ETH-1234567890",
-      "nationalIdHint": "ይህ መስክ እንደ ሚስጥራዊ ፒአይአይ ይቆጠራል።",
-      "dateOfBirthLabel": "የትውልድ ቀን (አማራጭ)",
-      "phoneLabel": "ስልክ ቁጥር (አማራጭ)",
-      "phonePlaceholder": "ለምሳሌ +251 91 234 5678",
-      "addressLabel": "አድራሻ (አማራጭ)",
-      "addressPlaceholder": "ለምሳሌ ቦሌ ክፍለ ከተማ፣ አዲስ አበባ",
-      "submitButton": "ሰው ጨምር",
-      "cancelButton": "ሰርዝ",
-      "successMessage": "የሰው መዝገብ በተሳካ ሁኔታ ተፈጥሯል።",
-      "errorMessage": "የሰው መዝገብ ለመፍጠር አልተሳካም። እንደገና ይሞክሩ።"
-    },
-    "promoteToSuspect": {
-      "drawerTitle": "ተጠርጣሪ አድርግ",
-      "drawerDescription": "ይህን ሰው ለምርመራ ተጠርጣሪ ሆኖ ያጣምሩ። ይህ ሚና ቋሚ ነው።",
-      "permanenceNotice": "አንድ ሰው ተጠርጣሪ ሆኖ ከተሰጠ፣ ከUI ሊቀለበስ አይችልም። ስህተት ከሆነ አስተዳዳሪን ያነጋግሩ።",
-      "section1Title": "የተጠርጣሪ ዝርዝሮች",
-      "riskLevelLabel": "የስጋት ደረጃ",
-      "riskLevelHint": "ከሚገኝ መረጃ ስጋቱን ይገምቱ።",
-      "notesLabel": "ማስታወሻ (አማራጭ)",
-      "notesPlaceholder": "ስለ ተጠርጣሪ ሚናው ማናቸውም ማስታወሻዎች...",
-      "submitButton": "አረጋግጥ — ተጠርጣሪ አድርግ",
-      "cancelButton": "ሰርዝ",
-      "successMessage": "ሰው ተጠርጣሪ ሆኖ ተሰጥቷል።",
-      "errorMessage": "ተጠርጣሪ ለማድረግ አልተሳካም። እንደገና ይሞክሩ።"
-    },
-    "promoteToVictim": {
-      "drawerTitle": "ሰለባ አድርግ",
-      "drawerDescription": "ይህን ሰው ለምርመራ ሰለባ ሆኖ ያጣምሩ። ይህ ሚና ቋሚ ነው።",
-      "permanenceNotice": "አንድ ሰው ሰለባ ሆኖ ከተሰጠ፣ ከUI ሊቀለበስ አይችልም።",
-      "section1Title": "የሰለባ ዝርዝሮች",
-      "notesLabel": "ማስታወሻ (አማራጭ)",
-      "notesPlaceholder": "ስለ ሰለባ ሚናው ማናቸውም ማስታወሻዎች...",
-      "submitButton": "አረጋግጥ — ሰለባ አድርግ",
-      "cancelButton": "ሰርዝ",
-      "successMessage": "ሰው ሰለባ ሆኖ ተሰጥቷል።",
-      "errorMessage": "ሰለባ ለማድረግ አልተሳካም። እንደገና ይሞክሩ።"
-    },
-    "promoteToWitness": {
-      "drawerTitle": "ምስክር አድርግ",
-      "drawerDescription": "ይህን ሰው ለምርመራ ምስክር ሆኖ ያጣምሩ። ይህ ሚና ቋሚ ነው።",
-      "permanenceNotice": "አንድ ሰው ምስክር ሆኖ ከተሰጠ፣ ከUI ሊቀለበስ አይችልም።",
-      "section1Title": "የምስክር ዝርዝሮች",
-      "section2Title": "የምስክር ጥበቃ",
-      "credibilityNotesLabel": "የአስተማማኝነት ማስታወሻ (አማራጭ)",
-      "credibilityNotesPlaceholder": "ስለ ምስክሩ አስተማማኝነት ማስታወሻዎች...",
-      "isProtectedLabel": "ጥበቃ ስር",
-      "protectionLevelLabel": "የጥበቃ ደረጃ",
-      "protectionLevelPlaceholder": "ለምሳሌ STANDARD፣ HIGH",
-      "protectionLevelHint": "ጥበቃ ሲበቃ ያስፈልጋል።",
-      "protectedBadge": "የተጠበቀ ምስክር",
-      "submitButton": "አረጋግጥ — ምስክር አድርግ",
-      "cancelButton": "ሰርዝ",
-      "successMessage": "ሰው ምስክር ሆኖ ተሰጥቷል።",
-      "errorMessage": "ምስክር ለማድረግ አልተሳካም። እንደገና ይሞክሩ።"
+    "noHead": "ኃላፊ የለም",
+    "noLocation": "ቦታ የለም",
+    "rowActions": {
+      "view": "ዝርዝሮች ተመልከት",
+      "edit": "ክፍሉን ቀይር",
+      "assignHead": "ኃላፊ ፖሊስ ሰጥ",
+      "delete": "ክፍሉን ሰርዝ"
     }
   },
-  "officers": {
-    "pageTitle": "ፖሊሶች",
-    "list": {
-      "heading": "ፖሊሶች",
+  "detail": {
+    "breadcrumb": "ክፍሎች",
+    "metadataCard": {
+      "title": "የክፍል መረጃ",
+      "name": "ስም",
+      "code": "ኮድ",
+      "noCode": "አልተሰጠም",
+      "location": "ቦታ",
+      "noLocation": "ቦታ አልተሰጠም",
+      "description": "መግለጫ",
+      "noDescription": "መግለጫ የለም።",
+      "officerCount": "ጠቅላላ ፖሊሶች",
+      "activeCaseCount": "ንቁ ጉዳዮች",
+      "activeCasesLink": "ሁሉም ጉዳዮች ተመልከት →",
+      "createdAt": "ተፈጥሯል",
+      "updatedAt": "መጨረሻ ዝማኔ"
+    },
+    "headCard": {
+      "title": "የክፍል ኃላፊ",
+      "badge": "ባጅ",
+      "email": "ኢሜይል",
+      "phone": "ስልክ",
+      "noPhone": "አልተመዘገበም",
+      "noHead": "ምንም ኃላፊ ፖሊስ አልተሰጠም",
+      "noHeadDescription": "ይህ ክፍል አሁን ያለው ኃላፊ ፖሊስ የለውም።"
+    },
+    "officersSection": {
+      "title": "ፖሊሶች",
       "entityCount": "{count} ፖሊስ(ዎች)",
-      "addOfficerButton": "ፖሊስ ጨምር",
-      "filters": {
-        "search": "በባጅ ቁጥር ወይም ስም ፈልግ...",
-        "status": "ሁኔታ",
-        "role": "ሚና",
-        "department": "ክፍል",
-        "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
-      },
+      "viewAll": "ሁሉም ፖሊሶች ተመልከት →",
       "loading": "ፖሊሶችን እየጫነ ነው...",
-      "empty": {
-        "title": "ምንም ፖሊሶች አልተገኙም",
-        "description": "ምንም የፖሊስ መለያዎች በዚህ ወሰን ውስጥ የሉም።"
-      },
-      "emptyFiltered": "ምንም ፖሊሶች ከማጣሪያዎ ጋር አይዛመዱም።",
+      "empty": "ለዚህ ክፍል ምንም ፖሊሶች አልተሰጡም።",
       "columns": {
         "badgeNumber": "ባጅ",
         "name": "ስም",
         "role": "ሚና",
-        "department": "ክፍል",
         "status": "ሁኔታ",
-        "lastActivity": "መጨረሻ ንቁ",
-        "actions": "ድርጊቶች"
+        "joinedAt": "ቀን"
+      }
+    },
+    "actions": {
+      "edit": "ክፍሉን ቀይር",
+      "assignHead": "ኃላፊ ፖሊስ ሰጥ",
+      "changeHead": "ኃላፊ ፖሊስ ቀይር",
+      "removeHead": "ኃላፊ ፖሊስ አስወግድ",
+      "delete": "ክፍሉን ሰርዝ"
+    }
+  },
+  "create": {
+    "drawerTitle": "አዲስ ክፍል",
+    "drawerDescription": "አዲስ የድርጅት ክፍል ፍጠር።",
+    "section1Title": "የክፍል ማንነት",
+    "section2Title": "አማራጭ ዝርዝሮች",
+    "nameLabel": "የክፍሉ ስም",
+    "namePlaceholder": "ለምሳሌ የወንጀል ምርመራ ዋና ክፍል",
+    "codeLabel": "አጭር ኮድ (አማራጭ)",
+    "codePlaceholder": "ለምሳሌ CID",
+    "codeHint": "ትልቅ ፊደሎች እና ቁጥሮች ብቻ። ከፍተኛ 10 ፊደሎች።",
+    "locationLabel": "ቦታ (አማራጭ)",
+    "locationPlaceholder": "ቦታ ምረጥ...",
+    "descriptionLabel": "መግለጫ (አማራጭ)",
+    "descriptionPlaceholder": "የዚህ ክፍል ዓላማ አጭር መግለጫ...",
+    "submitButton": "ክፍሉን ፍጠር",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "ክፍሉ በተሳካ ሁኔታ ተፈጥሯል።",
+    "errorMessage": "ክፍሉን ለመፍጠር አልተሳካም። እንደገና ይሞክሩ።"
+  },
+  "update": {
+    "drawerTitle": "ክፍሉን ቀይር",
+    "drawerDescription": "የክፍሉን መረጃ ዝማኔ አድርግ።",
+    "section1Title": "የክፍል ማንነት",
+    "section2Title": "አማራጭ ዝርዝሮች",
+    "nameLabel": "የክፍሉ ስም",
+    "codeLabel": "አጭር ኮድ",
+    "codeHint": "ትልቅ ፊደሎች እና ቁጥሮች ብቻ። ከፍተኛ 10 ፊደሎች።",
+    "locationLabel": "ቦታ",
+    "locationPlaceholder": "ቦታ ምረጥ...",
+    "descriptionLabel": "መግለጫ",
+    "descriptionPlaceholder": "የዚህ ክፍል ዓላማ አጭር መግለጫ...",
+    "submitButton": "ለውጦችን አስቀምጥ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "ክፍሉ በተሳካ ሁኔታ ተዘምኗል።",
+    "errorMessage": "ክፍሉን ለማዘምን አልተሳካም። እንደገና ይሞክሩ።"
+  },
+  "delete": {
+    "confirmTitle": "ይህን ክፍል ሰርዝ?",
+    "confirmDescription": "ክፍሉ \"{departmentName}\" ቋሚ ሆኖ ይሰረዛል። ይህ ድርጊት ሊቀለበስ አይችልም።",
+    "warningHasOfficers": "ይህ ክፍል {officerCount} ፖሊስ(ዎች) አሉት። ሁሉም ፖሊሶች ከተወሰዱ ወይም ካልተሰረዙ ይህ ክፍል ሊሰረዝ አይችልም።",
+    "confirmButton": "ክፍሉን ሰርዝ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "ክፍሉ በተሳካ ሁኔታ ተሰርዟል።",
+    "errorMessage": "ክፍሉን ለመሰረዝ አልተሳካም።"
+  },
+  "assignHead": {
+    "drawerTitle": "ኃላፊ ፖሊስ ሰጥ",
+    "drawerDescription": "ለዚህ ክፍል ኃላፊ ሆኖ የሚያገለግል ንቁ ፖሊስ ምረጥ።",
+    "officerLabel": "ኃላፊ ፖሊስ",
+    "officerPlaceholder": "በስም ወይም ባጅ ቁጥር ፈልግ...",
+    "officerHint": "ንቁ ፖሊሶች ብቻ ለክፍል ኃላፊ ሊሰጡ ይችላሉ።",
+    "currentHead": "አሁናዊ ኃላፊ",
+    "replaceNotice": "አዲስ ኃላፊ ሲሰጥ የአሁኑ ኃላፊ ፖሊስ ይተካል።",
+    "submitButton": "ኃላፊ አድርግ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "ኃላፊ ፖሊስ በተሳካ ሁኔታ ተሰጥቷል።",
+    "errorMessage": "ኃላፊ ፖሊስ ለመሰጠት አልተሳካም። እንደገና ይሞክሩ።"
+  },
+  "removeHead": {
+    "confirmTitle": "ኃላፊ ፖሊስ ያስወግዱ?",
+    "confirmDescription": "ፖሊስ {officerName} ({badgeNumber}) ከ{departmentName} ኃላፊነት ይወሰዳል። አዲስ ኃላፊ እስኪሰጥ ክፍሉ ያለ ኃላፊ ይሆናል።",
+    "confirmButton": "ኃላፊ ፖሊስ አስወግድ",
+    "cancelButton": "ሰርዝ",
+    "successMessage": "ኃላፊ ፖሊስ በተሳካ ሁኔታ ተወስዷል።",
+    "errorMessage": "ኃላፊ ፖሊስ ለማስወገድ አልተሳካም። እንደገና ይሞክሩ።"
+  }
+}
+```
+
+## 14.3 `messages/en/admin.json` — Full Population
+
+```json
+{
+  "locations": {
+    "pageTitle": "Locations",
+    "list": {
+      "heading": "Locations",
+      "entityCount": "{count} location(s)",
+      "addLocationButton": "New Location",
+      "filters": {
+        "search": "Search by name or region...",
+        "clearAll": "Clear all filters"
       },
-      "lastActivityNever": "ፈጽሞ አይደለም",
+      "loading": "Loading locations...",
+      "empty": {
+        "title": "No Locations Found",
+        "description": "No geographic location records exist yet.",
+        "cta": "Add the first location using the button above."
+      },
+      "emptyFiltered": "No locations match your current filters.",
+      "columns": {
+        "name": "Location Name",
+        "region": "Region",
+        "country": "Country",
+        "createdAt": "Added",
+        "actions": "Actions"
+      },
+      "noRegion": "—",
       "rowActions": {
-        "view": "ዝርዝሮች ተመልከት",
-        "activate": "ንቁ አድርግ",
-        "deactivate": "አቁም",
-        "resetPassword": "የይለፍ ቃል ዳግም አስጀምር"
+        "delete": "Delete Location"
       }
-    },
-    "detail": {
-      "breadcrumb": "ፖሊሶች",
-      "identityCard": {
-        "title": "የፖሊስ ማንነት",
-        "badgeNumber": "ባጅ ቁጥር",
-        "firstName": "የመጀመሪያ ስም",
-        "lastName": "የአባት ስም",
-        "email": "ኢሜይል",
-        "phone": "ስልክ",
-        "noPhone": "አልተመዘገበም",
-        "role": "ሚና",
-        "department": "ክፍል",
-        "status": "ሁኔታ",
-        "lastActivity": "መጨረሻ ንቁ",
-        "lastActivityNever": "ፈጽሞ አይደለም",
-        "activeCases": "ንቁ ጉዳዮች",
-        "totalCases": "ጠቅላላ ጉዳዮች",
-        "createdAt": "መለያ ተፈጥሯል"
-      },
-      "casesSection": {
-        "title": "ቅርብ ጊዜ የተሰጡ ጉዳዮች",
-        "loading": "ጉዳዮችን እየጫነ ነው...",
-        "empty": "ለዚህ ፖሊስ ምንም ጉዳዮች አልተሰጡም።",
-        "viewAll": "ሁሉም ጉዳዮች ተመልከት",
-        "columns": {
-          "caseNumber": "ጉዳይ ቁ.",
-          "title": "ርዕስ",
-          "status": "ሁኔታ",
-          "assignedAt": "ተሰጥቷል"
-        }
-      },
-      "actions": {
-        "deactivate": "ፖሊስ አቁም",
-        "activate": "ፖሊስ ንቁ አድርግ",
-        "resetPassword": "የይለፍ ቃል ዳግም አስጀምር"
-      }
-    },
-    "officerRole": {
-      "INVESTIGATOR": "መርማሪ",
-      "FORENSIC": "ፎረንሲክ ፖሊስ",
-      "LEGAL_OFFICER": "ሕጋዊ ባለሙያ",
-      "DEPT_HEAD": "የክፍል ኃላፊ",
-      "ADMIN": "አስተዳዳሪ",
-      "SUPERADMIN": "ከፍተኛ አስተዳዳሪ"
-    },
-    "officerStatus": {
-      "ACTIVE": "ንቁ",
-      "INACTIVE": "ንቁ ያይደለ"
     },
     "create": {
-      "drawerTitle": "ፖሊስ ጨምር",
-      "drawerDescription": "አዲስ የፖሊስ መለያ ፍጠር። ፖሊሱ የይለፍ ቃል ለማስቀናት ኢሜይል ይቀበላል።",
-      "section1Title": "ማንነት",
-      "section2Title": "የመለያ ዝርዝሮች",
-      "badgeNumberLabel": "ባጅ ቁጥር",
-      "badgeNumberPlaceholder": "ለምሳሌ BD-00142",
-      "badgeNumberHint": "ልዩ መሆን አለበት። ትልቁ ፊደሎች፣ ቁጥሮች፣ እና ሰረዞች ብቻ።",
-      "firstNameLabel": "የመጀመሪያ ስም",
-      "firstNamePlaceholder": "ለምሳሌ ሳራ",
-      "lastNameLabel": "የአባት ስም",
-      "lastNamePlaceholder": "ለምሳሌ ሃይሌ",
-      "emailLabel": "ኢሜይል አድራሻ",
-      "emailPlaceholder": "ለምሳሌ sara.haile@police.gov.et",
-      "phoneLabel": "ስልክ ቁጥር (አማራጭ)",
-      "phonePlaceholder": "ለምሳሌ +251 91 234 5678",
-      "roleLabel": "የፖሊስ ሚና",
-      "departmentLabel": "ክፍል",
-      "departmentPlaceholder": "ክፍል ምረጥ...",
-      "submitButton": "የፖሊስ መለያ ፍጠር",
-      "cancelButton": "ሰርዝ",
-      "successMessage": "የፖሊስ መለያ ተፈጥሯል። ለመግቢያ መመሪያዎች ኢሜይል ተልኳል።",
-      "errorMessage": "የፖሊስ መለያ ለመፍጠር አልተሳካም። እንደገና ይሞክሩ።"
+      "drawerTitle": "New Location",
+      "drawerDescription": "Add a geographic location to the reference data library.",
+      "nameLabel": "Location Name",
+      "namePlaceholder": "e.g. Bole Sub-City",
+      "regionLabel": "Region (optional)",
+      "regionPlaceholder": "e.g. Addis Ababa",
+      "countryLabel": "Country",
+      "countryPlaceholder": "e.g. Ethiopia",
+      "submitButton": "Add Location",
+      "cancelButton": "Cancel",
+      "successMessage": "Location added successfully.",
+      "errorMessage": "Failed to add location. Please try again."
     },
-    "deactivate": {
-      "confirmTitle": "ፖሊሱን ያቁሙ?",
-      "confirmDescription": "ፖሊስ {badgeNumber} — {officerName} ይቆማል እና ከእንግዲህ ወዲህ መግባት አይችልም። ሁሉም ንቁ ክፍለ ጊዜዎች ይዘጋሉ።",
-      "confirmButton": "ፖሊስ አቁም",
-      "cancelButton": "ሰርዝ",
-      "successMessage": "ፖሊስ በተሳካ ሁኔታ ቆሟል።",
-      "errorMessage": "ፖሊሱን ለማቆም አልተሳካም። እንደገና ይሞክሩ።"
-    },
-    "activate": {
-      "confirmTitle": "ፖሊሱን ያንቁ?",
-      "confirmDescription": "ፖሊስ {badgeNumber} — {officerName} እንደገና ንቁ ይሆናል እና ወደ ስርዓቱ መግባት ይችላል።",
-      "confirmButton": "ፖሊስ ንቁ አድርግ",
-      "cancelButton": "ሰርዝ",
-      "successMessage": "ፖሊስ በተሳካ ሁኔታ ንቁ ሆኗል።",
-      "errorMessage": "ፖሊሱን ለማንቃት አልተሳካም። እንደገና ይሞክሩ።"
-    },
-    "resetPassword": {
-      "confirmTitle": "የፖሊስ የይለፍ ቃል ዳግም ያስጀምሩ?",
-      "confirmDescription": "ለ {officerEmail} የይለፍ ቃል ዳግም የማስጀመሪያ ኢሜይል ይላካል። የፖሊሱ አሁናዊ የይለፍ ቃል ወዲያውኑ ይሰረዛል።",
-      "confirmButton": "ዳግም ማስጀመሪያ ኢሜይል ላክ",
-      "cancelButton": "ሰርዝ",
-      "successMessage": "የይለፍ ቃል ዳግም ኢሜይል በተሳካ ሁኔታ ተልኳል።",
-      "errorMessage": "የይለፍ ቃል ዳግም ለማስጀመር አልተሳካም። እንደገና ይሞክሩ።"
+    "delete": {
+      "confirmTitle": "Delete this location?",
+      "confirmDescription": "\"{locationName}\" will be permanently removed from the reference library. Cases and departments that reference this location will retain their association, but the location will no longer be selectable.",
+      "confirmButton": "Delete Location",
+      "cancelButton": "Cancel",
+      "successMessage": "Location deleted successfully.",
+      "errorMessage": "Failed to delete location. It may be referenced by active records."
     }
+  },
+  "crimeTypes": {
+    "pageTitle": "Crime Types",
+    "list": {
+      "heading": "Crime Types",
+      "entityCount": "{count} crime type(s)",
+      "addCrimeTypeButton": "New Crime Type",
+      "filters": {
+        "search": "Search by name or code...",
+        "severity": "Severity",
+        "category": "Category",
+        "clearAll": "Clear all filters"
+      },
+      "loading": "Loading crime types...",
+      "empty": {
+        "title": "No Crime Types Found",
+        "description": "No crime type definitions exist yet.",
+        "cta": "Add the first crime type using the button above."
+      },
+      "emptyFiltered": "No crime types match your current filters.",
+      "columns": {
+        "name": "Crime Type",
+        "code": "Code",
+        "category": "Category",
+        "severity": "Severity",
+        "createdAt": "Added",
+        "actions": "Actions"
+      },
+      "noCategory": "—",
+      "noSeverity": "—",
+      "rowActions": {
+        "delete": "Delete Crime Type"
+      }
+    },
+    "severity": {
+      "MISDEMEANOR": "Misdemeanor",
+      "FELONY": "Felony",
+      "CAPITAL": "Capital"
+    },
+    "create": {
+      "drawerTitle": "New Crime Type",
+      "drawerDescription": "Add a crime type definition to the reference data library.",
+      "nameLabel": "Crime Type Name",
+      "namePlaceholder": "e.g. Armed Robbery",
+      "codeLabel": "Code",
+      "codePlaceholder": "e.g. ROB_ARMED",
+      "codeHint": "Unique code. Uppercase letters, digits, and underscores only. Max 20 characters.",
+      "categoryLabel": "Category (optional)",
+      "categoryPlaceholder": "e.g. Property Crime",
+      "severityLabel": "Severity (optional)",
+      "submitButton": "Add Crime Type",
+      "cancelButton": "Cancel",
+      "successMessage": "Crime type added successfully.",
+      "errorMessage": "Failed to add crime type. The code may already be in use."
+    },
+    "delete": {
+      "confirmTitle": "Delete this crime type?",
+      "confirmDescription": "Crime type \"{crimeTypeName}\" ({code}) will be permanently removed from the reference library. Existing cases and charges that reference this type will retain their data.",
+      "confirmButton": "Delete Crime Type",
+      "cancelButton": "Cancel",
+      "successMessage": "Crime type deleted successfully.",
+      "errorMessage": "Failed to delete crime type. It may be referenced by active cases or charges."
+    }
+  },
+  "health": {
+    "pageTitle": "System Health",
+    "overallStatus": "System Status",
+    "lastChecked": "Last checked",
+    "pollingNotice": "Refreshes automatically every 15 seconds.",
+    "status": {
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "down": "Down"
+    },
+    "services": {
+      "title": "Service Status",
+      "database": "Database",
+      "redis": "Redis Cache",
+      "api": "API Server",
+      "responseTime": "Response Time",
+      "noResponseTime": "—",
+      "message": "Details",
+      "noMessage": "No issues detected."
+    },
+    "metrics": {
+      "title": "System Metrics",
+      "activeSessions": "Active Sessions",
+      "apiResponseTimeP95": "API P95 Response Time",
+      "lastBackup": "Last Backup",
+      "lastBackupNever": "Never",
+      "noMetric": "—"
+    },
+    "readiness": {
+      "title": "System Readiness",
+      "ready": "Ready",
+      "notReady": "Not Ready"
+    },
+    "loading": "Checking system health...",
+    "error": "Unable to reach the health endpoint. The API may be down.",
+    "retryButton": "Retry"
+  }
+}
+```
+
+## 14.4 `messages/am/admin.json` — Full Amharic Equivalent
+
+Every key in `en/admin.json` must appear with the identical key path.
+
+```json
+{
+  "locations": {
+    "pageTitle": "ቦታዎች",
+    "list": {
+      "heading": "ቦታዎች",
+      "entityCount": "{count} ቦታ(ዎች)",
+      "addLocationButton": "አዲስ ቦታ",
+      "filters": {
+        "search": "በስም ወይም ክልል ፈልግ...",
+        "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+      },
+      "loading": "ቦታዎችን እየጫነ ነው...",
+      "empty": {
+        "title": "ምንም ቦታዎች አልተገኙም",
+        "description": "ምንም የቦታ መዝገቦች ገና የሉም።",
+        "cta": "ከላይ ያለውን አዝራር ተጠቀሞ የመጀመሪያ ቦታ ጨምር።"
+      },
+      "emptyFiltered": "ምንም ቦታዎች ከማጣሪያዎ ጋር አይዛመዱም።",
+      "columns": {
+        "name": "የቦታ ስም",
+        "region": "ክልል",
+        "country": "አገር",
+        "createdAt": "ቀን",
+        "actions": "ድርጊቶች"
+      },
+      "noRegion": "—",
+      "rowActions": {
+        "delete": "ቦታ ሰርዝ"
+      }
+    },
+    "create": {
+      "drawerTitle": "አዲስ ቦታ",
+      "drawerDescription": "ለማጣቀሻ ቤተ-ፋይሉ የጂኦግራፊ ቦታ ጨምር።",
+      "nameLabel": "የቦታ ስም",
+      "namePlaceholder": "ለምሳሌ ቦሌ ክፍለ ከተማ",
+      "regionLabel": "ክልል (አማራጭ)",
+      "regionPlaceholder": "ለምሳሌ አዲስ አበባ",
+      "countryLabel": "አገር",
+      "countryPlaceholder": "ለምሳሌ ኢትዮጵያ",
+      "submitButton": "ቦታ ጨምር",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ቦታ በተሳካ ሁኔታ ተጨምሯል።",
+      "errorMessage": "ቦታ ለመጨምር አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "delete": {
+      "confirmTitle": "ይህን ቦታ ሰርዝ?",
+      "confirmDescription": "\"{locationName}\" ከማጣቀሻ ቤተ-ፋይሉ ቋሚ ሆኖ ይወሰዳል።",
+      "confirmButton": "ቦታ ሰርዝ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ቦታ በተሳካ ሁኔታ ተሰርዟል።",
+      "errorMessage": "ቦታ ለመሰረዝ አልተሳካም።"
+    }
+  },
+  "crimeTypes": {
+    "pageTitle": "የወንጀል ዓይነቶች",
+    "list": {
+      "heading": "የወንጀል ዓይነቶች",
+      "entityCount": "{count} ዓይነት(ዎች)",
+      "addCrimeTypeButton": "አዲስ የወንጀል ዓይነት",
+      "filters": {
+        "search": "በስም ወይም ኮድ ፈልግ...",
+        "severity": "ክብደት",
+        "category": "ምድብ",
+        "clearAll": "ሁሉም ማጣሪያዎች አጽዳ"
+      },
+      "loading": "የወንጀል ዓይነቶችን እየጫነ ነው...",
+      "empty": {
+        "title": "ምንም የወንጀል ዓይነቶች አልተገኙም",
+        "description": "ምንም የወንጀል ዓይነት ትርጓሜዎች ገና የሉም።",
+        "cta": "ከላይ ያለውን አዝራር ተጠቅሞ የመጀመሪያ ዓይነት ጨምር።"
+      },
+      "emptyFiltered": "ምንም ዓይነቶች ከማጣሪያዎ ጋር አይዛመዱም።",
+      "columns": {
+        "name": "የወንጀል ዓይነት",
+        "code": "ኮድ",
+        "category": "ምድብ",
+        "severity": "ክብደት",
+        "createdAt": "ቀን",
+        "actions": "ድርጊቶች"
+      },
+      "noCategory": "—",
+      "noSeverity": "—",
+      "rowActions": {
+        "delete": "ዓይነት ሰርዝ"
+      }
+    },
+    "severity": {
+      "MISDEMEANOR": "ቀላል ወንጀል",
+      "FELONY": "ከባድ ወንጀል",
+      "CAPITAL": "የሞት ቅጣት ወንጀል"
+    },
+    "create": {
+      "drawerTitle": "አዲስ የወንጀል ዓይነት",
+      "drawerDescription": "ለማጣቀሻ ቤተ-ፋይሉ የወንጀል ዓይነት ትርጓሜ ጨምር።",
+      "nameLabel": "የወንጀል ዓይነት ስም",
+      "namePlaceholder": "ለምሳሌ ትጥቅ ዘረፋ",
+      "codeLabel": "ኮድ",
+      "codePlaceholder": "ለምሳሌ ROB_ARMED",
+      "codeHint": "ልዩ ኮድ። ትልቅ ፊደሎች፣ ቁጥሮች፣ ሰረዞች ብቻ። ከፍተኛ 20 ፊደሎች።",
+      "categoryLabel": "ምድብ (አማራጭ)",
+      "categoryPlaceholder": "ለምሳሌ የንብረት ወንጀል",
+      "severityLabel": "ክብደት (አማራጭ)",
+      "submitButton": "ዓይነት ጨምር",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የወንጀል ዓይነት በተሳካ ሁኔታ ተጨምሯል።",
+      "errorMessage": "ዓይነት ለመጨምር አልተሳካም። ኮዱ ቀድሞ ሊሆን ይችላል።"
+    },
+    "delete": {
+      "confirmTitle": "ይህን ዓይነት ሰርዝ?",
+      "confirmDescription": "ዓይነት \"{crimeTypeName}\" ({code}) ቋሚ ሆኖ ይወሰዳል።",
+      "confirmButton": "ዓይነት ሰርዝ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ዓይነት በተሳካ ሁኔታ ተሰርዟል።",
+      "errorMessage": "ዓይነት ለመሰረዝ አልተሳካም።"
+    }
+  },
+  "health": {
+    "pageTitle": "የስርዓት ጤና",
+    "overallStatus": "የስርዓት ሁኔታ",
+    "lastChecked": "መጨረሻ ምርመራ",
+    "pollingNotice": "በ15 ሰከንድ ልዩ ራሱ ያዘምናል።",
+    "status": {
+      "healthy": "ጤናማ",
+      "degraded": "ደካማ",
+      "down": "ወድቋል"
+    },
+    "services": {
+      "title": "የአገልግሎት ሁኔታ",
+      "database": "ዳታቤዝ",
+      "redis": "ሬዲስ ካሽ",
+      "api": "API ሰርቨር",
+      "responseTime": "የምላሽ ጊዜ",
+      "noResponseTime": "—",
+      "message": "ዝርዝሮች",
+      "noMessage": "ምንም ችግር አልተገኘም።"
+    },
+    "metrics": {
+      "title": "የስርዓት መለኪያዎች",
+      "activeSessions": "ንቁ ክፍለ ጊዜዎች",
+      "apiResponseTimeP95": "API P95 የምላሽ ጊዜ",
+      "lastBackup": "መጨረሻ ምትኬ",
+      "lastBackupNever": "ፈጽሞ አይደለም",
+      "noMetric": "—"
+    },
+    "readiness": {
+      "title": "የስርዓት ዝግጁነት",
+      "ready": "ዝግጁ",
+      "notReady": "ዝግጁ አይደለም"
+    },
+    "loading": "የስርዓት ጤናን እየፈተሸ ነው...",
+    "error": "የጤና ሁኔታ ኢንድ ፖይንቱ ሊደረስ አልቻለም። API ወድቆ ሊሆን ይችላል።",
+    "retryButton": "እንደገና ሞክር"
   }
 }
 ```
 
 ---
 
-# 11. Route Pages
+# 15. Route Pages
 
-## 11.1 `src/app/(dashboard)/personnel/persons/page.tsx`
+## 15.1 `src/app/(dashboard)/departments/page.tsx`
 
 ```typescript
 import { getTranslations } from 'next-intl/server'
-import { PersonsList } from '@features/personnel/components/persons/PersonsList'
+import { DepartmentsList } from '@features/departments/components/DepartmentsList'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('personnel')
-  return { title: t('persons.pageTitle') }
+  const t = await getTranslations('departments')
+  return { title: t('pageTitle') }
 }
 
-export default function PersonsPage() {
-  return <PersonsList />
+export default function DepartmentsPage() {
+  return <DepartmentsList />
 }
 ```
 
-## 11.2 `src/app/(dashboard)/personnel/persons/[personId]/page.tsx`
+## 15.2 `src/app/(dashboard)/departments/[departmentId]/page.tsx`
 
 ```typescript
 import { getTranslations } from 'next-intl/server'
-import { PersonDetail } from '@features/personnel/components/persons/PersonDetail'
+import { DepartmentDetail } from '@features/departments/components/DepartmentDetail'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('personnel')
-  return { title: t('persons.pageTitle') }
+  const t = await getTranslations('departments')
+  return { title: t('pageTitle') }
 }
 
-export default function PersonDetailPage({
+export default function DepartmentDetailPage({
   params,
 }: {
-  params: { personId: string }
+  params: { departmentId: string }
 }) {
-  return <PersonDetail personId={params.personId} />
+  return <DepartmentDetail departmentId={params.departmentId} />
 }
 ```
 
-## 11.3 `src/app/(dashboard)/personnel/officers/page.tsx`
+## 15.3 `src/app/(dashboard)/admin/locations/page.tsx`
 
 ```typescript
 import { getTranslations } from 'next-intl/server'
-import { OfficersList } from '@features/personnel/components/officers/OfficersList'
+import { LocationsList } from '@features/admin/components/locations/LocationsList'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('personnel')
-  return { title: t('officers.pageTitle') }
+  const t = await getTranslations('admin')
+  return { title: t('locations.pageTitle') }
 }
 
-export default function OfficersPage() {
-  return <OfficersList />
+export default function LocationsPage() {
+  return <LocationsList />
 }
 ```
 
-## 11.4 `src/app/(dashboard)/personnel/officers/[officerId]/page.tsx`
+## 15.4 `src/app/(dashboard)/admin/crime-types/page.tsx`
 
 ```typescript
 import { getTranslations } from 'next-intl/server'
-import { OfficerDetail } from '@features/personnel/components/officers/OfficerDetail'
+import { CrimeTypesList } from '@features/admin/components/crime-types/CrimeTypesList'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('personnel')
-  return { title: t('officers.pageTitle') }
+  const t = await getTranslations('admin')
+  return { title: t('crimeTypes.pageTitle') }
 }
 
-export default function OfficerDetailPage({
-  params,
-}: {
-  params: { officerId: string }
-}) {
-  return <OfficerDetail officerId={params.officerId} />
+export default function CrimeTypesPage() {
+  return <CrimeTypesList />
+}
+```
+
+## 15.5 `src/app/(dashboard)/admin/health/page.tsx`
+
+```typescript
+import { getTranslations } from 'next-intl/server'
+import { SystemHealthPanel } from '@features/admin/components/health/SystemHealthPanel'
+import type { Metadata } from 'next'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('admin')
+  return { title: t('health.pageTitle') }
+}
+
+export default function HealthPage() {
+  return <SystemHealthPanel />
 }
 ```
 
 ---
 
-# 12. UI Implementation — PersonsList
+# 16. UI Implementation — DepartmentsList
 
-## 12.1 `PersonsList.tsx`
+## 16.1 `DepartmentsList.tsx`
 
-Client Component. Manages URL-driven filter state.
+Client Component. URL-driven filter state.
 
-### 12.1.1 Filter state
+### 16.1.1 Filter state
 
 ```typescript
 const [filters, setFilters] = useQueryStates({
   search: parseAsString.withDefault(''),
-  roles: parseAsArrayOf(parseAsString).withDefault([]),
-  riskLevel: parseAsArrayOf(parseAsString).withDefault([]),
+  locationId: parseAsString.withDefault(''),
+  hasHeadOfficer: parseAsString.withDefault(''),  // '' | 'true' | 'false'
   page: parseAsInteger.withDefault(1),
   pageSize: parseAsInteger.withDefault(25),
-  sortField: parseAsString.withDefault('lastName'),
+  sortField: parseAsString.withDefault('name'),
   sortDirection: parseAsString.withDefault('asc'),
 })
 ```
 
-### 12.1.2 PageHeader
+### 16.1.2 PageHeader
 
 ```tsx
 <PageHeader
-  title={t('persons.list.heading')}
-  description={`${data?.total ?? 0} ${t('persons.list.entityCount', { count: data?.total ?? 0 })}`}
+  title={t('list.heading')}
+  description={`${data?.total ?? 0} ${t('list.entityCount', { count: data?.total ?? 0 })}`}
   actions={
-    <PermissionGuard permission={Permission.PERSONNEL_MANAGE}>
+    <PermissionGuard permission={Permission.DEPARTMENTS_MANAGE}>
       <Button onClick={() => setCreateOpen(true)}>
         <Plus className="mr-2 h-4 w-4" />
-        {t('persons.list.addPersonButton')}
+        {t('list.addDepartmentButton')}
       </Button>
     </PermissionGuard>
   }
 />
 ```
 
-### 12.1.3 DataTable Column Definitions
+### 16.1.3 DataTable Column Definitions
 
 | Column Key | Renderer | Sortable | Min Width |
 |---|---|---|---|
-| `name` | `firstName lastName` as a link to detail page | Yes | 160px |
-| `nationalIdMasked` | Masked value (`***-***-1234`), or `—` if null | No | 130px |
-| `roles` | Row of role badges using `PERSON_ROLE_VARIANTS` | No | 180px |
-| `riskLevel` | `StatusBadge` using `RISK_LEVEL_VARIANTS`; `—` if null | Yes | 100px |
-| `isProtectedWitness` | `accent` badge "Protected" when true; empty when false | No | 110px |
+| `name` | `getDepartmentDisplayName(name, code)` as a link to detail page | Yes | 200px |
+| `location` | `location.name` or `t('list.noLocation')` in muted | No | 140px |
+| `headOfficer` | `getHeadOfficerLabel(...)` or `muted` badge `t('list.noHead')` | No | 180px |
+| `officerCount` | Plain number | Yes | 80px |
+| `activeCaseCount` | Plain number | Yes | 100px |
 | `createdAt` | `dd MMM yyyy` | Yes | 100px |
 | `actions` | Kebab menu | No | 48px |
 
-**Row click behaviour:** Clicking the name link or anywhere on the row navigates to `/personnel/persons/[personId]`.
+**Row click:** Navigates to `/departments/[departmentId]`.
 
-**Kebab actions:**
-- `t('persons.list.rowActions.view')` → `router.push(\`/personnel/persons/${row.id}\`)`
+**Kebab actions** (all `PermissionGuard: DEPARTMENTS_MANAGE` except "view"):
+- `t('list.rowActions.view')` → navigate to detail (all roles)
+- Separator (admin+ only below this line)
+- `t('list.rowActions.edit')` → opens `UpdateDepartmentDrawer`
+- `t('list.rowActions.assignHead')` → opens `AssignHeadOfficerDrawer`
+- Separator (destructive zone)
+- `t('list.rowActions.delete')` → opens `DeleteDepartmentDialog` (destructive label, red)
 
-**Role badges:** Each role in `person.roles` renders as a small badge. Multiple roles stack horizontally. Order: SUSPECT, VICTIM, WITNESS.
-
-### 12.1.4 Active filter chips
-
-Chips appear below the filter bar. Each chip: `Role: Suspect ×`, `Risk: High ×`. The `×` removes that specific filter value. A "Clear all filters" link appears when any filter is active.
+**Head officer display:** When `headOfficer` is null, render a muted badge with text `t('list.noHead')`. When populated, render the full name and badge number as plain text (not a link — navigating to the officer from here would add confusion).
 
 ---
 
-# 13. UI Implementation — PersonDetail
+# 17. UI Implementation — DepartmentDetail
 
-## 13.1 `PersonDetail.tsx`
+## 17.1 `DepartmentDetail.tsx`
 
-Client Component. Orchestration wrapper for the person detail page. **This is a single-column full page — not a tabbed layout.**
+Client Component. Orchestration wrapper. **Single-column full page — not tabbed.**
 
-### 13.1.1 Drawer state
-
-```typescript
-const [promoteToSuspectOpen, setPromoteToSuspectOpen] = useState(false)
-const [promoteToVictimOpen, setPromoteToVictimOpen] = useState(false)
-const [promoteToWitnessOpen, setPromoteToWitnessOpen] = useState(false)
-```
-
-### 13.1.2 Data
+### 17.1.1 Drawer/dialog state
 
 ```typescript
-const { data: person, isLoading, isError } = usePersonDetail(personId)
+const [updateOpen, setUpdateOpen] = useState(false)
+const [assignHeadOpen, setAssignHeadOpen] = useState(false)
+const [removeHeadOpen, setRemoveHeadOpen] = useState(false)
+const [deleteOpen, setDeleteOpen] = useState(false)
 ```
 
-### 13.1.3 Page layout
+### 17.1.2 Page layout
 
 ```
-PersonDetail (single column)
+DepartmentDetail (single column)
 ──────────────────────────────────────────────────────────────────────
 PageHeader
-  Breadcrumb: Persons > [Full Name]
-  Title: [Full Name]
-  Actions: [Promote to ▼] dropdown (PermissionGuard: PERSONNEL_MANAGE)
-             Options: Add as Suspect (if not already), Add as Victim, Add as Witness
+  Breadcrumb: Departments > [Department Name]
+  Title: [getDepartmentDisplayName(name, code)]
+  Actions (PermissionGuard: DEPARTMENTS_MANAGE):
+    [Edit] → opens UpdateDepartmentDrawer
+    [Assign Head] → shown when headOfficer is null; opens AssignHeadOfficerDrawer
+    [Change Head] → shown when headOfficer is non-null; opens AssignHeadOfficerDrawer
+    [Remove Head] → shown when headOfficer is non-null; opens RemoveHeadOfficerDialog
+    Separator
+    [Delete] (destructive) → opens DeleteDepartmentDialog
 ──────────────────────────────────────────────────────────────────────
 
-[isLoading] → Full-page skeleton matching the below layout
+[isLoading] → Full-page skeleton
 
-<PersonIdentityCard person={person} />    (§13.2)
+<DepartmentMetadataCard department={department} />
 
-<PersonRoleCards person={person}          (§13.3)
-  onPromoteSuspect={...}
-  onPromoteVictim={...}
-  onPromoteWitness={...}
+<DepartmentHeadCard
+  department={department}
+  onAssignHead={() => setAssignHeadOpen(true)}
+  canManage={hasPermission(Permission.DEPARTMENTS_MANAGE)}
 />
 
-<PersonCasesTable personId={person.id} /> (§13.4)
+<DepartmentOfficersTable departmentId={department.id} />
 
-<!-- Drawers (always mounted, open/close controlled) -->
-<PromoteToSuspectDrawer open={...} personId={...} onClose={...} />
-<PromoteToVictimDrawer open={...} personId={...} onClose={...} />
-<PromoteToWitnessDrawer open={...} personId={...} onClose={...} />
+<!-- Drawers / Dialogs (always mounted) -->
+<UpdateDepartmentDrawer open={updateOpen} department={department} onClose={...} />
+<AssignHeadOfficerDrawer open={assignHeadOpen} departmentId={department.id} currentHead={department.headOfficer} onClose={...} />
+<RemoveHeadOfficerDialog open={removeHeadOpen} department={department} onClose={...} />
+<DeleteDepartmentDialog open={deleteOpen} department={department} onClose={...} />
 ```
-
-### 13.1.4 Promote dropdown menu
-
-The "Promote to" action in the PageHeader renders as a `DropdownMenu` (not individual buttons):
-
-```tsx
-<PermissionGuard permission={Permission.PERSONNEL_MANAGE}>
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button variant="outline">
-        {t('persons.detail.actions.promoteSection')} <ChevronDown />
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent>
-      {!hasRole(person.roles, PersonRole.SUSPECT) && (
-        <DropdownMenuItem onClick={() => setPromoteToSuspectOpen(true)}>
-          <UserX className="mr-2 h-4 w-4" />
-          {t('persons.detail.actions.promoteToSuspect')}
-        </DropdownMenuItem>
-      )}
-      {!hasRole(person.roles, PersonRole.VICTIM) && (
-        <DropdownMenuItem onClick={() => setPromoteToVictimOpen(true)}>
-          <Heart className="mr-2 h-4 w-4" />
-          {t('persons.detail.actions.promoteToVictim')}
-        </DropdownMenuItem>
-      )}
-      {!hasRole(person.roles, PersonRole.WITNESS) && (
-        <DropdownMenuItem onClick={() => setPromoteToWitnessOpen(true)}>
-          <Eye className="mr-2 h-4 w-4" />
-          {t('persons.detail.actions.promoteToWitness')}
-        </DropdownMenuItem>
-      )}
-    </DropdownMenuContent>
-  </DropdownMenu>
-</PermissionGuard>
-```
-
-If all three roles are assigned, hide the dropdown entirely (all options would be filtered out).
 
 ---
 
-# 14. UI Implementation — PersonIdentityCard
+# 18. UI Implementation — DepartmentMetadataCard
 
-## 14.1 `PersonIdentityCard.tsx`
+## 18.1 `DepartmentMetadataCard.tsx`
 
-Client Component. Receives the full `Person` object.
+Client Component. Receives the full `Department` object.
 
-### 14.1.1 Layout
+### 18.1.1 Layout
 
 ```
-PersonIdentityCard
+DepartmentMetadataCard
 ──────────────────────────────────────────────────────────────
-  Identity
+  Department Info
 ──────────────────────────────────────────────────────────────
- ┌── Two-column metadata grid ──────────────────────────────┐
- │  First Name      Alem          │  Gender        Male     │
- │  Last Name       Tadesse       │  Risk Level    [High]   │
+ ┌── Two-column grid ────────────────────────────────────────┐
+ │  Name      Criminal Investigation Division               │
+ │  Code      CID              │  Location  Bole Sub-City   │
  │                                                           │
- │  National ID     [SensitiveField: ***-***-1234] [Reveal] │
- │  Date of Birth   [SensitiveField: 1988 (year only)]      │
- │  Phone           [SensitiveField: +251 *** *** 789]      │
+ │  Total Officers  12         │  Active Cases  4            │
+ │  (plain number)             │  [View all cases →]        │
  │                                                           │
- │  Address         Bole Sub-City, Addis Ababa              │
- │                  (or "Not recorded" in muted)            │
+ │  Description                                              │
+ │  Handles all major criminal investigations in Bole...    │
+ │  (or "No description." in muted)                         │
  │                                                           │
- │  Record Created  14 Jan 2026    Last Updated  20 Jun 2026│
+ │  Created  14 Jan 2026       │  Updated  20 Jun 2026      │
  └───────────────────────────────────────────────────────────┘
 ```
 
-### 14.1.2 PII field rendering with `SensitiveField`
-
-Use the existing `SensitiveField` shared component from `shared/components/display/SensitiveField.tsx`. Do not rebuild it.
-
-```tsx
-<SensitiveField
-  label={t('persons.detail.identityCard.nationalId')}
-  maskedValue={person.pii.nationalId ?? '—'}
-  fullValue={person.pii.nationalId}   // Same field — backend returns appropriate value
-  canReveal={hasPermission(Permission.PII_REVEAL)}
-  onReveal={() => logPIIRevealEvent(person.id, 'nationalId')}
-/>
-```
-
-The `SensitiveField` component already handles the toggle between masked and revealed states using local component state. The `onReveal` callback fires `logPIIRevealEvent` — a fire-and-forget POST to log the access. Implement this function as:
-
-```typescript
-// In PersonIdentityCard.tsx — not a hook, just a fire-and-forget call
-function logPIIRevealEvent(personId: string, field: string): void {
-  // Non-blocking audit call — do not await, do not show error to user
-  void apiClient
-    .post(`/api/v1/personnel/persons/${personId}/pii-access`, { field })
-    .catch(() => {
-      // Silent fail — audit failure must not block the reveal UX
-    })
-}
-```
-
-### 14.1.3 Risk level display
-
-Risk level is shown only if `person.riskLevel !== null` (i.e., the person is a suspect). Use `RISK_LEVEL_VARIANTS` from `personnelUtils.ts`. If `riskLevel === null`, render `—` in muted text.
+**Active Cases link:** `t('detail.metadataCard.activeCasesLink')` renders as a link navigating to `/cases?departmentId={department.id}`. Use `Link` from `next/link`.
 
 ---
 
-# 15. UI Implementation — PersonRoleCards
+# 19. UI Implementation — DepartmentHeadCard
 
-## 15.1 `PersonRoleCards.tsx`
+## 19.1 `DepartmentHeadCard.tsx`
 
-Client Component. Receives the full `Person` object and promotion callbacks.
+Client Component. Receives `department` and `onAssignHead` callback.
 
-### 15.1.1 Section structure
+### 19.1.1 When `department.headOfficer` is non-null
 
 ```
-PersonRoleCards
+DepartmentHeadCard
 ──────────────────────────────────────────────────────────────
-  Roles & Profiles
+  Department Head
 ──────────────────────────────────────────────────────────────
-
-[Rendered only if person.suspectProfile exists]
-┌── Suspect Profile ───────────────────────────────────────────┐
-│  [Warning badge: Suspect]                                   │
-│  Risk Level: [High badge]                                   │
-│  Notes: ...or "No notes."                                   │
-│  Designated: 14 Jan 2026  By: Insp. Sara Haile (BD-082)    │
-└──────────────────────────────────────────────────────────────┘
-
-[Rendered only if person.victimProfile exists]
-┌── Victim Profile ────────────────────────────────────────────┐
-│  [Muted badge: Victim]                                      │
-│  Notes: ...or "No notes."                                   │
-│  Designated: 14 Jan 2026  By: Insp. Dawit Bekele (BD-091)  │
-└──────────────────────────────────────────────────────────────┘
-
-[Rendered only if person.witnessProfile exists]
-┌── Witness Profile ───────────────────────────────────────────┐
-│  [Primary badge: Witness]  [Accent badge: Protected Witness]│
-│  Protection Level: HIGH                                     │
-│  Credibility Notes: ...or "No notes."                       │
-│  Designated: 14 Jan 2026  By: Insp. Sara Haile (BD-082)    │
-└──────────────────────────────────────────────────────────────┘
-
-[If NO roles at all]
-┌── No Roles ──────────────────────────────────────────────────┐
-│  [User icon, muted]                                         │
-│  No roles assigned yet.                                     │
-│  This person has not been linked to any investigation roles.│
-└──────────────────────────────────────────────────────────────┘
+ ┌── Single-column officer info ──────────────────────────────┐
+ │  [Officer Avatar placeholder — initials, large]           │
+ │  Sara Haile                                               │
+ │  Badge: BD-00142                                          │
+ │  Email: sara.haile@police.gov.et                          │
+ │  Phone: +251 91 234 5678  (or "Not recorded")             │
+ └───────────────────────────────────────────────────────────┘
 ```
 
-Each role card is a `MetadataCard` wrapper from `shared/components/display/MetadataCard.tsx`. Each field uses the same two-column metadata grid as `PersonIdentityCard`.
+The officer name links to `/personnel/officers/{headOfficer.id}`.
 
-The `Protected Witness` badge (`accent` variant) renders next to the "Witness" badge only when `witnessProfile.isProtected === true`.
+### 19.1.2 When `department.headOfficer` is null
+
+```
+DepartmentHeadCard (empty state)
+──────────────────────────────────────────────────────────────
+  Department Head
+──────────────────────────────────────────────────────────────
+ ┌── Empty state ──────────────────────────────────────────────┐
+ │  [UserX icon, muted]                                       │
+ │  No Head Officer Assigned                                  │
+ │  This department does not currently have a designated      │
+ │  head officer.                                             │
+ │                                                            │
+ │  [Assign Head Officer] button (PermissionGuard only)       │
+ └────────────────────────────────────────────────────────────┘
+```
+
+The "Assign Head Officer" button inside the empty state calls `onAssignHead`. It is only visible when `canManage === true`. This button is a secondary CTA — use `variant="outline"`.
 
 ---
 
-# 16. UI Implementation — PersonCasesTable
+# 20. UI Implementation — DepartmentOfficersTable
 
-## 16.1 `PersonCasesTable.tsx`
+## 20.1 `DepartmentOfficersTable.tsx`
 
-Client Component. Shows cases this person is linked to.
+Client Component. Shows officers assigned to this department.
 
-### 16.1.1 Data fetching
+### 20.1.1 Data
 
 ```typescript
-const { data, isLoading, isError } = usePersonCases(personId, { page, pageSize: 10 })
+const { data, isLoading } = useDepartmentOfficers(departmentId, { pageSize: 50 })
 ```
 
-### 16.1.2 Layout
+### 20.1.2 Layout
 
 ```
-PersonCasesTable
+DepartmentOfficersTable
 ──────────────────────────────────────────────────────────────
-  Associated Cases                              3 case(s)
+  Officers                   12 officers    [View all →]
 ──────────────────────────────────────────────────────────────
  DataTable (compact mode, 40px rows):
-   Case No. | Title              | Role    | Status | Since
-   0042      | Robbery at Bole..  | Suspect | Open   | Jan 2026
-   0038      | Assault at...      | Witness | Closed | Nov 2025
+   Badge  | Name          | Role          | Status | Joined
+   BD-082 | Sara Haile    | Investigator  | Active | Jan 2026
+   BD-091 | Dawit Bekele  | Forensic      | Active | Mar 2025
 ──────────────────────────────────────────────────────────────
 ```
-
-Use `SectionHeader` (not `PageHeader`). Use the DataTable in compact mode (`40px rows`).
 
 **Column definitions:**
 
 | Column Key | Renderer | Sortable | Min Width |
 |---|---|---|---|
-| `caseNumber` | Monospace `xs`, link to `/cases/[caseId]` | No | 90px |
-| `title` | Truncated to 40 chars | No | 180px |
-| `roleOnCase` | Role badge using `PERSON_ROLE_VARIANTS` | No | 100px |
-| `caseStatus` | StatusBadge using existing case status variants | No | 100px |
-| `createdAt` | `dd MMM yyyy` | No | 90px |
+| `badgeNumber` | Monospace `xs` | No | 90px |
+| `name` | `firstName lastName` as a link to `/personnel/officers/[id]` | No | 160px |
+| `role` | `StatusBadge` using `DEPT_OFFICER_ROLE_VARIANTS` | No | 140px |
+| `status` | `StatusBadge` using `DEPT_OFFICER_STATUS_VARIANTS` | No | 100px |
+| `joinedAt` | `dd MMM yyyy` | No | 90px |
 
-**Row click:** Navigates to `/cases/[caseId]`.
+**"View all" link:** navigates to `/personnel/officers?departmentId={departmentId}`.
 
-**Empty state:** Muted text: `t('persons.detail.casesSection.empty')`. No CTA.
+**Inactive officer rows:** render with `opacity-60`.
+
+**Empty state:** muted text `t('detail.officersSection.empty')`. No CTA.
 
 ---
 
-# 17. UI Implementation — Role Promotion Drawers
+# 21. UI Implementation — Department Drawers and Dialogs
 
-## 17.1 `PromoteToSuspectDrawer.tsx`
+## 21.1 `CreateDepartmentDrawer.tsx`
 
-Client Component wrapping `SlideOverDrawer` (480px).
-
-### 17.1.1 Layout
+Client Component wrapping `SlideOverDrawer` (480px). Admin+ only.
 
 ```
-PromoteToSuspectDrawer (480px)
+CreateDepartmentDrawer (480px)
 ──────────────────────────────────────────────
-  Add as Suspect
-  Link this person to the investigation as a suspect. This assignment is permanent.
+  New Department
+  Create a new organisational department.
 ──────────────────────────────────────────────
- ┌── Permanence Notice Bar ─────────────────────┐
- │  ⚠  Once a person is designated as a Suspect, │
- │     this cannot be undone from the UI.        │
- └───────────────────────────────────────────────┘
+ ┌── Section 1: Department Identity ────────────┐
+ │  Department Name *    [Input]               │
+ │  Short Code           [Input, optional]     │
+ │  (format hint below field)                  │
+ └──────────────────────────────────────────────┘
 
- ┌── Section 1: Suspect Details ────────────────┐
- │  Risk Level *      [Select]                  │
- │    Options: Low | Medium | High              │
- │    (render each with its badge variant)      │
- │                                              │
- │  Notes             [Textarea, optional]      │
+ ┌── Section 2: Optional Details ───────────────┐
+ │  Location             [LocationSelect]      │
+ │  Description          [Textarea, optional]  │
  └──────────────────────────────────────────────┘
 
  ────────────────────────────────────────────
- [Cancel]              [Confirm — Add as Suspect]
+ [Cancel]                   [Create Department]
 ```
 
-The permanence notice bar uses the same amber style as the conviction notice bar in Phase 6 (`background: rgba(245, 158, 11, 0.08)`, `border: 1px solid var(--color-warning)`).
+**LocationSelect:** uses a `SearchableSelect` populated with all locations from `useLocationList({ pageSize: 100, sortField: 'name', sortDirection: 'asc' })`. Map locations to `{ value: loc.id, label: `${loc.name}${loc.region ? ', ' + loc.region : ''}` }`.
 
-On submit: calls `usePromoteToSuspect(personId)`. On success: drawer closes, `PersonDetail` refreshes (the suspect profile card appears), toast confirms.
+On success: drawer closes, departments list refreshes, toast confirms. Dirty state guard on close.
 
-No dirty state guard on close — the form is short and the permanence notice already contextualises the gravity of the action.
+## 21.2 `UpdateDepartmentDrawer.tsx`
 
-## 17.2 `PromoteToVictimDrawer.tsx`
+Client Component wrapping `SlideOverDrawer` (480px). Pre-populates all fields from the current `Department` object received as a prop.
 
-Client Component wrapping `SlideOverDrawer` (480px).
+Same layout as `CreateDepartmentDrawer` but with pre-filled values. Uses `useUpdateDepartment(departmentId)`. The code field shows the current value; admin can set it to empty string (sends `null` to the backend).
 
-```
-PromoteToVictimDrawer (480px)
-──────────────────────────────────────────────
-  Add as Victim
-  ...
-──────────────────────────────────────────────
- [Permanence Notice Bar]
+On success: drawer closes, department detail refreshes, list refreshes. Dirty state guard on close.
 
- ┌── Victim Details ────────────────────────────┐
- │  Notes             [Textarea, optional]      │
- └──────────────────────────────────────────────┘
-
- ────────────────────────────────────────────
- [Cancel]               [Confirm — Add as Victim]
-```
-
-Uses `usePromoteToVictim(personId)`.
-
-## 17.3 `PromoteToWitnessDrawer.tsx`
-
-Client Component wrapping `SlideOverDrawer` (480px).
-
-```
-PromoteToWitnessDrawer (480px)
-──────────────────────────────────────────────
-  Add as Witness
-  ...
-──────────────────────────────────────────────
- [Permanence Notice Bar]
-
- ┌── Section 1: Witness Details ────────────────┐
- │  Credibility Notes  [Textarea, optional]     │
- └──────────────────────────────────────────────┘
-
- ┌── Section 2: Witness Protection ─────────────┐
- │  Under Protection?  [Switch toggle]          │
- │                                              │
- │  Protection Level   [Input, conditional]     │
- │  (appears when toggle is ON)                 │
- └──────────────────────────────────────────────┘
-
- ────────────────────────────────────────────
- [Cancel]              [Confirm — Add as Witness]
-```
-
-When `isProtected === true`, animate the Protection Level input into view using `max-height` expand (150ms ease-out). When toggled off, collapse and clear the value.
-
-Uses `usePromoteToWitness(personId)`.
-
----
-
-# 18. UI Implementation — CreatePersonDrawer
-
-## 18.1 `CreatePersonDrawer.tsx`
-
-Client Component wrapping `SlideOverDrawer` (480px).
-
-```
-CreatePersonDrawer (480px)
-──────────────────────────────────────────────
-  Add Person
-  Create a new person record in the system.
-──────────────────────────────────────────────
- ┌── Section 1: Basic Information ──────────────┐
- │  First Name *      [Input]                   │
- │  Last Name *       [Input]                   │
- │  Gender            [Select, optional]        │
- └──────────────────────────────────────────────┘
-
- ┌── Section 2: Contact & Identity ─────────────┐
- │  National ID       [Input, optional]         │
- │  (PII hint below field)                      │
- │  Date of Birth     [DatePicker, optional]    │
- │  Phone             [Input, optional]         │
- │  Address           [Input, optional]         │
- └──────────────────────────────────────────────┘
-
- ────────────────────────────────────────────
- [Cancel]                          [Add Person]
-```
-
-On success: drawer closes, persons list refreshes, toast confirms.
-
-Dirty state guard: if `formState.isDirty` and officer closes, show `ConfirmDialog`: "Discard person record? Your unsaved data will be lost."
-
----
-
-# 19. UI Implementation — OfficersList
-
-## 19.1 `OfficersList.tsx`
-
-Client Component. Manages URL-driven filter state.
-
-### 19.1.1 Filter state
-
-```typescript
-const [filters, setFilters] = useQueryStates({
-  search: parseAsString.withDefault(''),
-  status: parseAsArrayOf(parseAsString).withDefault([]),
-  role: parseAsArrayOf(parseAsString).withDefault([]),
-  departmentId: parseAsString.withDefault(''),
-  page: parseAsInteger.withDefault(1),
-  pageSize: parseAsInteger.withDefault(25),
-  sortField: parseAsString.withDefault('badgeNumber'),
-  sortDirection: parseAsString.withDefault('asc'),
-})
-```
-
-### 19.1.2 PageHeader
-
-```tsx
-<PageHeader
-  title={t('officers.list.heading')}
-  description={`${data?.total ?? 0} ${t('officers.list.entityCount', { count: data?.total ?? 0 })}`}
-  actions={
-    <PermissionGuard permission={Permission.OFFICERS_MANAGE}>
-      <Button onClick={() => setCreateOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" />
-        {t('officers.list.addOfficerButton')}
-      </Button>
-    </PermissionGuard>
-  }
-/>
-```
-
-### 19.1.3 Department filter visibility
-
-The Department filter dropdown is visible only to `admin+` roles:
-
-```tsx
-<PermissionGuard permission={Permission.OFFICERS_MANAGE}>
-  <DepartmentSelect
-    value={filters.departmentId}
-    onChange={(val) => setFilters({ departmentId: val, page: 1 })}
-    placeholder={t('officers.list.filters.department')}
-  />
-</PermissionGuard>
-```
-
-For `dept_head`, the backend already scopes the officer list to their department. No department filter is rendered for `dept_head`.
-
-### 19.1.4 DataTable Column Definitions
-
-| Column Key | Renderer | Sortable | Min Width |
-|---|---|---|---|
-| `badgeNumber` | Monospace `xs` | Yes | 90px |
-| `name` | `firstName lastName` | Yes | 160px |
-| `role` | `StatusBadge` using `OFFICER_ROLE_VARIANTS` | No | 140px |
-| `departmentName` | Plain text | No | 150px |
-| `status` | `StatusBadge` using `OFFICER_STATUS_VARIANTS` | Yes | 100px |
-| `lastActivityAt` | Relative time (`formatDistanceToNow`) or `t('officers.list.lastActivityNever')`; **rendered only for `admin+`** | Yes | 120px |
-| `actions` | Kebab menu | No | 48px |
-
-**Row click:** Navigates to `/personnel/officers/[officerId]`.
-
-**Kebab actions** (permission-guarded):
-- `t('officers.list.rowActions.view')` → navigate to detail (all roles)
-- Separator
-- `t('officers.list.rowActions.activate')` — shown only when `officer.status === INACTIVE`; guarded by `OFFICERS_MANAGE`
-- `t('officers.list.rowActions.deactivate')` — shown only when `officer.status === ACTIVE`; guarded by `OFFICERS_MANAGE`; destructive label (red)
-- `t('officers.list.rowActions.resetPassword')` — always shown; guarded by `OFFICERS_MANAGE`
-
-**Active officer row:** render with no special styling.
-**Inactive officer row:** render with `opacity-60` to visually indicate inactivity. The status badge is `muted` variant.
-
----
-
-# 20. UI Implementation — OfficerDetail
-
-## 20.1 `OfficerDetail.tsx`
-
-Client Component. Orchestration wrapper for the officer detail page. **Single-column layout — not tabbed.**
-
-### 20.1.1 Drawer/dialog state
-
-```typescript
-const [createOpen, setCreateOpen] = useState(false)   // unused here — create is on list page
-const [deactivateOpen, setDeactivateOpen] = useState(false)
-const [activateOpen, setActivateOpen] = useState(false)
-const [resetPasswordOpen, setResetPasswordOpen] = useState(false)
-```
-
-### 20.1.2 Page layout
-
-```
-OfficerDetail (single column)
-──────────────────────────────────────────────────────────────────────
-PageHeader
-  Breadcrumb: Officers > Officer Name
-  Title: [Full Name] (Badge: BD-00142)
-  Actions (all PermissionGuard: OFFICERS_MANAGE):
-    [Reset Password]          — always shown for admin+
-    [Deactivate] (destructive, red)  — shown when ACTIVE
-    [Activate]                — shown when INACTIVE
-──────────────────────────────────────────────────────────────────────
-
-[isLoading] → Skeleton layout
-
-<OfficerIdentityCard officer={officer} />    (§20.2)
-
-<OfficerCasesSummary officerId={officer.id} /> (§20.3)
-
-<!-- Dialogs -->
-<DeactivateOfficerDialog open={deactivateOpen} officer={officer} onClose={...} />
-<ActivateOfficerDialog open={activateOpen} officer={officer} onClose={...} />
-<ResetPasswordDialog open={resetPasswordOpen} officer={officer} onClose={...} />
-```
-
----
-
-# 21. UI Implementation — OfficerIdentityCard
-
-## 21.1 `OfficerIdentityCard.tsx`
-
-Client Component. Receives the full `Officer` object.
-
-### 21.1.1 Layout
-
-```
-OfficerIdentityCard
-──────────────────────────────────────────────────────────────
-  Officer Identity
-──────────────────────────────────────────────────────────────
- ┌── Two-column grid ────────────────────────────────────────┐
- │  Badge Number  BD-00142       │  Status  [Active badge]   │
- │  First Name    Sara           │  Role    [Investigator]   │
- │  Last Name     Haile          │  Dept    Bole Sub-City    │
- │  Email         sara@...       │  Phone   +251 91 234 5678 │
- │                               │          (or "Not recorded")│
- │  Active Cases  3              │  Total Cases  17           │
- │  Last Active   5 minutes ago  │  Account Created  Jan 2026 │
- └───────────────────────────────────────────────────────────┘
-```
-
-**`lastActivityAt` visibility:** This field is visible only to `admin+`. For `dept_head`, this cell renders `—`.
-
-```tsx
-<PermissionGuard permission={Permission.OFFICERS_MANAGE}>
-  <MetadataRow
-    label={t('officers.detail.identityCard.lastActivity')}
-    value={
-      officer.lastActivityAt
-        ? formatDistanceToNow(new Date(officer.lastActivityAt), { addSuffix: true })
-        : t('officers.detail.identityCard.lastActivityNever')
-    }
-  />
-</PermissionGuard>
-```
-
----
-
-# 22. UI Implementation — OfficerCasesSummary
-
-## 22.1 `OfficerCasesSummary.tsx`
-
-Client Component. Shows the last 10 cases assigned to this officer as a compact list.
-
-### 22.1.1 Layout
-
-```
-OfficerCasesSummary
-──────────────────────────────────────────────────────────────
-  Recent Assigned Cases           17 total
-                                  [View all cases →]
-──────────────────────────────────────────────────────────────
- DataTable (compact mode):
-   Case No. | Title             | Status | Assigned
-   0042      | Robbery at Bole   | Open   | 14 Jun 2026
-   0038      | Assault at...     | Closed | 12 May 2026
-   ...
-──────────────────────────────────────────────────────────────
-```
-
-The `View all cases →` link navigates to `/cases?assignedOfficerId={officerId}` — passing the officer ID as a filter to the cases list.
-
-No loading skeleton needed on this section (the whole page skeleton covers the initial load). Use a compact inline loading state: a single row of three skeleton cells.
-
----
-
-# 23. UI Implementation — CreateOfficerDrawer
-
-## 23.1 `CreateOfficerDrawer.tsx`
-
-Client Component wrapping `SlideOverDrawer` (480px). Accessible from the officer list page via the "Add Officer" button. Admin+ only (guarded by `PermissionGuard`).
-
-```
-CreateOfficerDrawer (480px)
-──────────────────────────────────────────────
-  Add Officer
-  Create a new officer account. The officer will receive an email to set their password.
-──────────────────────────────────────────────
- ┌── Section 1: Identity ───────────────────────┐
- │  Badge Number *    [Input]                   │
- │  (hint: uppercase, digits, hyphens only)     │
- │  First Name *      [Input]                   │
- │  Last Name *       [Input]                   │
- │  Phone             [Input, optional]         │
- └──────────────────────────────────────────────┘
-
- ┌── Section 2: Account Details ────────────────┐
- │  Email *           [Input]                   │
- │  Role *            [Select]                  │
- │  Department *      [SearchableSelect]        │
- └──────────────────────────────────────────────┘
-
- ────────────────────────────────────────────
- [Cancel]               [Create Officer Account]
-```
-
-**Department SearchableSelect:** Fetch from `GET /api/v1/departments?pageSize=100` (existing departments service from Phase 1 foundation). Map to `{ value: dept.id, label: dept.name }`.
-
-**Role Select:** All values from `OfficerRole` enum, labelled via `t('officers.officerRole.*')`. Do not include `SUPERADMIN` in the options unless the current user is `superadmin`.
-
-On success: drawer closes, officer list refreshes, toast confirms.
-
-Dirty state guard: if `formState.isDirty`, show unsaved changes `ConfirmDialog` on close.
-
----
-
-# 24. UI Implementation — Officer Action Dialogs
-
-## 24.1 `DeactivateOfficerDialog.tsx`
+## 21.3 `DeleteDepartmentDialog.tsx`
 
 Wrapper around `DestructiveConfirmDialog`:
 
@@ -2853,427 +2559,631 @@ Wrapper around `DestructiveConfirmDialog`:
 <DestructiveConfirmDialog
   open={open}
   onClose={onClose}
-  title={t('officers.deactivate.confirmTitle')}
-  description={t('officers.deactivate.confirmDescription', {
-    badgeNumber: officer.badgeNumber,
-    officerName: `${officer.firstName} ${officer.lastName}`,
+  title={t('delete.confirmTitle')}
+  description={t('delete.confirmDescription', {
+    departmentName: department.name,
   })}
-  confirmLabel={t('officers.deactivate.confirmButton')}
-  cancelLabel={t('officers.deactivate.cancelButton')}
+  // If department has officers, render an additional warning bar
+  warning={
+    department.officerCount > 0
+      ? t('delete.warningHasOfficers', { officerCount: department.officerCount })
+      : undefined
+  }
+  confirmLabel={t('delete.confirmButton')}
+  cancelLabel={t('delete.cancelButton')}
   onConfirm={async () => {
-    await deactivateOfficerMutation.mutateAsync()
+    await deleteDepartmentMutation.mutateAsync()
     onClose()
   }}
-  isLoading={deactivateOfficerMutation.isPending}
+  isLoading={deleteDepartmentMutation.isPending}
 />
 ```
 
-Uses `useDeactivateOfficer(officerId)`. No confirm phrase required — deactivation is significant but not as irreversible as case deletion.
+The warning bar (amber, same style as promotion permanence notice) renders when `department.officerCount > 0`. It signals that the deletion will be rejected by the backend, but the UI does NOT block the submission — the API error surface the reason. This mirrors real-world behaviour where officers may have been reassigned between the user opening the dialog and confirming.
 
-On success: dialog closes, officer detail page refreshes (status badge changes to "Inactive"), toast confirms.
+Uses `useDeleteDepartment(departmentId)`. On success: navigates to `/departments`, removes cached detail, list refreshes.
 
-## 24.2 `ActivateOfficerDialog.tsx`
+## 21.4 `AssignHeadOfficerDrawer.tsx`
 
-Simple `ConfirmDialog` (non-destructive):
+Client Component wrapping `SlideOverDrawer` (480px). Admin+ only.
+
+```
+AssignHeadOfficerDrawer (480px)
+──────────────────────────────────────────────
+  Assign Head Officer
+  Select an active officer to serve as the head of this department.
+──────────────────────────────────────────────
+
+ [If department already has a head officer:]
+ ┌── Replace Notice Bar ────────────────────────┐
+ │  ℹ  Current head: Sara Haile (BD-082)        │
+ │     Assigning a new head will replace them.  │
+ └──────────────────────────────────────────────┘
+
+ ┌── Officer Selection ─────────────────────────┐
+ │  Head Officer *       [OfficerSearchSelect]  │
+ │  (hint: active officers only)               │
+ └──────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Cancel]                     [Assign as Head]
+```
+
+**OfficerSearchSelect:** Uses the existing `SearchableSelect` shared component with a custom async fetch. The drawer calls `getOfficers({ search: query, status: ['ACTIVE'], pageSize: 20 })` from `@services/domain/personnel.service` directly (module boundary allows feature→service imports). Maps results to `{ value: officer.id, label: `${officer.firstName} ${officer.lastName} (${officer.badgeNumber})` }`.
+
+The current head officer (if any) is shown in the replace notice bar using `t('assignHead.currentHead')`. The replace notice bar uses the primary/info style (blue outline).
+
+Uses `useAssignHeadOfficer(departmentId)`. On success: drawer closes, department detail refreshes (head officer card updates).
+
+## 21.5 `RemoveHeadOfficerDialog.tsx`
+
+Wrapper around `DestructiveConfirmDialog` (non-permanently destructive but consequential):
 
 ```tsx
-<ConfirmDialog
+<DestructiveConfirmDialog
   open={open}
   onClose={onClose}
-  title={t('officers.activate.confirmTitle')}
-  description={t('officers.activate.confirmDescription', {
-    badgeNumber: officer.badgeNumber,
-    officerName: `${officer.firstName} ${officer.lastName}`,
+  title={t('removeHead.confirmTitle')}
+  description={t('removeHead.confirmDescription', {
+    officerName: `${department.headOfficer?.firstName} ${department.headOfficer?.lastName}`,
+    badgeNumber: department.headOfficer?.badgeNumber ?? '',
+    departmentName: department.name,
   })}
-  confirmLabel={t('officers.activate.confirmButton')}
-  cancelLabel={t('officers.activate.cancelButton')}
+  confirmLabel={t('removeHead.confirmButton')}
+  cancelLabel={t('removeHead.cancelButton')}
   onConfirm={async () => {
-    await activateOfficerMutation.mutateAsync()
+    await removeHeadMutation.mutateAsync()
     onClose()
   }}
-  isLoading={activateOfficerMutation.isPending}
+  isLoading={removeHeadMutation.isPending}
 />
 ```
 
-## 24.3 `ResetPasswordDialog.tsx`
-
-Simple `ConfirmDialog` (non-destructive, but consequential):
-
-```tsx
-<ConfirmDialog
-  open={open}
-  onClose={onClose}
-  title={t('officers.resetPassword.confirmTitle')}
-  description={t('officers.resetPassword.confirmDescription', {
-    officerEmail: officer.email,
-  })}
-  confirmLabel={t('officers.resetPassword.confirmButton')}
-  cancelLabel={t('officers.resetPassword.cancelButton')}
-  onConfirm={async () => {
-    await resetPasswordMutation.mutateAsync()
-    onClose()
-  }}
-  isLoading={resetPasswordMutation.isPending}
-/>
-```
+Uses `useRemoveHeadOfficer(departmentId)`. On success: dialog closes, department detail refreshes (head officer card shows empty state).
 
 ---
 
-# 25. `src/features/personnel/index.ts`
+# 22. UI Implementation — LocationsList
 
-Public barrel export:
+## 22.1 `LocationsList.tsx`
+
+Client Component. Admin+ only (page-level `PermissionGuard`).
+
+### 22.1.1 Filter state
+
+```typescript
+const [filters, setFilters] = useQueryStates({
+  search: parseAsString.withDefault(''),
+  page: parseAsInteger.withDefault(1),
+  pageSize: parseAsInteger.withDefault(25),
+  sortField: parseAsString.withDefault('name'),
+  sortDirection: parseAsString.withDefault('asc'),
+})
+```
+
+### 22.1.2 DataTable Column Definitions
+
+| Column Key | Renderer | Sortable | Min Width |
+|---|---|---|---|
+| `name` | Plain text | Yes | 200px |
+| `region` | Plain text or `—` | No | 140px |
+| `country` | Plain text | No | 120px |
+| `createdAt` | `dd MMM yyyy` | Yes | 100px |
+| `actions` | Kebab menu | No | 48px |
+
+**Kebab actions** (`PermissionGuard: ADMIN_MANAGE`):
+- `t('locations.list.rowActions.delete')` → opens `DeleteLocationDialog` for this row (destructive label, red)
+
+**"New Location" button** in PageHeader: `PermissionGuard: ADMIN_MANAGE`.
+
+### 22.1.3 Drawer/dialog state
+
+`createOpen` (boolean), `deleteTarget` (`Location | null` — holds the row being deleted).
+
+The `DeleteLocationDialog` receives the target location and calls `useDeleteLocation(locationId)`. On success: list refreshes, toast confirms.
+
+---
+
+# 23. UI Implementation — CrimeTypesList
+
+## 23.1 `CrimeTypesList.tsx`
+
+Client Component. Admin+ only (page-level `PermissionGuard`).
+
+### 23.1.1 Filter state
+
+```typescript
+const [filters, setFilters] = useQueryStates({
+  search: parseAsString.withDefault(''),
+  severity: parseAsArrayOf(parseAsString).withDefault([]),
+  page: parseAsInteger.withDefault(1),
+  pageSize: parseAsInteger.withDefault(25),
+  sortField: parseAsString.withDefault('name'),
+  sortDirection: parseAsString.withDefault('asc'),
+})
+```
+
+### 23.1.2 DataTable Column Definitions
+
+| Column Key | Renderer | Sortable | Min Width |
+|---|---|---|---|
+| `name` | Plain text | Yes | 200px |
+| `code` | Monospace `xs` | Yes | 130px |
+| `category` | Plain text or `—` | No | 140px |
+| `severity` | `StatusBadge` using `CRIME_SEVERITY_VARIANTS`; `—` if null | Yes | 110px |
+| `createdAt` | `dd MMM yyyy` | Yes | 100px |
+| `actions` | Kebab menu | No | 48px |
+
+**Severity filter chips** appear below the filter bar for each active severity value.
+
+**Kebab actions:** `t('crimeTypes.list.rowActions.delete')` → opens `DeleteCrimeTypeDialog` (destructive).
+
+---
+
+# 24. UI Implementation — System Health Panel
+
+## 24.1 `SystemHealthPanel.tsx`
+
+Client Component. Admin+ only (page-level `PermissionGuard`). **This is a polling component — no mutations.**
+
+### 24.1.1 Data
+
+```typescript
+const { data: health, isLoading, isError, refetch } = useSystemHealth()
+const { data: readiness } = useSystemReadiness()
+```
+
+### 24.1.2 Page layout
+
+```
+SystemHealthPanel
+──────────────────────────────────────────────────────────────────────
+PageHeader
+  Title: System Health
+  Subtitle: Refreshes automatically every 15 seconds.
+  Actions: [Retry] (only shown when isError)
+──────────────────────────────────────────────────────────────────────
+
+[isLoading initial load] → Full-page skeleton (4 cards)
+[isError and no data] → ErrorState with Retry button
+
+┌── Overall Status Bar ───────────────────────────────────────────────┐
+│  [Status icon]  System: HEALTHY / DEGRADED / DOWN                  │
+│  Readiness: Ready / Not Ready         Last checked: 2 min ago       │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌── Service Status (3-column grid on desktop, 1-column mobile) ───────┐
+│  ┌── Database ──────────┐  ┌── Redis Cache ──────┐  ┌── API ──────┐│
+│  │ [●] HEALTHY          │  │ [●] HEALTHY          │  │ [●] HEALTHY ││
+│  │ 24ms                 │  │ 8ms                  │  │ 142ms       ││
+│  │ "No issues detected" │  │ "No issues detected" │  │ "..."       ││
+│  └──────────────────────┘  └──────────────────────┘  └────────────┘│
+└─────────────────────────────────────────────────────────────────────┘
+
+┌── System Metrics (3-column grid) ───────────────────────────────────┐
+│  ┌── Active Sessions ───┐  ┌── API P95 ───────────┐  ┌── Backup ──┐│
+│  │  43                  │  │  187ms               │  │  2 hr ago  ││
+│  └──────────────────────┘  └──────────────────────┘  └────────────┘│
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 24.1.3 Overall Status Bar
+
+The status bar uses a coloured left border (or background strip) matching the overall health status colour:
+- `healthy` → `var(--color-success)` left border
+- `degraded` → `var(--color-warning)` left border
+- `down` → `var(--color-destructive)` left border
+
+The status text uses `t('health.status.{status}')`. The status icon uses `getHealthStatusIcon(health.overall)` from `adminUtils.ts`.
+
+**On background refetches (not initial load):** existing data stays visible. A subtle "last checked X seconds ago" timestamp updates without re-rendering the skeleton. Use `formatDistanceToNow(new Date(health.timestamp), { addSuffix: true })`.
+
+### 24.1.4 `HealthStatusCard.tsx`
+
+Per-service card component. Receives `label: string`, `health: ServiceHealth`.
+
+```
+HealthStatusCard
+──────────────────────────────────────────
+  [●] Database
+──────────────────────────────────────────
+  Response Time  24ms
+  Details        No issues detected.
+```
+
+The `●` dot icon colour:
+- `healthy` → `text-success`
+- `degraded` → `text-warning`
+- `down` → `text-destructive`
+
+Use `CheckCircle`, `AlertTriangle`, `XCircle` icons from lucide-react respectively.
+
+### 24.1.5 `HealthMetricCard.tsx`
+
+Compact metric card. Receives `label: string`, `value: string | number | null`, `fallback: string`.
+
+Renders the value large (text-3xl, semibold) if non-null, or the fallback string in muted.
+
+Used for: Active Sessions, API P95 Response Time, Last Backup.
+
+Last Backup: if `lastBackupAt` is non-null, show `formatDistanceToNow(new Date(lastBackupAt), { addSuffix: true })`. If null, show `t('health.metrics.lastBackupNever')`.
+
+### 24.1.6 Error state behaviour
+
+When `isError` is true on initial load and no cached data exists, render the `ErrorState` component with:
+- message: `t('health.error')`
+- action: `t('health.retryButton')` button calling `void refetch()`
+
+When `isError` is true but cached data exists (background refetch failure), keep showing the last good data with a subtle amber banner: "Unable to refresh health data. Showing last known state."
+
+---
+
+# 25. Shared Component — `DepartmentSelect`
+
+## 25.1 `src/shared/components/forms/DepartmentSelect.tsx`
+
+```typescript
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
+import { getDepartments } from '@services/domain/departments.service'
+import { departmentKeys } from '@services/query/keys/departmentKeys'
+import { SearchableSelect } from '@shared/components/forms/SearchableSelect'
+import { getDepartmentDisplayName } from '@features/departments/utils/departmentUtils'
+
+interface DepartmentSelectProps {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  disabled?: boolean
+}
+
+export function DepartmentSelect({
+  value,
+  onChange,
+  placeholder,
+  disabled,
+}: DepartmentSelectProps) {
+  const { data, isLoading } = useQuery({
+    queryKey: departmentKeys.departmentListFiltered({ pageSize: 100, sortField: 'name', sortDirection: 'asc' }),
+    queryFn: () => getDepartments({ pageSize: 100, sortField: 'name', sortDirection: 'asc' }),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const options = (data?.data ?? []).map((dept) => ({
+    value: dept.id,
+    label: getDepartmentDisplayName(dept.name, dept.code),
+  }))
+
+  return (
+    <SearchableSelect
+      value={value}
+      onChange={onChange}
+      options={options}
+      placeholder={placeholder ?? 'Select department...'}
+      isLoading={isLoading}
+      disabled={disabled}
+    />
+  )
+}
+```
+
+**Note on module boundary:** `DepartmentSelect` is a shared component. Shared components may import from services (cross-cutting layer) and from feature utilities. The import of `getDepartmentDisplayName` from `@features/departments/utils/departmentUtils` is a violation of the strict shared→feature boundary. To resolve this cleanly, inline the display name logic directly inside `DepartmentSelect` rather than importing from the feature:
+
+```typescript
+// Inline the display name logic — do not import from @features/departments
+const label = dept.code ? `${dept.name} (${dept.code})` : dept.name
+```
+
+This avoids the boundary violation while keeping the shared component self-contained.
+
+---
+
+# 26. Barrel Exports
+
+## 26.1 `src/features/departments/index.ts`
 
 ```typescript
 // Types
-export * from './types/personnel.types'
+export * from './types/department.types'
 
 // Hooks
 export {
-  usePersonList,
-  usePersonDetail,
-  useCreatePerson,
-  usePromoteToSuspect,
-  usePromoteToVictim,
-  usePromoteToWitness,
-  usePersonCases,
-  useOfficerList,
-  useOfficerDetail,
-  useCreateOfficer,
-  useActivateOfficer,
-  useDeactivateOfficer,
-  useResetOfficerPassword,
-  useOfficerCases,
+  useDepartmentList,
+  useDepartmentDetail,
+  useCreateDepartment,
+  useUpdateDepartment,
+  useDeleteDepartment,
+  useAssignHeadOfficer,
+  useRemoveHeadOfficer,
+  useDepartmentOfficers,
 } from './hooks'
 
-// Components (export only those consumed outside the module)
-export { PersonsList } from './components/persons/PersonsList'
-export { PersonDetail } from './components/persons/PersonDetail'
-export { OfficersList } from './components/officers/OfficersList'
-export { OfficerDetail } from './components/officers/OfficerDetail'
+// Components (only those consumed outside the module)
+export { DepartmentsList } from './components/DepartmentsList'
+export { DepartmentDetail } from './components/DepartmentDetail'
 
 // Utils
 export {
-  RISK_LEVEL_VARIANTS,
-  OFFICER_STATUS_VARIANTS,
-  OFFICER_ROLE_VARIANTS,
-  PERSON_ROLE_VARIANTS,
-  getFullName,
-  getOfficerDisplayName,
-  hasRole,
-  getUnassignedRoles,
-} from './utils/personnelUtils'
+  getDepartmentDisplayName,
+  getHeadOfficerLabel,
+  hasHeadOfficer,
+  DEPT_OFFICER_ROLE_VARIANTS,
+  DEPT_OFFICER_STATUS_VARIANTS,
+} from './utils/departmentUtils'
+```
+
+## 26.2 `src/features/admin/index.ts`
+
+```typescript
+// Types
+export * from './types/admin.types'
+
+// Hooks
+export {
+  useSystemHealth,
+  useSystemReadiness,
+  useLocationList,
+  useCreateLocation,
+  useDeleteLocation,
+  useCrimeTypeList,
+  useCreateCrimeType,
+  useDeleteCrimeType,
+} from './hooks'
+
+// Components (only those consumed outside the module)
+export { SystemHealthPanel } from './components/health/SystemHealthPanel'
+export { LocationsList } from './components/locations/LocationsList'
+export { CrimeTypesList } from './components/crime-types/CrimeTypesList'
+
+// Utils
+export {
+  HEALTH_STATUS_VARIANTS,
+  CRIME_SEVERITY_VARIANTS,
+  getHealthStatusIcon,
+  formatResponseTime,
+} from './utils/adminUtils'
 ```
 
 ---
 
-# 26. Role-Based Access
+# 27. Role-Based Access
 
-## 26.1 Person list and detail access
+## 27.1 Department list and detail access
 
-The person list (`/personnel/persons`) and person detail (`/personnel/persons/[personId]`) require `Permission.PERSONNEL_READ` (dept_head+). The middleware-level route guard from Phase 1 covers this. At the page level, wrap content in `PermissionGuard`:
+The department list (`/departments`) is readable by all authenticated roles. Department detail is also readable by all authenticated roles. Management actions (create, update, delete, assign/remove head) are `DEPARTMENTS_MANAGE` (admin+) only.
+
+Wrap the management action buttons:
+```tsx
+<PermissionGuard permission={Permission.DEPARTMENTS_MANAGE}>
+  {/* Action buttons */}
+</PermissionGuard>
+```
+
+The department list itself does not require a special permission beyond authentication — all officers can see the organisational structure.
+
+## 27.2 Admin module access
+
+The `/admin` routes (locations, crime types, health) are `ADMIN_MANAGE` (admin+) only. The middleware-level route guard already blocks lower roles. At the page level, additionally wrap with:
 
 ```tsx
 <PermissionGuard
-  permission={Permission.PERSONNEL_READ}
+  permission={Permission.ADMIN_MANAGE}
   fallback={<ForbiddenState />}
 >
   {/* page content */}
 </PermissionGuard>
 ```
 
-## 26.2 PII reveal
+## 27.3 Department officer table — row officer links
 
-The "Reveal" button on `SensitiveField` only renders when `hasPermission(Permission.PII_REVEAL)`. For roles below `admin`, the button is entirely absent — the masked value is rendered without any reveal affordance.
+The officer name link in `DepartmentOfficersTable` navigates to `/personnel/officers/[id]`. Officers below `dept_head` can see the officer list (per Phase 7 access rules) so this link is safe for all roles.
 
-```tsx
-<SensitiveField
-  canReveal={hasPermission(Permission.PII_REVEAL)}
-  ...
-/>
-```
+## 27.4 Health polling — no role escalation
 
-## 26.3 Officer list scoping
-
-The backend scopes the officer list to the authenticated officer's department for `dept_head`. The frontend does not need to implement this scoping manually — it passes through to the API. However, the Department filter in the filter bar is hidden for `dept_head` (§19.1.3) since it would have no effect.
-
-## 26.4 Admin-only actions on officer detail
-
-The action buttons on the officer detail page header are all wrapped with `PermissionGuard permission={Permission.OFFICERS_MANAGE}`. For `dept_head` and lower roles, the page is viewable but no action buttons render.
+The health panel calls `GET /api/v1/health` and `GET /api/v1/readiness`. These endpoints are admin+ only at the backend level. The frontend page is already guarded. No additional data masking is required on health data.
 
 ---
 
-# 27. Testing Requirements
-
-## 27.1 Unit Tests — `personnelUtils.ts`
-
-Create `src/features/personnel/utils/personnelUtils.test.ts`:
-
-- `hasRole(['SUSPECT', 'VICTIM'], 'SUSPECT')` → `true`
-- `hasRole(['SUSPECT', 'VICTIM'], 'WITNESS')` → `false`
-- `hasRole([], 'SUSPECT')` → `false`
-- `getUnassignedRoles(['SUSPECT'])` → `['VICTIM', 'WITNESS']`
-- `getUnassignedRoles(['SUSPECT', 'VICTIM', 'WITNESS'])` → `[]`
-- `getUnassignedRoles([])` → `['SUSPECT', 'VICTIM', 'WITNESS']`
-- `getFullName('Sara', 'Haile')` → `"Sara Haile"`
-- `getOfficerDisplayName('Sara', 'Haile', 'BD-082')` → `"Sara Haile (BD-082)"`
-- `RISK_LEVEL_VARIANTS.LOW` → `'success'`
-- `RISK_LEVEL_VARIANTS.HIGH` → `'destructive'`
-- `OFFICER_STATUS_VARIANTS.ACTIVE` → `'success'`
-- `OFFICER_STATUS_VARIANTS.INACTIVE` → `'muted'`
-
-## 27.2 Unit Tests — Zod Schemas
-
-Create `src/features/personnel/schemas/personnel-schemas.test.ts`:
-
-**`createPersonSchema`:**
-- Valid payload (firstName + lastName only) → no error
-- Missing `firstName` → validation error on `firstName`
-- Missing `lastName` → validation error on `lastName`
-- Both optional fields absent → valid (all optional fields are truly optional)
-
-**`promoteToSuspectSchema`:**
-- `riskLevel: 'HIGH'` → valid
-- Missing `riskLevel` → validation error on `riskLevel`
-- Invalid `riskLevel: 'CRITICAL'` → validation error
-
-**`promoteToWitnessSchema`:**
-- `isProtected: false` → valid without `protectionLevel`
-- `isProtected: true` + `protectionLevel: 'HIGH'` → valid
-- `isProtected: true` + no `protectionLevel` → validation error on `protectionLevel`
-- `isProtected: false` + `protectionLevel: 'HIGH'` → valid (protectionLevel is ignored when not protected)
-
-**`createOfficerSchema`:**
-- Valid payload → no error
-- `badgeNumber: 'bd-123'` (lowercase) → validation error on `badgeNumber`
-- Invalid email → validation error on `email`
-- Missing `departmentId` → validation error
-
-## 27.3 Component Tests — PersonsList
-
-Create `src/features/personnel/components/persons/PersonsList.test.tsx`:
-- Loading state renders skeleton rows
-- Empty state renders when no persons and no filters
-- Filtered empty state renders when filters active and no results
-- "Add Person" button is visible when `PERSONNEL_MANAGE` permission is present
-- "Add Person" button is absent when `PERSONNEL_MANAGE` is absent
-- National ID column shows masked value (`***-***-1234`), not full value
-- Role badges render for each role in the person's `roles` array
-- Risk level badge renders for persons with `riskLevel` set; `—` for null
-- "Protected" badge renders only when `isProtectedWitness === true`
-
-## 27.4 Component Tests — PersonRoleCards
-
-Create `src/features/personnel/components/persons/PersonRoleCards.test.tsx`:
-- When `suspectProfile` is null: Suspect card is NOT rendered
-- When `suspectProfile` is populated: Suspect card renders with correct risk badge
-- When `victimProfile` is null: Victim card is NOT rendered
-- When `witnessProfile` is null: Witness card is NOT rendered
-- When `witnessProfile.isProtected === true`: "Protected Witness" accent badge renders
-- When all three profiles are null: "No roles assigned" empty state renders
-- Promote dropdown shows only unassigned roles
-- Promote dropdown hidden entirely when all three roles are assigned
-
-## 27.5 Component Tests — OfficersList
-
-Create `src/features/personnel/components/officers/OfficersList.test.tsx`:
-- "Add Officer" button is visible for `OFFICERS_MANAGE` permission
-- "Add Officer" button is absent for lower roles
-- Department filter is visible for `OFFICERS_MANAGE` and absent for `dept_head`
-- Inactive officer rows render with `opacity-60`
-- Kebab for active officer shows "Deactivate", not "Activate"
-- Kebab for inactive officer shows "Activate", not "Deactivate"
-- `lastActivityAt` column renders only for `OFFICERS_MANAGE` permission
-
-## 27.6 i18n Completeness
-
-Extend the existing i18n completeness test to cover the `personnel` namespace. All keys in `en/personnel.json` must have corresponding keys in `am/personnel.json`. Test runner: `pnpm test`.
-
----
-
-# 28. Anti-Pattern Reference
+# 29. Anti-Pattern Reference
 
 The following patterns are strictly forbidden.
 
-**PII masking violations:**
-- Rendering the `pii.nationalId` raw value anywhere other than inside a `SensitiveField` component — the field must always be wrapped
-- Showing the "Reveal" button for roles below `Permission.PII_REVEAL` — the button must be absent, not disabled
-- Skipping the `logPIIRevealEvent` call when the reveal button is clicked — the audit trail is mandatory
-- Allowing the `logPIIRevealEvent` error to surface to the user — it must fail silently
-- Displaying the full national ID or DOB in the persons LIST view — the list always uses `nationalIdMasked` (the pre-masked field)
+**Department head violations:**
+- Showing both "Assign Head" and "Change Head" at the same time in the PageHeader — these are mutually exclusive states based on whether `headOfficer` is null
+- Not invalidating `departmentKeys.department(departmentId)` after head assignment or removal — the head officer card will show stale data
+- Not invalidating `departmentKeys.departmentList()` after head changes — the list column will show the old head
+- Allowing any role below `DEPARTMENTS_MANAGE` to see the Assign Head, Change Head, or Remove Head action buttons
 
-**Role promotion violations:**
-- Showing "Add as Suspect" in the promote dropdown when `person.roles` already includes `SUSPECT` — check `hasRole()` first
-- Omitting the permanence notice bar from any promotion drawer — officers must be clearly warned
-- Creating a "Remove role" or "De-promote" button — de-promotion is backend-only in this phase
-- Calling a promotion mutation without the permanence notice being visually present in the drawer
+**Department deletion violations:**
+- Using optimistic updates for department deletion — it is irreversible; server must confirm
+- Not navigating back to `/departments` after successful deletion — the detail page URL for the deleted record must not remain active
+- Omitting the `officerCount > 0` warning from `DeleteDepartmentDialog` — admins must be informed before attempting a deletion the API will reject
+- Blocking the delete confirmation button when `officerCount > 0` — the API returns the rejection error; the UI shows the warning but still allows the attempt (officers may have been reassigned between dialog open and confirm)
 
-**Officer access violations:**
-- Rendering the `lastActivityAt` field for roles below `OFFICERS_MANAGE` — this field is admin-only
-- Showing the Department filter dropdown to `dept_head` — their list is already scoped by the backend; the filter is hidden
-- Allowing `dept_head` to see the "Add Officer" button — officer creation is `OFFICERS_MANAGE` (admin+) only
+**Reference data violations:**
+- Providing an edit/update action for locations or crime types — Phase 8 reference data is append-only. Only create and delete are permitted.
+- Calling `queryClient.setQueryData` to optimistically remove a location or crime type on delete — the API may reject a delete if the record is in use. Always wait for server confirmation.
+- Client-side filtering of locations or crime types — all search parameters must be sent to the API
+- Not warning the user in `DeleteLocationDialog` or `DeleteCrimeTypeDialog` that the API may reject the deletion if the record is referenced by active data
 
-**Optimistic update violations:**
-- Adding optimistic updates for `useDeactivateOfficer` — the blueprint explicitly prohibits optimistic updates for officer deactivation. It is a security-sensitive action that must be confirmed by the server.
-- Adding optimistic updates for `useActivateOfficer` — same rule
-- Adding optimistic updates for role promotion mutations — promotions are permanent and must be server-confirmed
+**Health panel violations:**
+- Using a manual `setInterval` instead of React Query's `refetchInterval` — React Query's built-in polling correctly handles component unmount cleanup, background tab pausing, and error retry logic
+- Showing the skeleton loading state on every 15-second refetch — the skeleton is for initial load only. Background refetches show existing data
+- Storing health poll data in Zustand — health data is server state; it belongs in React Query cache exclusively
+- Not setting `refetchIntervalInBackground: false` — without this, the health endpoint will be called every 15 seconds even when the browser tab is in the background, generating unnecessary load
+
+**Module boundary violations:**
+- Importing `OfficerRole` or `OfficerStatus` from `@features/personnel` inside the departments feature — use string types for `DepartmentOfficerSummary.role` and `.status`, and define `DEPT_OFFICER_ROLE_VARIANTS` locally in `departmentUtils.ts`
+- Importing `getDepartmentDisplayName` from `@features/departments` inside `DepartmentSelect` (a shared component) — inline the display logic directly in the shared component to avoid the shared→feature import violation
+- Any `@features/departments` import inside `@features/admin` or vice versa
 
 **Query invalidation violations:**
-- Not invalidating `personnelKeys.person(personId)` after a role promotion — the role card for the new role will not appear
-- Not invalidating `personnelKeys.personList()` after a role promotion — the roles column in the list will show stale data
-- Not invalidating `personnelKeys.officer(officerId)` after `useDeactivateOfficer` or `useActivateOfficer` — the status badge on the detail page will remain stale
-- Not invalidating `personnelKeys.officerList()` after officer status changes — the list rows will not reflect the new status
-
-**DataTable violations:**
-- Using client-side filtering on either the persons or officers list — all filters must translate to API query parameters
-- Not syncing filter params to URL — filter state must survive page refresh using the `useQueryStates` (nuqs) pattern
-- Rendering the full unmasked national ID in the table column — always use `person.nationalIdMasked`
-
-**i18n violations:**
-- Hardcoding risk level labels (`"High"`) instead of `t('persons.riskLevel.HIGH')`
-- Hardcoding officer role labels instead of `t('officers.officerRole.*')`
-- Hardcoding officer status labels instead of `t('officers.officerStatus.*')`
-- Hardcoding role-on-case labels in the PersonCasesTable instead of `t('persons.role.*')`
+- Not invalidating `departmentKeys.departmentList()` after creating, updating, or deleting a department — the list will show stale counts and data
+- Not removing the cached detail (`queryClient.removeQueries`) after successful department deletion — stale detail data for a deleted record must not persist in cache
+- Not invalidating `adminKeys.locationList()` after creating or deleting a location — the list will not reflect the change
+- Not invalidating `adminKeys.crimeTypeList()` after creating a crime type — same rule
 
 **Layout violations:**
-- Using a tabbed layout for `PersonDetail` or `OfficerDetail` — the blueprint explicitly specifies single-column full pages (not tabbed) for these entities
-- Placing action buttons (Deactivate, Activate, Reset Password) inside a kebab menu on the officer detail page — they are primary actions in the `PageHeader` right zone
+- Using a tabbed layout for `DepartmentDetail` — the blueprint explicitly specifies single-column full pages for department detail (same pattern as person and officer detail from Phase 7)
+- Placing the "New Department" button inside the department list filter bar — it belongs in the `PageHeader` right zone as the primary action
+- Placing the Delete, Assign Head, and Remove Head actions in the kebab menu on the department detail page — these are primary actions in the `PageHeader` right zone for the detail page; use the kebab only on the list page rows
+
+**i18n violations:**
+- Hardcoding severity labels (`"Felony"`) instead of `t('crimeTypes.severity.FELONY')`
+- Hardcoding health status labels (`"Healthy"`) instead of `t('health.status.healthy')`
+- Hardcoding "No Head" text instead of `t('list.noHead')`
+- Using health status values directly as display strings — always route through the i18n key
 
 ---
 
-# 29. Final Verification Checklist
+# 30. Final Verification Checklist
 
-## 29.1 Person List Page
+## 30.1 Department List Page
 
-- [ ] `/personnel/persons` renders the full DataTable (not the skeleton)
+- [ ] `/departments` renders the full DataTable (not the skeleton)
 - [ ] Search filter updates `search` URL param and refetches
-- [ ] Role filter chips (Suspect, Victim, Witness) appear and can be dismissed
-- [ ] Risk Level filter chips appear and can be dismissed
+- [ ] Departments with `headOfficer: null` show muted "No Head" badge in the head officer column
+- [ ] Departments with `headOfficer` show `"FirstName LastName (BadgeNumber)"` in the head officer column
+- [ ] `officerCount` and `activeCaseCount` columns show correct numbers
+- [ ] Location column shows location name or muted `t('list.noLocation')`
+- [ ] "New Department" button is visible for `DEPARTMENTS_MANAGE`
+- [ ] "New Department" button is absent for roles without `DEPARTMENTS_MANAGE`
+- [ ] Kebab edit/delete actions are absent for roles without `DEPARTMENTS_MANAGE`
+- [ ] Row click navigates to `/departments/[departmentId]`
 - [ ] Filter state survives page refresh
-- [ ] `nationalIdMasked` column shows masked value for all roles
-- [ ] Role badges column shows one badge per assigned role
-- [ ] Risk badge renders for suspects; `—` for others
-- [ ] "Protected" badge renders only when `isProtectedWitness === true`
-- [ ] "Add Person" button visible for `PERSONNEL_MANAGE`
-- [ ] "Add Person" button absent for roles without `PERSONNEL_MANAGE`
-- [ ] Row click navigates to `/personnel/persons/[personId]`
 - [ ] Loading skeleton renders on initial load
-- [ ] Empty state renders when no persons
-- [ ] Filtered empty state renders when filters yield no results
 
-## 29.2 Person Detail Page
+## 30.2 Department Detail Page
 
-- [ ] `/personnel/persons/[personId]` renders the single-column detail page (NOT tabbed)
-- [ ] Breadcrumb shows: Persons > [Person Full Name]
-- [ ] `PersonIdentityCard` renders all identity fields
-- [ ] National ID field uses `SensitiveField` — masked by default
-- [ ] Date of Birth field uses `SensitiveField` — year only by default
-- [ ] Phone field uses `SensitiveField` — masked by default
-- [ ] "Reveal" button is visible for `PII_REVEAL` permission
-- [ ] "Reveal" button is absent for roles without `PII_REVEAL`
-- [ ] Clicking "Reveal" shows full value and fires `logPIIRevealEvent` (no error to user)
-- [ ] Risk Level field shows badge when person is SUSPECT; `—` otherwise
-- [ ] `PersonRoleCards` shows Suspect card only if `suspectProfile` is non-null
-- [ ] `PersonRoleCards` shows Victim card only if `victimProfile` is non-null
-- [ ] `PersonRoleCards` shows Witness card only if `witnessProfile` is non-null
-- [ ] "Protected Witness" accent badge renders on Witness card when `isProtected === true`
-- [ ] "No roles assigned" empty state renders when all role profiles are null
-- [ ] "Promote to" dropdown shows only unassigned roles
-- [ ] "Promote to" dropdown is absent when all three roles are assigned
-- [ ] "Promote to" dropdown is absent for roles without `PERSONNEL_MANAGE`
-- [ ] `PromoteToSuspectDrawer` opens; permanence notice bar is visible
-- [ ] Risk Level select is required; submitting without it shows validation error
-- [ ] On successful suspect promotion: drawer closes, Suspect card appears on detail page
-- [ ] `PromoteToVictimDrawer` opens; permanence notice bar is visible
-- [ ] On successful victim promotion: drawer closes, Victim card appears
-- [ ] `PromoteToWitnessDrawer` opens; Protection Level field is hidden when toggle is OFF
-- [ ] Protection Level field appears when toggle is switched ON
-- [ ] Submitting `isProtected: true` without Protection Level shows validation error
-- [ ] On successful witness promotion: drawer closes, Witness card appears; "Protected Witness" badge visible when `isProtected` is true
-- [ ] `PersonCasesTable` shows associated cases in compact DataTable
-- [ ] Case number links navigate to `/cases/[caseId]`
-- [ ] Empty state renders when no linked cases
+- [ ] `/departments/[departmentId]` renders the single-column detail page (NOT tabbed)
+- [ ] Breadcrumb shows: Departments > [Department Name (Code)]
+- [ ] `DepartmentMetadataCard` shows name, code (or "Not assigned"), location (or "No location assigned"), description, officer count, active case count
+- [ ] Active cases count is a link navigating to `/cases?departmentId={id}`
+- [ ] `DepartmentHeadCard` shows officer name, badge, email, phone when head is assigned
+- [ ] Officer name in `DepartmentHeadCard` links to `/personnel/officers/{headOfficerId}`
+- [ ] `DepartmentHeadCard` shows "No Head Officer Assigned" empty state when head is null
+- [ ] Empty state "Assign Head Officer" button is visible for `DEPARTMENTS_MANAGE`
+- [ ] Empty state "Assign Head Officer" button is absent for lower roles
+- [ ] PageHeader shows "Assign Head" when `headOfficer` is null; shows "Change Head" + "Remove Head" when head exists
+- [ ] All three head management buttons require `DEPARTMENTS_MANAGE`; absent for lower roles
+- [ ] "Edit" button in PageHeader requires `DEPARTMENTS_MANAGE`
+- [ ] "Delete" button in PageHeader requires `DEPARTMENTS_MANAGE`
+- [ ] `DepartmentOfficersTable` shows officer badge, name (linked to officer detail), role badge, status badge, joined date
+- [ ] "View all officers" link navigates to `/personnel/officers?departmentId={id}`
+- [ ] Inactive officers render with `opacity-60` in the table
 
-## 29.3 Officer List Page
+## 30.3 Create Department Drawer
 
-- [ ] `/personnel/officers` renders the full DataTable (not the skeleton)
-- [ ] Search filter updates URL param and refetches
-- [ ] Status filter chips appear and can be dismissed
-- [ ] Role filter chips appear and can be dismissed
-- [ ] Department filter is visible for `OFFICERS_MANAGE` and absent for `dept_head`
-- [ ] Filter state survives page refresh
-- [ ] Badge number renders in monospace `xs` font
-- [ ] Role badge uses `OFFICER_ROLE_VARIANTS` colour mapping
-- [ ] Status badge uses `OFFICER_STATUS_VARIANTS` colour mapping
-- [ ] Inactive officer rows render with `opacity-60`
-- [ ] `lastActivityAt` column renders for `OFFICERS_MANAGE`; absent for `dept_head`
-- [ ] "Add Officer" button visible for `OFFICERS_MANAGE`
-- [ ] "Add Officer" button absent for lower roles
-- [ ] Kebab for active officer: shows "Deactivate" (destructive), hides "Activate"
-- [ ] Kebab for inactive officer: shows "Activate", hides "Deactivate"
-- [ ] Row click navigates to `/personnel/officers/[officerId]`
-
-## 29.4 Officer Detail Page
-
-- [ ] `/personnel/officers/[officerId]` renders the single-column detail page (NOT tabbed)
-- [ ] Breadcrumb shows: Officers > [Officer Full Name]
-- [ ] `OfficerIdentityCard` renders all identity fields
-- [ ] `lastActivityAt` field renders for `OFFICERS_MANAGE`; absent for `dept_head`
-- [ ] Status badge colour matches `OFFICER_STATUS_VARIANTS`
-- [ ] `activeCaseCount` and `totalCaseCount` render correctly
-- [ ] Action buttons in PageHeader: "Deactivate" for active officers, "Activate" for inactive
-- [ ] Both action buttons are absent for roles without `OFFICERS_MANAGE`
-- [ ] "Reset Password" button is visible for `OFFICERS_MANAGE`
-- [ ] "Reset Password" button absent for lower roles
-- [ ] `DeactivateOfficerDialog` opens on "Deactivate"; shows officer name and badge in description
-- [ ] Confirming deactivation: dialog closes, officer status updates to Inactive, toast confirms
-- [ ] `ActivateOfficerDialog` opens on "Activate"; shows officer name
-- [ ] Confirming activation: dialog closes, officer status updates to Active, toast confirms
-- [ ] `ResetPasswordDialog` opens on "Reset Password"; shows officer email in description
-- [ ] Confirming reset: dialog closes, success toast confirms
-- [ ] `OfficerCasesSummary` shows up to 10 recent cases in compact DataTable
-- [ ] "View all cases" link navigates to `/cases?assignedOfficerId=[officerId]`
-- [ ] Empty state renders when officer has no assigned cases
-
-## 29.5 Create Person Drawer
-
-- [ ] Opens from "Add Person" button on list page
-- [ ] First Name and Last Name are required; other fields optional
-- [ ] PII hint renders below National ID field
+- [ ] Opens from "New Department" button on the list page
+- [ ] Department name is required; validation error fires on submit
+- [ ] Code validation fires: lowercase letters trigger error; hyphens trigger error
+- [ ] Location `SearchableSelect` populates from the locations endpoint
 - [ ] Dirty state guard triggers on close when form is dirty
-- [ ] On success: drawer closes, persons list refreshes, toast confirms
-- [ ] On error: drawer stays open, error toast shown
+- [ ] On success: drawer closes, list refreshes, toast confirms
 
-## 29.6 Create Officer Drawer
+## 30.4 Update Department Drawer
 
-- [ ] Opens from "Add Officer" button on officer list page
-- [ ] Badge number format validation fires: lowercase characters trigger inline error
-- [ ] Email format validation fires
-- [ ] Department `SearchableSelect` populates from departments endpoint
-- [ ] Role select does not include `SUPERADMIN` unless authenticated officer is superadmin
+- [ ] Opens from "Edit" button on the detail page and "Edit Department" in the list kebab
+- [ ] All fields pre-populated from the current department data
+- [ ] Code field can be cleared (sends `null` to backend)
 - [ ] Dirty state guard triggers on close when form is dirty
-- [ ] On success: drawer closes, officers list refreshes, toast confirms, email info in toast
-- [ ] On error: drawer stays open, error toast (including 422 field errors mapped correctly)
+- [ ] On success: drawer closes, detail page refreshes, list refreshes, toast confirms
 
-## 29.7 i18n
+## 30.5 Delete Department Dialog
 
-- [ ] All personnel UI text is retrieved from message files (no hardcoded English)
-- [ ] Switching to Amharic updates all text in persons list, person detail, all drawers, officers list, officer detail, all dialogs
-- [ ] i18n completeness test passes with zero missing keys in `personnel` namespace
-- [ ] Risk level labels render in selected locale
-- [ ] Officer role labels render in selected locale
-- [ ] Officer status labels render in selected locale
-- [ ] Person role labels render in selected locale
+- [ ] Opens from "Delete" button on the detail page
+- [ ] Dialog body shows department name in the description
+- [ ] Warning bar renders when `officerCount > 0` — notifies admin that deletion will be rejected
+- [ ] Warning bar is absent when `officerCount === 0`
+- [ ] Confirm button is always enabled (even with officers present)
+- [ ] On success: navigates to `/departments`, toast confirms
+- [ ] On API error: dialog stays open, error toast shows
 
-## 29.8 Tooling
+## 30.6 Assign Head Officer Drawer
+
+- [ ] Opens from "Assign Head" (when no current head) and "Change Head" (when head exists)
+- [ ] Officer search shows only active officers
+- [ ] Replace notice bar renders when department already has a head (shows current head's name)
+- [ ] Replace notice bar is absent when department has no current head
+- [ ] On success: drawer closes, head officer card on detail page updates to new officer, toast confirms
+
+## 30.7 Remove Head Officer Dialog
+
+- [ ] Opens from "Remove Head" button on detail page
+- [ ] Dialog description shows current head's name, badge, and department name
+- [ ] On success: dialog closes, head officer card shows empty state, toast confirms
+
+## 30.8 Locations Admin Page
+
+- [ ] `/admin/locations` renders the full DataTable (not the skeleton)
+- [ ] ForbiddenState renders for roles below `ADMIN_MANAGE`
+- [ ] "New Location" button visible for `ADMIN_MANAGE`; absent for lower roles
+- [ ] Search filter updates URL and refetches
+- [ ] Region column shows `—` when `region` is null
+- [ ] Delete kebab action is visible for `ADMIN_MANAGE`
+- [ ] `DeleteLocationDialog` opens; description includes location name
+- [ ] On successful delete: dialog closes, list refreshes, toast confirms
+- [ ] On API rejection (record in use): dialog stays open, error toast shows
+
+## 30.9 Crime Types Admin Page
+
+- [ ] `/admin/crime-types` renders the full DataTable (not the skeleton)
+- [ ] ForbiddenState renders for roles below `ADMIN_MANAGE`
+- [ ] "New Crime Type" button visible for `ADMIN_MANAGE`
+- [ ] Search filter updates URL and refetches
+- [ ] Severity filter chips appear when severity filter is active
+- [ ] Severity badge uses `CRIME_SEVERITY_VARIANTS` colour mapping
+- [ ] `code` column renders in monospace font
+- [ ] `CreateCrimeTypeDrawer`: code validation fires for lowercase or space in code
+- [ ] `CreateCrimeTypeDrawer`: duplicate code → API 422 error surfaced in form
+- [ ] On successful create: drawer closes, list refreshes, toast confirms
+
+## 30.10 System Health Panel
+
+- [ ] `/admin/health` renders the health panel (not the skeleton)
+- [ ] ForbiddenState renders for roles below `ADMIN_MANAGE`
+- [ ] Initial load shows 4 skeleton cards
+- [ ] After data loads: overall status bar, 3 service cards, metrics row all render
+- [ ] `healthy` status → green indicator, "Healthy" text
+- [ ] `degraded` status → amber indicator, "Degraded" text
+- [ ] `down` status → red indicator, "Down" text
+- [ ] Service card response time shows formatted value or `—`
+- [ ] Metrics card: active session count shows number
+- [ ] Metrics card: last backup shows relative time or "Never"
+- [ ] Panel auto-refreshes every 15 seconds (verify network requests in dev tools)
+- [ ] Panel does NOT show loading skeleton on background refetches — existing data stays visible
+- [ ] On `isError` with no cached data: `ErrorState` with "Retry" button renders
+- [ ] On "Retry" click: `refetch()` is called
+- [ ] On `isError` with cached data: amber "Unable to refresh" notice appears above existing data
+
+## 30.11 DepartmentSelect shared component
+
+- [ ] `CreateOfficerDrawer` (Phase 7) `DepartmentSelect` now populates with real departments from the implemented service
+- [ ] Officer list page department filter dropdown (`DepartmentSelect`) populates correctly
+- [ ] Options are sorted alphabetically by `getDepartmentDisplayName`
+- [ ] Loading state renders while departments are fetching
+- [ ] Empty options handled gracefully
+
+## 30.12 i18n
+
+- [ ] All departments UI text is retrieved from message files (no hardcoded English)
+- [ ] All admin UI text is retrieved from message files (no hardcoded English)
+- [ ] Switching to Amharic updates all text in departments list, detail, all drawers and dialogs
+- [ ] Switching to Amharic updates all text in admin pages and health panel
+- [ ] i18n completeness test passes with zero missing keys in `departments` namespace (EN + AM)
+- [ ] i18n completeness test passes with zero missing keys in `admin` namespace (EN + AM)
+- [ ] Crime severity labels render in selected locale
+- [ ] Health status labels render in selected locale
+
+## 30.13 Tooling
 
 - [ ] `pnpm type-check` exits with zero errors
-- [ ] `pnpm lint` exits with zero warnings
-- [ ] `pnpm test` — all personnel module tests pass
 - [ ] `pnpm build` — production build succeeds without errors
 
 ---
 
-*End of CCMS Phase 7 Instruction — Personnel Module*
+*End of CCMS Phase 8 Instruction — Departments & Admin Module*
 *Prepared for AI Agent execution — 2026 production-grade engineering standards*
 *Package manager: pnpm throughout*
-*Next phase: Phase 8 will implement the Departments module and Admin module (department list, department detail, head officer assignment, admin reference data pages — locations, crime types — and system health panel)*
+*Next phase: Phase 9 will implement the Dashboards & Reports module (role-specific dashboards with KPI widgets, chart components using Recharts, and the full reports module with 15 reporting endpoints, date-range filters, CSV export, and department-scoped views)*
