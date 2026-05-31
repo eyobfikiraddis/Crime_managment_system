@@ -1,31 +1,46 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { DestructiveConfirmDialog } from '@/shared/components/modals/DestructiveConfirmDialog'
 import { useDeactivateOfficer } from '@features/personnel/hooks/useDeactivateOfficer'
+import type { OfficerListItem, Officer } from '@features/personnel/types/personnel.types'
 
-type Props = { officerId: string; onClose?: () => void }
+interface DeactivateOfficerDialogProps {
+  open: boolean
+  officer: OfficerListItem | Officer
+  onClose: () => void
+}
 
-export default function DeactivateOfficerDialog({ officerId, onClose }: Props) {
+export function DeactivateOfficerDialog({ open, officer, onClose }: DeactivateOfficerDialogProps) {
   const t = useTranslations('personnel')
-  const deactivate = useDeactivateOfficer(officerId)
+  const deactivateMutation = useDeactivateOfficer(officer.id)
 
-  const confirm = async () => {
+  const handleConfirm = async () => {
     try {
-      await deactivate.mutateAsync()
-      onClose?.()
-    } catch (e) {
-      // handled by hook
+      await deactivateMutation.mutateAsync()
+      onClose()
+    } catch (err) {
+      // Handled by hook
     }
   }
 
   return (
-    <div className="p-4 bg-card rounded-md">
-      <h3 className="text-lg font-medium">{t('officers.deactivate.title')}</h3>
-      <p className="text-sm text-foreground-muted mt-2">{t('officers.deactivate.description')}</p>
-      <div className="flex gap-2 mt-4">
-        <button className="btn-destructive" onClick={confirm}>{t('officers.deactivate.confirmButton')}</button>
-        <button className="btn-ghost" onClick={onClose}>{t('officers.deactivate.cancelButton')}</button>
-      </div>
-    </div>
+    <DestructiveConfirmDialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose()
+      }}
+      title={t('officers.deactivate.confirmTitle')}
+      description={t('officers.deactivate.confirmDescription', {
+        badgeNumber: officer.badgeNumber,
+        officerName: `${officer.firstName} ${officer.lastName}`,
+      })}
+      confirmLabel={t('officers.deactivate.confirmButton')}
+      cancelLabel={t('officers.deactivate.cancelButton')}
+      onConfirm={handleConfirm}
+      isConfirming={deactivateMutation.isPending}
+    />
   )
 }
+
+export default DeactivateOfficerDialog

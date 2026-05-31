@@ -1,31 +1,45 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { useResetOfficerPassword } from '@features/personnel/hooks/useResetOfficerPassword'
+import type { OfficerListItem, Officer } from '@features/personnel/types/personnel.types'
 
-type Props = { officerId: string; onClose?: () => void }
+interface ResetPasswordDialogProps {
+  open: boolean
+  officer: OfficerListItem | Officer
+  onClose: () => void
+}
 
-export default function ResetPasswordDialog({ officerId, onClose }: Props) {
+export function ResetPasswordDialog({ open, officer, onClose }: ResetPasswordDialogProps) {
   const t = useTranslations('personnel')
-  const reset = useResetOfficerPassword(officerId)
+  const resetMutation = useResetOfficerPassword(officer.id)
 
-  const confirm = async () => {
+  const handleConfirm = async () => {
     try {
-      await reset.mutateAsync()
-      onClose?.()
-    } catch (e) {
-      // handled by hook
+      await resetMutation.mutateAsync()
+      onClose()
+    } catch (err) {
+      // Handled by hook
     }
   }
 
   return (
-    <div className="p-4 bg-card rounded-md">
-      <h3 className="text-lg font-medium">{t('officers.resetPassword.title')}</h3>
-      <p className="text-sm text-foreground-muted mt-2">{t('officers.resetPassword.description')}</p>
-      <div className="flex gap-2 mt-4">
-        <button className="btn-primary" onClick={confirm}>{t('officers.resetPassword.confirmButton')}</button>
-        <button className="btn-ghost" onClick={onClose}>{t('officers.resetPassword.cancelButton')}</button>
-      </div>
-    </div>
+    <ConfirmDialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose()
+      }}
+      title={t('officers.resetPassword.confirmTitle')}
+      description={t('officers.resetPassword.confirmDescription', {
+        officerEmail: officer.email,
+      })}
+      confirmLabel={t('officers.resetPassword.confirmButton')}
+      cancelLabel={t('officers.resetPassword.cancelButton')}
+      onConfirm={handleConfirm}
+      isConfirming={resetMutation.isPending}
+    />
   )
 }
+
+export default ResetPasswordDialog

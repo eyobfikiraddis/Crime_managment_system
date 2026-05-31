@@ -75,6 +75,24 @@ export function Breadcrumb() {
           caseKeys.detail(segment),
         )
         label = cachedCase?.title ?? cachedCase?.name
+
+        if (!label) {
+          const cachedPerson = queryClient.getQueryData<{ firstName?: string; lastName?: string }>(
+            ['persons', 'detail', segment]
+          )
+          if (cachedPerson) {
+            label = `${cachedPerson.firstName ?? ''} ${cachedPerson.lastName ?? ''}`.trim()
+          }
+        }
+
+        if (!label) {
+          const cachedOfficer = queryClient.getQueryData<{ firstName?: string; lastName?: string }>(
+            ['officers', 'detail', segment]
+          )
+          if (cachedOfficer) {
+            label = `${cachedOfficer.firstName ?? ''} ${cachedOfficer.lastName ?? ''}`.trim()
+          }
+        }
       }
 
       crumbs.push({

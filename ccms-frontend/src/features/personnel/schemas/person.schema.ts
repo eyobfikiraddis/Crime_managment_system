@@ -20,7 +20,9 @@ export const createPersonSchema = z.object({
 export type CreatePersonValues = z.infer<typeof createPersonSchema>
 
 export const promoteToSuspectSchema = z.object({
-  riskLevel: z.nativeEnum(RiskLevel),
+  riskLevel: z.nativeEnum(RiskLevel, {
+    message: 'Risk level is required.',
+  }),
   notes: z.string().max(2000).optional(),
 })
 

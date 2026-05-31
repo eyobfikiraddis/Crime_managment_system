@@ -21,7 +21,9 @@ export const createOfficerSchema = z.object({
     .string()
     .email({ message: 'A valid email address is required.' })
     .max(200),
-  role: z.nativeEnum(OfficerRole),
+  role: z.nativeEnum(OfficerRole, {
+    message: 'Officer role is required.',
+  }),
   departmentId: z.string().min(1, { message: 'Department is required.' }),
   phone: z.string().max(20).optional(),
 })
