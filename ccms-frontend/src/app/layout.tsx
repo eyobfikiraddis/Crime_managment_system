@@ -7,6 +7,7 @@ import { serverEnv } from '@/config/env.server'
 // The import alone will run the check when the module loads on the server.
 
 import './globals.css'
+import '@shared/styles/print.css'
 import { ModalRenderer } from '@/shared/components/modals/ModalRenderer'
 import { Providers } from '@/shared/providers/Providers'
 

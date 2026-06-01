@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
+import { ClipboardList } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { useOfficerDetail } from '@features/personnel/hooks/useOfficerDetail'
@@ -19,6 +20,7 @@ import { OfficerCasesSummary } from './OfficerCasesSummary'
 import ActivateOfficerDialog from './ActivateOfficerDialog'
 import DeactivateOfficerDialog from './DeactivateOfficerDialog'
 import ResetPasswordDialog from './ResetPasswordDialog'
+import { OfficerAuditDrawer } from '@features/audit/components/OfficerAuditDrawer'
 
 interface OfficerDetailProps {
   officerId: string
@@ -26,10 +28,12 @@ interface OfficerDetailProps {
 
 export function OfficerDetail({ officerId }: OfficerDetailProps) {
   const t = useTranslations('personnel')
+  const tAudit = useTranslations('audit')
 
   const [deactivateOpen, setDeactivateOpen] = useState(false)
   const [activateOpen, setActivateOpen] = useState(false)
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false)
+  const [auditOpen, setAuditOpen] = useState(false)
 
   const { data: officer, isLoading, isError } = useOfficerDetail(officerId)
 
@@ -59,6 +63,10 @@ export function OfficerDetail({ officerId }: OfficerDetailProps) {
   const headerActions = (
     <PermissionGuard permission={Permission.PERSONNEL_MANAGE}>
       <div className="flex gap-2">
+        <Button variant="outline" onClick={() => setAuditOpen(true)}>
+          <ClipboardList className="mr-2 h-3.5 w-3.5" />
+          {tAudit('officerHistory.openButton')}
+        </Button>
         <Button variant="outline" onClick={() => setResetPasswordOpen(true)}>
           {t('officers.detail.actions.resetPassword')}
         </Button>
@@ -119,6 +127,13 @@ export function OfficerDetail({ officerId }: OfficerDetailProps) {
             onClose={() => setResetPasswordOpen(false)}
           />
         )}
+
+        <OfficerAuditDrawer
+          officerId={officer.id}
+          officerName={`${officer.firstName} ${officer.lastName}`}
+          open={auditOpen}
+          onClose={() => setAuditOpen(false)}
+        />
       </div>
     </PermissionGuard>
   )

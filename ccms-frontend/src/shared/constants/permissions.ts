@@ -24,6 +24,9 @@ export const Permission = {
   DASHBOARD_VIEW: 'dashboard:view',
   SETTINGS_VIEW: 'settings:view',
   SETTINGS_MANAGE: 'settings:manage',
+  // Helper mappings for Phase 10 spec alignment
+  OFFICERS_MANAGE: 'personnel:manage',
+  CASES_MANAGE: 'cases:write',
 } as const
 
 export type Permission = (typeof Permission)[keyof typeof Permission]

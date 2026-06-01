@@ -13,6 +13,7 @@ export const ROUTES = {
   adminLocations: '/admin/locations',
   adminCrimeTypes: '/admin/crime-types',
   adminHealth: '/admin/health',
+  adminAudit: '/admin/audit',
   settingsProfile: '/settings/profile',
   settingsPassword: '/settings/password',
   errors: {

@@ -1,0 +1,111 @@
+@media print {
+  /* ── Hide navigation chrome ─────────────────────────────────── */
+  .print\:hidden,
+  nav,
+  aside,
+  header,
+  [data-sidebar],
+  [data-topbar],
+  [data-breadcrumb] {
+    display: none !important;
+  }
+
+  /* ── Page setup ──────────────────────────────────────────────── */
+  @page {
+    size: A4 portrait;
+    margin: 20mm 15mm 20mm 15mm;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Times New Roman', serif;
+    font-size: 10pt;
+  }
+
+  /* ── CCMS letterhead (injected via JS into a .print-header div) */
+  .print-header {
+    display: block !important;
+    border-bottom: 2px solid #000;
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+  }
+
+  .print-header .print-title {
+    font-size: 16pt;
+    font-weight: bold;
+    text-align: center;
+    color: #000000 !important;
+  }
+
+  .print-header .print-classification {
+    font-size: 8pt;
+    text-align: center;
+    letter-spacing: 0.05em;
+    font-weight: bold;
+    color: #000000 !important;
+  }
+
+  .print-header .print-notice {
+    font-size: 8pt;
+    text-align: center;
+    font-style: italic;
+    margin-top: 4px;
+    color: #000000 !important;
+  }
+
+  /* ── Timeline entries ────────────────────────────────────────── */
+  [data-timeline-entry] {
+    border: 1px solid #cccccc !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-radius: 0 !important;
+    page-break-inside: avoid;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+  }
+
+  /* ── Diff viewer ─────────────────────────────────────────────── */
+  [data-diff-before] {
+    background-color: #fff0f0 !important;
+    border-left: 2px solid #cc0000 !important;
+  }
+
+  [data-diff-after] {
+    background-color: #f0fff0 !important;
+    border-left: 2px solid #007700 !important;
+  }
+
+  /* ── Custody gap badge ───────────────────────────────────────── */
+  [data-custody-gap] {
+    border: 1px solid #b45309 !important;
+    background-color: #fffbeb !important;
+    color: #92400e !important;
+  }
+
+  /* ── Timeline connector ──────────────────────────────────────── */
+  [data-timeline-connector] {
+    border-left: 1px solid #cccccc !important;
+    background: none !important;
+  }
+
+  /* ── Pagination and filter bar — hide on print ───────────────── */
+  [data-pagination],
+  [data-filter-bar],
+  [data-export-panel],
+  [data-note-form] {
+    display: none !important;
+  }
+
+  /* ── Links: show URL ─────────────────────────────────────────── */
+  a[href]::after {
+    content: none;  /* Do NOT print URLs — audit entries contain no links */
+  }
+
+  /* ── Page footer with page numbers ──────────────────────────── */
+  @bottom-center {
+    content: counter(page) ' / ' counter(pages);
+    font-size: 8pt;
+    color: #555555;
+  }
+}

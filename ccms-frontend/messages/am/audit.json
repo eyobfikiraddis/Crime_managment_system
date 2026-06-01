@@ -1,5 +1,157 @@
 {
   "pageTitle": "የኦዲት ምዝገባ",
-  "heading": "የኦዲት ምዝገባ",
-  "skeleton": "የኦዲት መዝገቦች በመጫን ላይ..."
+  "caseTimeline": {
+    "pageTitle": "የጊዜ ሰሌዳ",
+    "heading": "የጉዳይ ሰሌዳ",
+    "pollingIndicator": "ቀጥታ — በ30 ሰከንዶች ይዘምናል",
+    "loading": "ሰሌዳ እየጫነ ነው...",
+    "loadingMore": "ተጨማሪ ግቤቶች እየጫነ ነው...",
+    "empty": {
+      "title": "ምንም የሰሌዳ ግቤቶች የሉም",
+      "description": "ለዚህ ጉዳይ ምንም ክስተቶች ገና አልተመዘገቡም።"
+    },
+    "emptyFiltered": "ምንም ግቤቶች ከማጣሪያዎ ጋር አይዛመዱም።",
+    "error": "የጉዳዩን ሰሌዳ ለመጫን አልተሳካም።",
+    "entryCount": "{count} ክስተት(ቾ)"
+  },
+  "globalLog": {
+    "heading": "ዓለም አቀፍ የኦዲት ምዝገባ",
+    "description": "ለሁሉም አካላት እና ተዋናዮች የስርዓት ሙሉ ኦዲት።",
+    "loading": "ምዝገባ እየጫነ ነው...",
+    "empty": {
+      "title": "ምንም ኦዲት ግቤቶች የሉም",
+      "description": "ምንም ክስተቶች ከተምረጡ ማጣሪያዎች ጋር አይዛመዱም።"
+    },
+    "error": "ምዝገባ ለመጫን አልተሳካም።",
+    "entityScope": {
+      "label": "ወሰን",
+      "allEntities": "ሁሉም አካላት",
+      "caseLabel": "ጉዳይ",
+      "officerLabel": "ፖሊስ",
+      "casePlaceholder": "በጉዳይ UUID አጣራ...",
+      "officerPlaceholder": "በፖሊስ UUID አጣራ..."
+    }
+  },
+  "officerHistory": {
+    "drawerTitle": "የፖሊስ ኦዲት ታሪክ",
+    "drawerDescription": "ፖሊሱን የሚሳተፉ ሁሉም ክስተቶች።",
+    "empty": "ለዚህ ፖሊስ ምንም ኦዲት ታሪክ የለም።",
+    "error": "የፖሊስ ኦዲት ታሪክ ለመጫን አልተሳካም።",
+    "openButton": "ኦዲት ታሪክ ተመልከት"
+  },
+  "personHistory": {
+    "drawerTitle": "የሰው ኦዲት ታሪክ",
+    "drawerDescription": "ከዚህ ሰው መዝገብ ጋር ሁሉም ክስተቶች።",
+    "empty": "ለዚህ ሰው ምንም ኦዲት ታሪክ የለም።",
+    "error": "የሰው ኦዲት ታሪክ ለመጫን አልተሳካም።",
+    "openButton": "ኦዲት ታሪክ ተመልከት"
+  },
+  "filter": {
+    "label": "አጣራ",
+    "actorSearch": "በፖሊስ ስም ወይም ባጅ ፈልግ...",
+    "eventType": "የክስተት ዓይነት",
+    "dateFrom": "ከ",
+    "dateTo": "እስከ",
+    "clearAll": "ማጣሪያዎች አጽዳ",
+    "activeFiltersLabel": "{count} ማጣሪያ(ዎች) ንቁ",
+    "categories": {
+      "CASE": "የጉዳይ ክስተቶች",
+      "EVIDENCE": "ማስረጃ እና ቁጥጥር",
+      "SECURITY": "የጸጥታ ክስተቶች",
+      "LEGAL": "ሕጋዊ ክስተቶች",
+      "PERSONNEL": "የሰራተኛ ክስተቶች",
+      "ANNOTATION": "ማስታወሻዎች"
+    }
+  },
+  "entry": {
+    "actor": "በ {actorName}",
+    "badgeNumber": "({badgeNumber})",
+    "timestamp": {
+      "absolute": "ፍጹም ጊዜ",
+      "relative": "አንፃራዊ ጊዜ"
+    },
+    "immutableTooltip": "ይህ ኦዲት መዝገብ ሊቀየር ወይም ሊሰረዝ አይችልም።",
+    "diffLabel": "ለውጦች",
+    "diffBefore": "ቀደም",
+    "diffAfter": "ዛሬ",
+    "diffNoChange": "—",
+    "noteLabel": "ማስታወሻ",
+    "securityBadge": {
+      "LOW": "ዝቅተኛ ክብደት",
+      "MEDIUM": "መካከለኛ ክብደት",
+      "HIGH": "ከፍተኛ ክብደት"
+    }
+  },
+  "custodyGap": {
+    "badgeLabel": "የቁጥጥር ክፍተት ተገኝቷል",
+    "tooltipText": "ተከታታይ ክስተቶች መካከል {duration} ክፍተት ተገኝቷል። ምርመራ ሊያስፈልግ ይችላል።",
+    "fromTo": "ከ {from} እስከ {to}"
+  },
+  "eventType": {
+    "CASE_CREATED":            "ጉዳይ ተፈጥሯል",
+    "CASE_UPDATED":            "ጉዳይ ተዘምኗል",
+    "CASE_STATUS_CHANGED":     "ሁኔታ ተቀይሯል",
+    "CASE_OFFICER_ASSIGNED":   "ፖሊስ ተሰጥቷል",
+    "CASE_OFFICER_REMOVED":    "ፖሊስ ተወግዷል",
+    "CASE_PERMISSIONS_CHANGED":"ፈቃዶች ተቀይረዋል",
+    "CASE_DELETED":            "ጉዳይ ተሰርዟል",
+    "EVIDENCE_ADDED":          "ማስረጃ ተጨምሯል",
+    "EVIDENCE_UPDATED":        "ማስረጃ ተዘምኗል",
+    "EVIDENCE_DELETED":        "ማስረጃ ተሰርዟል",
+    "CUSTODY_TRANSFERRED":     "ቁጥጥር ተላልፏል",
+    "CUSTODY_EXAMINED":        "ቁጥጥር ተፈትሷል",
+    "CUSTODY_STORED":          "ቁጥጥር ተቀምጧል",
+    "CUSTODY_PRESENTED":       "በፍርድ ቤት ቀርቧል",
+    "LOGIN_SUCCESS":           "ግቤት",
+    "LOGIN_FAILURE":           "ያልተሳካ ሙከራ",
+    "LOGOUT":                  "ወጥቷል",
+    "SESSION_EXPIRED":         "ክፍለ ጊዜ አልቋል",
+    "FORCED_LOGOUT":           "ግዳጅ ወጥቷል",
+    "PERMISSION_GRANTED":      "ፈቃድ ተሰጥቷል",
+    "PERMISSION_REVOKED":      "ፈቃድ ተሰርዟል",
+    "ROLE_CHANGED":            "ሚና ተቀይሯል",
+    "PASSWORD_RESET":          "የይለፍ ቃል ዳግም ጀምሯል",
+    "PII_ACCESSED":            "ሚስጥራዊ መስክ ተይቷል",
+    "CHARGE_FILED":            "ክስ ቀርቧል",
+    "CHARGE_UPDATED":          "ክስ ተዘምኗል",
+    "CHARGE_DROPPED":          "ክስ ውድቅ ሆኗል",
+    "SENTENCE_RECORDED":       "ቅጣት ተሰፍሯል",
+    "COURT_CASE_CREATED":      "ፍርድ ቤት ጉዳይ ተፈጥሯል",
+    "COURT_CASE_UPDATED":      "ፍርድ ቤት ጉዳይ ተዘምኗል",
+    "HEARING_SCHEDULED":       "ችሎት ተዘጋጅቷል",
+    "PERSON_CREATED":          "ሰው ተፈጥሯል",
+    "PERSON_UPDATED":          "ሰው ተዘምኗል",
+    "PERSON_ROLE_PROMOTED":    "ሚና ተሰጥቷል",
+    "OFFICER_CREATED":         "ፖሊስ ተፈጥሯል",
+    "OFFICER_UPDATED":         "ፖሊስ ተዘምኗል",
+    "OFFICER_ACTIVATED":       "ፖሊስ ንቁ ሆኗል",
+    "OFFICER_DEACTIVATED":     "ፖሊስ ቆሟል",
+    "CASE_NOTE_ADDED":         "ማስታወሻ ታክሏል"
+  },
+  "note": {
+    "formLabel": "ማስታወሻ ጨምር",
+    "placeholder": "ለጉዳዩ ማስታወሻ ይፃፉ...",
+    "submitButton": "ማስታወሻ ጨምር",
+    "successMessage": "ማስታወሻ ወደ ጊዜ ሰሌዳ ታክሏል።",
+    "errorMessage": "ማስታወሻ ለማከል አልተሳካም። እንደገና ይሞክሩ።",
+    "characterCount": "{count} / 2000"
+  },
+  "export": {
+    "csvButton": "CSV ወርዶ አውርድ",
+    "printButton": "ሰሌዳ አትም",
+    "csvDownloading": "እያወረደ ነው...",
+    "csvSuccessMessage": "ኦዲት ምዝገባ ወርዶ ተጫነ።",
+    "csvErrorMessage": "ምዝገባ ለማውረድ አልተሳካም። እንደገና ይሞክሩ።",
+    "printTitle": "CCMS ኦዲት ሰሌዳ",
+    "printClassification": "ምደባ: ውስጣዊ — ተገቢ",
+    "printAuthorisedNotice": "ፈቃደኛ ሰዎች ብቻ። ሁሉም ሁሉም ሁሉም።",
+    "printGeneratedAt": "ተፈጥሯል: {datetime}",
+    "printPageOf": "ገጽ {page} ከ {total}"
+  },
+  "pagination": {
+    "previous": "ቀዳሚ",
+    "next": "next",
+    "pageSize": "በገጽ",
+    "showing": "{from}–{to} ከ {total}"
+  }
 }

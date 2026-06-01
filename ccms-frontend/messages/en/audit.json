@@ -1,5 +1,157 @@
 {
   "pageTitle": "Audit Log",
-  "heading": "Audit Log",
-  "skeleton": "Loading audit entries..."
+  "caseTimeline": {
+    "pageTitle": "Timeline",
+    "heading": "Case Timeline",
+    "pollingIndicator": "Live — updates every 30s",
+    "loading": "Loading timeline...",
+    "loadingMore": "Loading more entries...",
+    "empty": {
+      "title": "No Timeline Entries",
+      "description": "No audit events have been recorded for this case yet."
+    },
+    "emptyFiltered": "No entries match your current filters.",
+    "error": "Failed to load the case timeline.",
+    "entryCount": "{count} event(s)"
+  },
+  "globalLog": {
+    "heading": "Global Audit Log",
+    "description": "System-wide audit trail for all entities and actors.",
+    "loading": "Loading audit log...",
+    "empty": {
+      "title": "No Audit Entries",
+      "description": "No audit events match the selected filters."
+    },
+    "error": "Failed to load the audit log.",
+    "entityScope": {
+      "label": "Scope",
+      "allEntities": "All Entities",
+      "caseLabel": "Case",
+      "officerLabel": "Officer",
+      "casePlaceholder": "Filter by case UUID...",
+      "officerPlaceholder": "Filter by officer UUID..."
+    }
+  },
+  "officerHistory": {
+    "drawerTitle": "Officer Audit History",
+    "drawerDescription": "All audit events involving this officer.",
+    "empty": "No audit history for this officer.",
+    "error": "Failed to load officer audit history.",
+    "openButton": "View Audit History"
+  },
+  "personHistory": {
+    "drawerTitle": "Person Audit History",
+    "drawerDescription": "All audit events related to this person record.",
+    "empty": "No audit history for this person.",
+    "error": "Failed to load person audit history.",
+    "openButton": "View Audit History"
+  },
+  "filter": {
+    "label": "Filter",
+    "actorSearch": "Search by officer name or badge...",
+    "eventType": "Event Type",
+    "dateFrom": "From",
+    "dateTo": "To",
+    "clearAll": "Clear filters",
+    "activeFiltersLabel": "{count} filter(s) active",
+    "categories": {
+      "CASE": "Case Events",
+      "EVIDENCE": "Evidence & Custody",
+      "SECURITY": "Security Events",
+      "LEGAL": "Legal Events",
+      "PERSONNEL": "Personnel Events",
+      "ANNOTATION": "Annotations"
+    }
+  },
+  "entry": {
+    "actor": "by {actorName}",
+    "badgeNumber": "({badgeNumber})",
+    "timestamp": {
+      "absolute": "Absolute time",
+      "relative": "Relative time"
+    },
+    "immutableTooltip": "This audit record cannot be modified or deleted.",
+    "diffLabel": "Changes",
+    "diffBefore": "Before",
+    "diffAfter": "After",
+    "diffNoChange": "—",
+    "noteLabel": "Note",
+    "securityBadge": {
+      "LOW": "Low Severity",
+      "MEDIUM": "Medium Severity",
+      "HIGH": "High Severity"
+    }
+  },
+  "custodyGap": {
+    "badgeLabel": "Custody Gap Detected",
+    "tooltipText": "A gap of {duration} was detected between sequential custody events. This may require investigation.",
+    "fromTo": "From {from} to {to}"
+  },
+  "eventType": {
+    "CASE_CREATED":            "Case Created",
+    "CASE_UPDATED":            "Case Updated",
+    "CASE_STATUS_CHANGED":     "Status Changed",
+    "CASE_OFFICER_ASSIGNED":   "Officer Assigned",
+    "CASE_OFFICER_REMOVED":    "Officer Removed",
+    "CASE_PERMISSIONS_CHANGED":"Permissions Changed",
+    "CASE_DELETED":            "Case Deleted",
+    "EVIDENCE_ADDED":          "Evidence Added",
+    "EVIDENCE_UPDATED":        "Evidence Updated",
+    "EVIDENCE_DELETED":        "Evidence Deleted",
+    "CUSTODY_TRANSFERRED":     "Custody Transferred",
+    "CUSTODY_EXAMINED":        "Custody Examined",
+    "CUSTODY_STORED":          "Custody Stored",
+    "CUSTODY_PRESENTED":       "Presented in Court",
+    "LOGIN_SUCCESS":           "Login",
+    "LOGIN_FAILURE":           "Failed Login Attempt",
+    "LOGOUT":                  "Logout",
+    "SESSION_EXPIRED":         "Session Expired",
+    "FORCED_LOGOUT":           "Forced Logout",
+    "PERMISSION_GRANTED":      "Permission Granted",
+    "PERMISSION_REVOKED":      "Permission Revoked",
+    "ROLE_CHANGED":            "Role Changed",
+    "PASSWORD_RESET":          "Password Reset",
+    "PII_ACCESSED":            "PII Field Accessed",
+    "CHARGE_FILED":            "Charge Filed",
+    "CHARGE_UPDATED":          "Charge Updated",
+    "CHARGE_DROPPED":          "Charge Dropped",
+    "SENTENCE_RECORDED":       "Sentence Recorded",
+    "COURT_CASE_CREATED":      "Court Case Created",
+    "COURT_CASE_UPDATED":      "Court Case Updated",
+    "HEARING_SCHEDULED":       "Hearing Scheduled",
+    "PERSON_CREATED":          "Person Record Created",
+    "PERSON_UPDATED":          "Person Record Updated",
+    "PERSON_ROLE_PROMOTED":    "Role Assigned",
+    "OFFICER_CREATED":         "Officer Account Created",
+    "OFFICER_UPDATED":         "Officer Account Updated",
+    "OFFICER_ACTIVATED":       "Officer Activated",
+    "OFFICER_DEACTIVATED":     "Officer Deactivated",
+    "CASE_NOTE_ADDED":         "Note Added"
+  },
+  "note": {
+    "formLabel": "Add a case note",
+    "placeholder": "Write a note for the case record...",
+    "submitButton": "Add Note",
+    "successMessage": "Note added to the case timeline.",
+    "errorMessage": "Failed to add note. Please try again.",
+    "characterCount": "{count} / 2000"
+  },
+  "export": {
+    "csvButton": "Export CSV",
+    "printButton": "Print Timeline",
+    "csvDownloading": "Downloading...",
+    "csvSuccessMessage": "Audit log downloaded.",
+    "csvErrorMessage": "Failed to download audit log. Please try again.",
+    "printTitle": "CCMS Audit Timeline",
+    "printClassification": "CLASSIFICATION: INTERNAL — RESTRICTED",
+    "printAuthorisedNotice": "Authorised personnel only. All access is logged and audited.",
+    "printGeneratedAt": "Generated: {datetime}",
+    "printPageOf": "Page {page} of {total}"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "pageSize": "Per page",
+    "showing": "Showing {from}–{to} of {total}"
+  }
 }

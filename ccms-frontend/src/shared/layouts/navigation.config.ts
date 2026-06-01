@@ -8,6 +8,7 @@ import {
   Settings,
   Shield,
   Users,
+  ClipboardList,
 } from 'lucide-react'
 
 import { ROUTES } from '@/shared/constants/routes'
@@ -52,6 +53,7 @@ export const navigationSections: NavigationSection[] = [
       { href: ROUTES.adminLocations, label: 'items.locations', icon: Settings },
       { href: ROUTES.adminCrimeTypes, label: 'items.crimeTypes', icon: Settings },
       { href: ROUTES.adminHealth, label: 'items.systemHealth', icon: Settings },
+      { href: ROUTES.adminAudit, label: 'items.audit', icon: ClipboardList },
     ],
   },
   {

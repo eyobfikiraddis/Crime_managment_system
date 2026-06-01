@@ -1,13 +1,29 @@
+'use client'
+
 interface TimelineConnectorProps {
-  gapDetected?: boolean
+  isGap?: boolean
 }
 
-export function TimelineConnector({ gapDetected }: TimelineConnectorProps) {
+export function TimelineConnector({ isGap = false }: TimelineConnectorProps) {
+  if (isGap) {
+    return (
+      <div
+        className="ml-[19px] w-[2px] h-6"
+        style={{
+          background:
+            'repeating-linear-gradient(to bottom, var(--color-warning) 0px, var(--color-warning) 4px, transparent 4px, transparent 8px)',
+        }}
+        aria-hidden="true"
+        data-timeline-connector=""
+      />
+    )
+  }
+
   return (
     <div
-      className={`ml-4 h-full w-px ${
-        gapDetected ? 'border-l border-dashed border-warning' : 'bg-border'
-      }`}
+      className="ml-[19px] w-[2px] h-6 bg-border"
+      aria-hidden="true"
+      data-timeline-connector=""
     />
   )
 }

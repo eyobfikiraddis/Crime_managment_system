@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { ChevronDown, UserX, Heart, Eye } from 'lucide-react'
+import { ChevronDown, UserX, Heart, Eye, ClipboardList } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -11,6 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 
 import { usePersonDetail } from '@features/personnel/hooks/usePersonDetail'
@@ -21,6 +22,7 @@ import { PageHeader } from '@shared/components/display/PageHeader'
 import { PermissionGuard } from '@shared/components/permission/PermissionGuard'
 import { Permission } from '@shared/constants/permissions'
 import { ForbiddenState } from '@shared/components/feedback/ForbiddenState'
+import { PersonAuditDrawer } from '@features/audit/components/PersonAuditDrawer'
 
 import { PersonIdentityCard } from './PersonIdentityCard'
 import { PersonRoleCards } from './PersonRoleCards'
@@ -36,10 +38,12 @@ interface PersonDetailProps {
 
 export function PersonDetail({ personId }: PersonDetailProps) {
   const t = useTranslations('personnel')
+  const tAudit = useTranslations('audit')
 
   const [promoteToSuspectOpen, setPromoteToSuspectOpen] = useState(false)
   const [promoteToVictimOpen, setPromoteToVictimOpen] = useState(false)
   const [promoteToWitnessOpen, setPromoteToWitnessOpen] = useState(false)
+  const [auditOpen, setAuditOpen] = useState(false)
 
   const { data: person, isLoading, isError } = usePersonDetail(personId)
 
@@ -75,35 +79,38 @@ export function PersonDetail({ personId }: PersonDetailProps) {
 
   const dropdownActions = (
     <PermissionGuard permission={Permission.PERSONNEL_MANAGE}>
-      {!hasAllRoles && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              {t('persons.detail.rolesSection.promoteSection')} <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
-            {!hasSuspect && (
-              <DropdownMenuItem onClick={() => setPromoteToSuspectOpen(true)}>
-                <UserX className="mr-2 h-4 w-4" />
-                {t('persons.detail.actions.promoteToSuspect')}
-              </DropdownMenuItem>
-            )}
-            {!hasVictim && (
-              <DropdownMenuItem onClick={() => setPromoteToVictimOpen(true)}>
-                <Heart className="mr-2 h-4 w-4" />
-                {t('persons.detail.actions.promoteToVictim')}
-              </DropdownMenuItem>
-            )}
-            {!hasWitness && (
-              <DropdownMenuItem onClick={() => setPromoteToWitnessOpen(true)}>
-                <Eye className="mr-2 h-4 w-4" />
-                {t('persons.detail.actions.promoteToWitness')}
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline">
+            {t('persons.detail.rolesSection.promoteSection')} <ChevronDown className="ml-2 h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-52">
+          {!hasSuspect && (
+            <DropdownMenuItem onClick={() => setPromoteToSuspectOpen(true)}>
+              <UserX className="mr-2 h-4 w-4" />
+              {t('persons.detail.actions.promoteToSuspect')}
+            </DropdownMenuItem>
+          )}
+          {!hasVictim && (
+            <DropdownMenuItem onClick={() => setPromoteToVictimOpen(true)}>
+              <Heart className="mr-2 h-4 w-4" />
+              {t('persons.detail.actions.promoteToVictim')}
+            </DropdownMenuItem>
+          )}
+          {!hasWitness && (
+            <DropdownMenuItem onClick={() => setPromoteToWitnessOpen(true)}>
+              <Eye className="mr-2 h-4 w-4" />
+              {t('persons.detail.actions.promoteToWitness')}
+            </DropdownMenuItem>
+          )}
+          {(!hasSuspect || !hasVictim || !hasWitness) && <DropdownMenuSeparator />}
+          <DropdownMenuItem onClick={() => setAuditOpen(true)}>
+            <ClipboardList className="mr-2 h-4 w-4" />
+            {tAudit('personHistory.openButton')}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </PermissionGuard>
   )
 
@@ -153,6 +160,13 @@ export function PersonDetail({ personId }: PersonDetailProps) {
             onClose={() => setPromoteToWitnessOpen(false)}
           />
         )}
+
+        <PersonAuditDrawer
+          personId={person.id}
+          personName={fullName}
+          open={auditOpen}
+          onClose={() => setAuditOpen(false)}
+        />
       </div>
     </PermissionGuard>
   )
