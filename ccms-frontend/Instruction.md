@@ -1,4 +1,4 @@
-CCMS Frontend — Phase 10: Audit System Module
+# CCMS Frontend — Phase 11: Hardening & Feature Completion
 ## Execution Specification for AI Agent
 ### Year: 2026 | Runtime: Modern 2026 Ecosystem | Package Manager: pnpm | Target: Production-Grade Enterprise Frontend
 
@@ -8,49 +8,41 @@ CCMS Frontend — Phase 10: Audit System Module
 
 ## 1.1 Current Project State
 
-Phases 1 through 9 are complete. The following is fully operational:
+Phases 1 through 10 are complete. The following is fully operational:
 
-- **Foundation & Infrastructure**: Project scaffold, design tokens, Tailwind v4, all three Zustand stores, Axios client with 401 refresh queue, React Query with all key factories, App Shell (Sidebar, TopBar, Breadcrumb), middleware, all shared components, i18n (EN + AM)
+- **Foundation & Infrastructure**: Project scaffold, design tokens, Tailwind v4, all three Zustand stores, Axios client with 401 refresh queue, React Query with all key factories, App Shell, middleware, all shared components, i18n (EN + AM)
 - **Auth Module**: Login, logout, forgot-password, reset-password, idle session timeout, silent token refresh
-- **Cases Module**: Cases list, multi-step case creation wizard, case detail layout (header card, interactive status badge, nine-tab navigation), case overview tab, case timeline tab — basic implementation with 30s polling, add-note form, and a simple timeline list from Phase 4
-- **Evidence Module**: Evidence tab, upload drawer, chain of custody timeline, lightbox viewer
+- **Cases Module**: Cases list, multi-step case creation wizard, case detail (nine-tab navigation), case overview tab, case timeline tab (full audit with diff viewer, filter bar, custody gap detection, CSV export, print)
+- **Evidence Module**: Evidence tab, upload drawer (Cloudinary three-step flow), chain of custody timeline, lightbox viewer
 - **Arrests Module**: Arrests tab, create/update drawers
 - **Interrogations Module**: Interrogations tab, create/read-only detail drawers
 - **Legal Module**: Legal tab (court case panel + charges table), all charge/sentence drawers, court cases list page
 - **Personnel Module**: Person list/detail (PII masking, role cards, promotion drawers), officer list/detail (management dialogs), create person/officer drawers
 - **Departments & Admin Module**: Department list/detail, all department management drawers, locations/crime types admin pages, system health panel
-- **Dashboards & Reports**: All four role-specific dashboards, all six report sub-pages, shared chart components (KpiCard, CcmsLineChart, CcmsBarChart, CcmsDonutChart), DateRangePicker
-- **Partial audit scaffolding**: The case timeline tab (`/cases/[caseId]/timeline`) has a basic implementation from Phase 4 — 30s polling, add-note inline form, simple timeline entry list (no diff viewer, no filter bar, no export). The officer detail and person detail pages have a stub "Recent Activity" section (last 5 entries as a plain list). The global audit log page at `/admin/audit` is a skeleton. The shared `Timeline`, `TimelineEntry`, and `TimelineConnector` primitives from Phase 1 are scaffolded but not feature-complete.
+- **Dashboards & Reports**: All four role-specific dashboards, all six report sub-pages, shared chart components
+- **Audit System**: Full audit timeline (case, officer, person, global), diff viewer, custody gap detection, filter bar, CSV export, print view with CCMS letterhead
+- **BulkActionBar scaffold**: Phase 1 created a `BulkActionBar` component scaffold in `shared/components/table/BulkActionBar.tsx`. It renders a bar above a DataTable when rows are selected, but no mutation logic is wired to it anywhere. The `DataTable` already has the optional checkbox column prop.
 - **i18n completeness**: Passes for all prior namespaces
 
-## 1.2 Phase 10 Objective
+## 1.2 Phase 11 Objective
 
-Phase 10 delivers the **Audit System Module** — the system's immutable event record and operational accountability layer. Every significant action in CCMS creates an audit entry. Phase 10 makes that data inspectable, filterable, exportable, and court-ready across four surfaces.
+Phase 11 is the **Hardening and Feature Completion** phase. It delivers the deferred features referenced throughout Phases 6–10, plus structural improvements that make the system production-ready for a law enforcement operational environment.
 
-The audit system is read-only by design. No UI component in Phase 10 edits, deletes, or reorders audit entries. The only write operation is adding a case note, which was partially implemented in Phase 4 and is formalised here.
+**Phase 11 delivers seven sub-systems:**
 
-**Phase 10 delivers five sub-systems:**
+1. **Bulk Operations** — Wire the existing `BulkActionBar` scaffold into real mutations for three high-value bulk actions: bulk case status update, bulk evidence export, and bulk charge drop. Each implements the required `ConfirmDialog` with affected-row count, role guards, and cache invalidation.
 
-1. **Shared `AuditTimeline` Component** — A full-featured, reusable timeline viewer mounted in `shared/components/timeline/`. Replaces the Phase 1 scaffold. Consumes paginated audit entries, renders each with the complete entry anatomy (event icon, actor line, timestamp, diff viewer, security badge, immutability indicator), and includes the filter bar and export panel. The three audit surfaces (case, officer, person) all use this component with surface-specific props.
+2. **Legal Module Enhancements** — Two deferred legal workflows: (a) Sentence editing — allow `admin+` to amend a recorded sentence before the case is closed; (b) Charge appeal workflow — allow `superadmin` to reverse a `CONVICTED` or `ACQUITTED` charge status via an explicit appeal record.
 
-2. **Case Timeline Tab Replacement** — Replaces the Phase 4 basic implementation at `/cases/[caseId]/timeline`. Adds the full filter bar, diff viewer, custody gap detection integration, print view, and CSV export. The 30s polling and add-note form from Phase 4 are retained and integrated into the new architecture.
+3. **Personnel Module Enhancements** — Person de-promotion UI — allow `admin+` to remove a `SUSPECT`, `VICTIM`, or `WITNESS` role designation from a person record via a `DestructiveConfirmDialog`. Previously this was backend-only.
 
-3. **Global Audit Log Page** — Replaces the skeleton at `/admin/audit`. Full audit log for admin+ roles. Supports filtering by actor, event type, date range, and entity scope (case, officer, department). Includes CSV export and print view.
+4. **Offline Resilience** — Integrate `@tanstack/query-sync-storage-persister` to persist the React Query cache to `localStorage` across page refreshes. Officers using the system in environments with intermittent connectivity see stale data rather than loading states on reload. Strict rules on what data is and is not persisted.
 
-4. **Officer Audit History Surface** — Replaces the stub "Recent Activity" section on `/personnel/officers/[officerId]` for admin+ viewers. Full paginated timeline of all audit events involving a specific officer, with filters and export. Rendered as a drawer (not a separate page) opening from the officer detail page.
+5. **Performance Hardening** — Three targeted improvements: (a) Dynamic imports for heavy feature modules (Recharts charts, Lightbox, evidence gallery); (b) Next.js `<Image>` migration for all `<img>` tags used in evidence photo thumbnails; (c) `next/bundle-analyzer` integration to emit a static report on build.
 
-5. **Person Audit History Surface** — Replaces the stub "Recent Activity" section on `/personnel/persons/[personId]` for admin+ viewers. Same architecture as the officer surface.
+6. **Accessibility Hardening** — Close the WCAG 2.1 AA gaps identified by the blueprint: skip-to-main link, focus restoration on modal/drawer close, `aria-live` regions for toast notifications, focus-trap verification for all modals, keyboard navigation in the command palette, and high-contrast mode compatibility for all status badges.
 
-**Also in scope:**
-
-- `audit` feature module: full type definitions, Zod schemas, service implementation, React Query hooks
-- `auditKeys` query key factory at `src/services/query/keys/auditKeys.ts`
-- `audit.service.ts` with all endpoints
-- Full replacement of the `shared/components/timeline/` scaffold with production-ready implementations of `AuditTimeline.tsx`, `TimelineEntry.tsx`, `TimelineConnector.tsx`, and new additions: `DiffViewer.tsx`, `AuditFilterBar.tsx`, `AuditExportPanel.tsx`, `CustodyGapBadge.tsx`, `AddCaseNoteForm.tsx`
-- Print CSS: `src/shared/styles/print.css` for the court-ready print view
-- Full population of `messages/en/audit.json` and `messages/am/audit.json`
-- New route page: `src/app/(dashboard)/admin/audit/page.tsx`
-- New drawer components: `OfficerAuditDrawer.tsx`, `PersonAuditDrawer.tsx`
+7. **Storybook Documentation** — Set up Storybook 8 and document every shared component in `src/shared/components/` with at least one story per component variant. Stories use the CCMS dark theme. No feature module components are documented in Storybook.
 
 ## 1.3 Package Manager
 
@@ -58,91 +50,114 @@ All commands use **pnpm**. No npm or yarn.
 
 ## 1.4 What Must Be Completed
 
-**Audit service (`src/services/domain/audit.service.ts`):**
-- All 7 endpoints (see §8)
-- Response validation via Zod `.parse()` on every response
-- No `any` types
+**New packages to install:**
 
-**Audit types and schemas:**
-- `AuditEntry`, `AuditEntryListItem`, `AuditEventType`, `AuditEventCategory`, `AuditDiff`, `AuditDiffField`, `AuditFilters`, `AddCaseNotePayload`, `AuditExportParams`
-- All API response Zod schemas
+```bash
+pnpm add @tanstack/query-sync-storage-persister @tanstack/react-query-persist-client
+pnpm add @next/bundle-analyzer
+pnpm add -D @storybook/nextjs @storybook/addon-essentials @storybook/addon-a11y storybook
+```
 
-**React Query hooks:**
-- `useCaseTimeline(caseId, filters)` — paginated case audit entries; 30s poll when active
-- `useGlobalAuditLog(filters)` — paginated global audit log (admin+); no poll
-- `useOfficerAuditHistory(officerId, filters, enabled)` — paginated officer history (admin+); no poll
-- `usePersonAuditHistory(personId, filters, enabled)` — paginated person history (admin+); no poll
-- `useAddCaseNote(caseId)` — mutation: append a note entry to the case timeline
-- `useDownloadAuditCsv()` — mutation: triggers CSV download via blob response
+**Bulk Operations:**
+- Wire `BulkActionBar` into the cases DataTable (bulk status update)
+- Wire `BulkActionBar` into the evidence DataTable (bulk CSV export of metadata)
+- Wire `BulkActionBar` into the charges DataTable on the legal tab (bulk drop)
+- New mutations: `useBulkUpdateCaseStatus`, `useBulkExportEvidence`, `useBulkDropCharges`
+- New service functions: `bulkUpdateCaseStatus`, `bulkExportEvidence`, `bulkDropCharges`
+- i18n keys for bulk actions in existing `cases.json`, `evidence.json`, `legal.json`
 
-**Shared components (all in `shared/components/timeline/`):**
-- `AuditTimeline.tsx` — main orchestration component (full replacement)
-- `TimelineEntry.tsx` — single entry card (full replacement)
-- `TimelineConnector.tsx` — vertical line connector (refinement)
-- `DiffViewer.tsx` — new: side-by-side before/after diff card
-- `AuditFilterBar.tsx` — new: actor search, event type multi-select, date range
-- `AuditExportPanel.tsx` — new: CSV export + print trigger buttons
-- `CustodyGapBadge.tsx` — new: amber warning badge for custody chain gaps
-- `AddCaseNoteForm.tsx` — new: inline single-field note form for case timeline
+**Legal Module Enhancements:**
+- `EditSentenceDrawer.tsx` — `SlideOverDrawer` allowing `admin+` to amend an existing sentence
+- `AppealChargeDrawer.tsx` — `SlideOverDrawer` allowing `superadmin` to file an appeal record that reverts a terminal charge
+- `useEditSentence(chargeId, courtCaseId, caseId)` — mutation
+- `useAppealCharge(chargeId, courtCaseId, caseId)` — mutation
+- Service functions: `editSentence`, `appealCharge`
+- New types: `EditSentencePayload`, `AppealChargePayload`, `AppealRecord`
+- i18n keys added to existing `legal.json`
 
-**Feature components:**
-- `OfficerAuditDrawer.tsx` — SlideOverDrawer wrapping `AuditTimeline` for officer history
-- `PersonAuditDrawer.tsx` — SlideOverDrawer wrapping `AuditTimeline` for person history
-- `GlobalAuditLog.tsx` — full-page component for `/admin/audit`
-- Updated `src/app/(dashboard)/cases/[caseId]/timeline/page.tsx` — replace Phase 4 implementation
+**Personnel Module Enhancements:**
+- `DemotePersonRoleDialog.tsx` — `DestructiveConfirmDialog` wrapper for removing a role
+- `useDemotePersonRole(personId, role)` — mutation
+- Service function: `demotePersonRole`
+- i18n keys added to existing `personnel.json`
 
-**i18n messages:**
-- Fully populate `messages/en/audit.json`
-- Fully populate `messages/am/audit.json`
+**Offline Resilience:**
+- `src/services/query/persister.ts` — configures `createSyncStoragePersister` with `localStorage`
+- Update `src/app/layout.tsx` (or `providers.tsx`) to wrap `QueryClientProvider` with `PersistQueryClientProvider`
+- `PERSIST_WHITELIST` — constant array of query key prefixes that ARE persisted
+- `PERSIST_BLACKLIST` — constant array of query key prefixes that are NOT persisted
+
+**Performance Hardening:**
+- `next.config.ts` — add `@next/bundle-analyzer` integration
+- Dynamic imports for: `CcmsLineChart`, `CcmsBarChart`, `CcmsDonutChart`, `EvidenceLightbox`, `EvidenceGallery`
+- Migrate all `<img>` tags in evidence thumbnails to `next/image`
+- Add `images.remotePatterns` for Cloudinary in `next.config.ts`
+
+**Accessibility Hardening:**
+- `src/shared/components/layout/SkipToMain.tsx` — new component
+- Add `SkipToMain` to `AppShell`
+- Focus restoration utility: `src/shared/utils/focusUtils.ts`
+- Apply focus restoration to all `SlideOverDrawer` and `ConfirmDialog` components on close
+- Verify `aria-live="polite"` is on the toast notification region
+- Add `@storybook/addon-a11y` to Storybook for automated a11y checks
+
+**Storybook:**
+- `.storybook/main.ts` — Storybook 8 config for Next.js App Router
+- `.storybook/preview.ts` — global decorators (dark theme, i18n, React Query)
+- Stories for every component in `src/shared/components/`
 
 ## 1.5 What Must NOT Be Implemented
 
-- **Editing or deleting audit entries** — The audit trail is append-only and immutable. No edit, delete, or reorder actions anywhere in the audit system. The padlock immutability indicator is displayed but never clickable in a way that suggests editability.
-- **Real-time streaming** — The case timeline polls every 30 seconds. There is no WebSocket or SSE implementation for live audit streaming. Deferred to Phase 12.
-- **Diff syntax highlighting** — The diff viewer renders plain text before/after values. No syntax highlighting, no AST-aware diffing, no `react-diff-viewer` library. Plain two-column card with red (before) and green (after) backgrounds.
-- **Audit entry creation** beyond case notes — Officers cannot create manual audit entries. The only write operation is adding a case note via `POST /api/v1/cases/{id}/timeline/note`.
-- **Bulk audit export spanning all entities** — The CSV export is scoped per surface (case, officer, person, global). There is no "export everything" feature.
-- **Audit entry search by content** — Searching by actor name and event type is supported. Full-text search of the `description` field is deferred to Phase 12.
-- **Audit entry grouping / collapsing** — Individual entries are never collapsed or grouped. All entries render individually.
+- **Any test files** — No unit tests, no integration tests, no E2E tests, no Storybook interaction tests, no a11y test scripts. Storybook stories are documentation only.
+- **Full offline mode / Service Worker** — `query-sync-storage-persister` gives stale-data resilience on reload. A full PWA with background sync is not in scope.
+- **Bulk delete of cases, officers, or persons** — Bulk delete is not permitted for any entity in CCMS. Bulk drop charges is the only destructive bulk action.
+- **Sentence deletion** — Even `superadmin` cannot delete a sentence record. `EditSentenceDrawer` is an amendment only; the original sentence values are preserved as an audit trail field.
+- **Re-promoting a de-promoted person** — After de-promotion, the person can be re-promoted through the existing `PromoteTo*Drawer` flow. `DemotePersonRoleDialog` only handles the removal.
+- **Multi-level appeal chains** — Each charge has at most one appeal record. A second appeal on the same charge is not supported in this phase.
+- **Bundle-size budget enforcement in CI** — The analyzer report is generated on build; no automated size-budget gate is added.
+- **React Server Component (RSC) migration** — All components remain Client Components per the existing architecture. No RSC migration in this phase.
 - **MSW mocking** — Still deferred.
 
 ## 1.6 Handoff Standard
 
-When Phase 10 finishes:
-- Navigating to `/cases/[caseId]/timeline` renders the full audit timeline with filter bar, diff viewer on modified entries, print button, and CSV export — not the Phase 4 basic list
-- The case timeline continues to poll every 30s while the tab is active
-- The add-case-note form at the bottom of the case timeline is retained and functional
-- Chain of custody gaps (>24h between sequential custody events) render with an amber dashed connector and a `CustodyGapBadge`
-- The filter bar correctly filters by actor, event type, and date range; filter state survives page refresh
-- Navigating to `/admin/audit` renders the global audit log (not the skeleton)
-- The global audit log's entity scope filter lets admin+ narrow to a specific case or officer
-- Clicking "Officer Audit History" on `/personnel/officers/[officerId]` (admin+ only) opens `OfficerAuditDrawer` with the full timeline
-- Clicking "Person Audit History" on `/personnel/persons/[personId]` (admin+ only) opens `PersonAuditDrawer` with the full timeline
-- Print view strips navigation chrome and renders the timeline in black-and-white with CCMS letterhead
-- CSV export triggers a file download named `ccms-audit-{surface}-{date}.csv`
+When Phase 11 finishes:
+- The cases DataTable has working checkboxes; selecting rows shows `BulkActionBar`; the "Update Status" bulk action opens `BulkStatusUpdateDialog`; confirming sends `PATCH /api/v1/cases/bulk/status` and refreshes the list
+- The evidence DataTable bulk export sends `GET /api/v1/cases/{caseId}/evidence/export?ids=...` and downloads a CSV
+- The charges DataTable bulk drop opens `BulkDropChargesDialog`; confirming sends `POST /api/v1/charges/bulk/drop` and refreshes
+- `EditSentenceDrawer` is accessible to `admin+` on the `ViewSentenceDrawer` via an "Amend Sentence" button; submitting amends the sentence and preserves the original in an audit entry
+- `AppealChargeDrawer` is accessible to `superadmin` on the charge row kebab for `CONVICTED`/`ACQUITTED` charges; submitting creates an appeal record and reverts the charge status to `ACTIVE`
+- `DemotePersonRoleDialog` is accessible to `admin+` on each role card on the person detail page; confirming removes the role and refreshes the person detail
+- Page refresh after navigating to `/cases` shows stale list data immediately (from persisted cache) before the background refetch completes — no blank loading state
+- `pnpm build:analyze` generates a bundle report at `.next/analyze/`
+- All `<img>` tags in evidence thumbnails are replaced with `next/image`
+- Storybook starts with `pnpm storybook`; all shared components have documented stories
+- The "Skip to main content" link is visible on keyboard focus at the top of every page
+- Modals and drawers return focus to the element that opened them on close
 - `pnpm type-check` — zero errors
 - `pnpm lint` — zero warnings
 - `pnpm build` — production build succeeds
-- i18n completeness test passes for `audit` namespace in both EN and AM
 
 ---
 
-# 2. Dependencies
+# 2. New Dependencies
 
-No new packages are required. All dependencies from prior phases are already installed:
+Install the following:
 
 ```bash
-pnpm why @tanstack/react-query
-pnpm why react-hook-form
-pnpm why zod
-pnpm why nuqs
-pnpm why date-fns
-pnpm why lucide-react
+# Offline resilience
+pnpm add @tanstack/query-sync-storage-persister @tanstack/react-query-persist-client
+
+# Bundle analysis (dev dependency)
+pnpm add -D @next/bundle-analyzer
+
+# Storybook 8 (dev dependencies)
+pnpm add -D storybook @storybook/nextjs @storybook/addon-essentials @storybook/addon-a11y
 ```
 
-If `date-fns` is not already installed:
+Verify existing dependencies are present:
 ```bash
-pnpm add date-fns
+pnpm why @tanstack/react-query        # Must be >=5.0.0
+pnpm why next                         # Must be 14+
 ```
 
 ---
@@ -152,693 +167,239 @@ pnpm add date-fns
 ```
 src/
 ├── features/
-│   └── audit/
-│       ├── components/
-│       │   ├── GlobalAuditLog.tsx               # Full-page component for /admin/audit
-│       │   ├── OfficerAuditDrawer.tsx            # SlideOverDrawer — officer audit history
-│       │   └── PersonAuditDrawer.tsx             # SlideOverDrawer — person audit history
-│       ├── hooks/
-│       │   ├── useCaseTimeline.ts
-│       │   ├── useGlobalAuditLog.ts
-│       │   ├── useOfficerAuditHistory.ts
-│       │   ├── usePersonAuditHistory.ts
-│       │   ├── useAddCaseNote.ts
-│       │   ├── useDownloadAuditCsv.ts
-│       │   └── index.ts
-│       ├── schemas/
-│       │   └── audit-api.schema.ts
-│       ├── types/
-│       │   ├── audit.types.ts
-│       │   └── index.ts
-│       ├── utils/
-│       │   └── auditUtils.ts
-│       └── index.ts
+│   ├── cases/
+│   │   └── components/
+│   │       ├── BulkStatusUpdateDialog.tsx       # New — bulk case status update confirm dialog
+│   │       └── CasesList.tsx                    # UPDATE — wire BulkActionBar
+│   ├── evidence/
+│   │   └── components/
+│   │       └── EvidenceTab.tsx                  # UPDATE — wire BulkActionBar (export)
+│   └── legal/
+│       └── components/
+│           ├── EditSentenceDrawer.tsx           # New — amend recorded sentence (admin+)
+│           ├── AppealChargeDrawer.tsx           # New — appeal terminal charge (superadmin)
+│           ├── BulkDropChargesDialog.tsx        # New — bulk drop charges confirm dialog
+│           ├── ChargesTable.tsx                 # UPDATE — wire BulkActionBar
+│           └── ViewSentenceDrawer.tsx           # UPDATE — add "Amend Sentence" button
+│   └── personnel/
+│       └── components/
+│           └── persons/
+│               ├── DemotePersonRoleDialog.tsx   # New — remove a role from a person (admin+)
+│               └── PersonRoleCards.tsx          # UPDATE — add "Remove Role" to each card
 
 ├── shared/
 │   ├── components/
-│   │   └── timeline/
-│   │       ├── AuditTimeline.tsx                # Full replacement of Phase 1 scaffold
-│   │       ├── TimelineEntry.tsx                # Full replacement of Phase 1 scaffold
-│   │       ├── TimelineConnector.tsx            # Refinement of Phase 1 scaffold
-│   │       ├── DiffViewer.tsx                   # New
-│   │       ├── AuditFilterBar.tsx               # New
-│   │       ├── AuditExportPanel.tsx             # New
-│   │       ├── CustodyGapBadge.tsx              # New
-│   │       └── AddCaseNoteForm.tsx              # New (formalises Phase 4 inline form)
-│   └── styles/
-│       └── print.css                            # New — print-optimised stylesheet
+│   │   └── layout/
+│   │       └── SkipToMain.tsx                  # New — skip-to-content link
+│   └── utils/
+│       └── focusUtils.ts                       # New — focus restoration helpers
 
 ├── services/
-│   ├── domain/
-│   │   └── audit.service.ts                     # New
+│   └── domain/
+│       ├── cases.service.ts                    # UPDATE — add bulkUpdateCaseStatus
+│       ├── evidence.service.ts                 # UPDATE — add bulkExportEvidence
+│       └── legal.service.ts                    # UPDATE — add bulkDropCharges, editSentence, appealCharge
+│   └── personnel.service.ts                    # UPDATE — add demotePersonRole
 │   └── query/
-│       └── keys/
-│           └── auditKeys.ts                     # New
+│       └── persister.ts                        # New — query persistence config
 
-└── app/
-    └── (dashboard)/
-        ├── cases/
-        │   └── [caseId]/
-        │       └── timeline/
-        │           └── page.tsx                 # REPLACE Phase 4 implementation
-        └── admin/
-            └── audit/
-                └── page.tsx                     # REPLACE skeleton
+├── app/
+│   └── layout.tsx                              # UPDATE — wrap with PersistQueryClientProvider, add SkipToMain
+└── next.config.ts                              # UPDATE — bundle analyzer + image domains
 
-messages/
-├── en/
-│   └── audit.json                               # Full EN population
-└── am/
-    └── audit.json                               # Full AM population
+.storybook/
+├── main.ts                                     # New — Storybook config
+└── preview.ts                                  # New — global decorators
+
+stories/
+└── shared/
+    └── (one .stories.tsx per shared component)
 ```
 
 ---
 
-# 4. TypeScript Types
+# 4. Bulk Operations
 
-## 4.1 `src/features/audit/types/audit.types.ts`
+## 4.1 Architecture
+
+The `BulkActionBar` shared component (Phase 1 scaffold at `src/shared/components/table/BulkActionBar.tsx`) renders above the DataTable when one or more rows are selected. It receives:
 
 ```typescript
-// ─── Audit Event Category enum ───────────────────────────────────────────────
-// Used to group event types in the filter multi-select.
-export const AuditEventCategory = {
-  CASE:       'CASE',
-  EVIDENCE:   'EVIDENCE',
-  SECURITY:   'SECURITY',
-  LEGAL:      'LEGAL',
-  PERSONNEL:  'PERSONNEL',
-  ANNOTATION: 'ANNOTATION',
-} as const
-export type AuditEventCategory =
-  (typeof AuditEventCategory)[keyof typeof AuditEventCategory]
-
-// ─── Audit Event Type enum ───────────────────────────────────────────────────
-// The full list of discrete event types the backend can emit.
-export const AuditEventType = {
-  // Case events
-  CASE_CREATED:            'CASE_CREATED',
-  CASE_UPDATED:            'CASE_UPDATED',
-  CASE_STATUS_CHANGED:     'CASE_STATUS_CHANGED',
-  CASE_OFFICER_ASSIGNED:   'CASE_OFFICER_ASSIGNED',
-  CASE_OFFICER_REMOVED:    'CASE_OFFICER_REMOVED',
-  CASE_PERMISSIONS_CHANGED:'CASE_PERMISSIONS_CHANGED',
-  CASE_DELETED:            'CASE_DELETED',
-  // Evidence events
-  EVIDENCE_ADDED:          'EVIDENCE_ADDED',
-  EVIDENCE_UPDATED:        'EVIDENCE_UPDATED',
-  EVIDENCE_DELETED:        'EVIDENCE_DELETED',
-  CUSTODY_TRANSFERRED:     'CUSTODY_TRANSFERRED',
-  CUSTODY_EXAMINED:        'CUSTODY_EXAMINED',
-  CUSTODY_STORED:          'CUSTODY_STORED',
-  CUSTODY_PRESENTED:       'CUSTODY_PRESENTED',
-  // Security events
-  LOGIN_SUCCESS:           'LOGIN_SUCCESS',
-  LOGIN_FAILURE:           'LOGIN_FAILURE',
-  LOGOUT:                  'LOGOUT',
-  SESSION_EXPIRED:         'SESSION_EXPIRED',
-  FORCED_LOGOUT:           'FORCED_LOGOUT',
-  PERMISSION_GRANTED:      'PERMISSION_GRANTED',
-  PERMISSION_REVOKED:      'PERMISSION_REVOKED',
-  ROLE_CHANGED:            'ROLE_CHANGED',
-  PASSWORD_RESET:          'PASSWORD_RESET',
-  PII_ACCESSED:            'PII_ACCESSED',
-  // Legal events
-  CHARGE_FILED:            'CHARGE_FILED',
-  CHARGE_UPDATED:          'CHARGE_UPDATED',
-  CHARGE_DROPPED:          'CHARGE_DROPPED',
-  SENTENCE_RECORDED:       'SENTENCE_RECORDED',
-  COURT_CASE_CREATED:      'COURT_CASE_CREATED',
-  COURT_CASE_UPDATED:      'COURT_CASE_UPDATED',
-  HEARING_SCHEDULED:       'HEARING_SCHEDULED',
-  // Personnel events
-  PERSON_CREATED:          'PERSON_CREATED',
-  PERSON_UPDATED:          'PERSON_UPDATED',
-  PERSON_ROLE_PROMOTED:    'PERSON_ROLE_PROMOTED',
-  OFFICER_CREATED:         'OFFICER_CREATED',
-  OFFICER_UPDATED:         'OFFICER_UPDATED',
-  OFFICER_ACTIVATED:       'OFFICER_ACTIVATED',
-  OFFICER_DEACTIVATED:     'OFFICER_DEACTIVATED',
-  // Annotation
-  CASE_NOTE_ADDED:         'CASE_NOTE_ADDED',
-} as const
-export type AuditEventType =
-  (typeof AuditEventType)[keyof typeof AuditEventType]
-
-// ─── Category membership ──────────────────────────────────────────────────────
-// Maps each event type to its parent category for filter grouping.
-export const EVENT_TYPE_CATEGORY: Record<AuditEventType, AuditEventCategory> = {
-  CASE_CREATED:             AuditEventCategory.CASE,
-  CASE_UPDATED:             AuditEventCategory.CASE,
-  CASE_STATUS_CHANGED:      AuditEventCategory.CASE,
-  CASE_OFFICER_ASSIGNED:    AuditEventCategory.CASE,
-  CASE_OFFICER_REMOVED:     AuditEventCategory.CASE,
-  CASE_PERMISSIONS_CHANGED: AuditEventCategory.CASE,
-  CASE_DELETED:             AuditEventCategory.CASE,
-  EVIDENCE_ADDED:           AuditEventCategory.EVIDENCE,
-  EVIDENCE_UPDATED:         AuditEventCategory.EVIDENCE,
-  EVIDENCE_DELETED:         AuditEventCategory.EVIDENCE,
-  CUSTODY_TRANSFERRED:      AuditEventCategory.EVIDENCE,
-  CUSTODY_EXAMINED:         AuditEventCategory.EVIDENCE,
-  CUSTODY_STORED:           AuditEventCategory.EVIDENCE,
-  CUSTODY_PRESENTED:        AuditEventCategory.EVIDENCE,
-  LOGIN_SUCCESS:            AuditEventCategory.SECURITY,
-  LOGIN_FAILURE:            AuditEventCategory.SECURITY,
-  LOGOUT:                   AuditEventCategory.SECURITY,
-  SESSION_EXPIRED:          AuditEventCategory.SECURITY,
-  FORCED_LOGOUT:            AuditEventCategory.SECURITY,
-  PERMISSION_GRANTED:       AuditEventCategory.SECURITY,
-  PERMISSION_REVOKED:       AuditEventCategory.SECURITY,
-  ROLE_CHANGED:             AuditEventCategory.SECURITY,
-  PASSWORD_RESET:           AuditEventCategory.SECURITY,
-  PII_ACCESSED:             AuditEventCategory.SECURITY,
-  CHARGE_FILED:             AuditEventCategory.LEGAL,
-  CHARGE_UPDATED:           AuditEventCategory.LEGAL,
-  CHARGE_DROPPED:           AuditEventCategory.LEGAL,
-  SENTENCE_RECORDED:        AuditEventCategory.LEGAL,
-  COURT_CASE_CREATED:       AuditEventCategory.LEGAL,
-  COURT_CASE_UPDATED:       AuditEventCategory.LEGAL,
-  HEARING_SCHEDULED:        AuditEventCategory.LEGAL,
-  PERSON_CREATED:           AuditEventCategory.PERSONNEL,
-  PERSON_UPDATED:           AuditEventCategory.PERSONNEL,
-  PERSON_ROLE_PROMOTED:     AuditEventCategory.PERSONNEL,
-  OFFICER_CREATED:          AuditEventCategory.PERSONNEL,
-  OFFICER_UPDATED:          AuditEventCategory.PERSONNEL,
-  OFFICER_ACTIVATED:        AuditEventCategory.PERSONNEL,
-  OFFICER_DEACTIVATED:      AuditEventCategory.PERSONNEL,
-  CASE_NOTE_ADDED:          AuditEventCategory.ANNOTATION,
+interface BulkActionBarProps {
+  selectedCount: number
+  onClearSelection: () => void
+  actions: BulkAction[]
 }
 
-// Security-level event types — displayed with a severity badge
-export const SECURITY_EVENT_TYPES: AuditEventType[] = [
-  AuditEventType.LOGIN_FAILURE,
-  AuditEventType.FORCED_LOGOUT,
-  AuditEventType.PERMISSION_GRANTED,
-  AuditEventType.PERMISSION_REVOKED,
-  AuditEventType.ROLE_CHANGED,
-  AuditEventType.PII_ACCESSED,
-]
-
-// ─── Diff types ───────────────────────────────────────────────────────────────
-export interface AuditDiffField {
-  field: string            // Human-readable field name (server-generated)
-  before: string | null    // String representation of the old value; null if new
-  after: string | null     // String representation of the new value; null if deleted
-}
-
-export interface AuditDiff {
-  fields: AuditDiffField[]
-}
-
-// ─── Actor reference ──────────────────────────────────────────────────────────
-export interface AuditActor {
-  officerId: string
-  fullName: string
-  badgeNumber: string
-  departmentName: string
-}
-
-// ─── Custody gap ─────────────────────────────────────────────────────────────
-// The backend populates this when consecutive custody events have a gap > 24h.
-export interface CustodyGap {
-  gapHours: number                // Rounded to nearest hour
-  fromTimestamp: string           // ISO 8601 — end of previous custody event
-  toTimestamp: string             // ISO 8601 — start of this event
-}
-
-// ─── Security severity ────────────────────────────────────────────────────────
-export const SecuritySeverity = {
-  LOW:    'LOW',
-  MEDIUM: 'MEDIUM',
-  HIGH:   'HIGH',
-} as const
-export type SecuritySeverity =
-  (typeof SecuritySeverity)[keyof typeof SecuritySeverity]
-
-// ─── Audit Entry ──────────────────────────────────────────────────────────────
-export interface AuditEntry {
-  id: string
-  eventType: AuditEventType
-  category: AuditEventCategory
-  actor: AuditActor
-  timestamp: string               // ISO 8601
-  description: string             // Human-readable summary from the server
-  // Present only for data-modified event types (CASE_UPDATED, PERSON_UPDATED, etc.)
-  diff: AuditDiff | null
-  // Present only for CASE_NOTE_ADDED events
-  noteText: string | null
-  // Present only for SECURITY event category
-  securitySeverity: SecuritySeverity | null
-  // Present when this entry is part of a chain of custody with a detected gap before it
-  custodyGap: CustodyGap | null
-  // Always true — immutability indicator for UI rendering
-  isImmutable: boolean
-  // Optional entity links for global audit log context
-  linkedCaseId: string | null
-  linkedCaseNumber: string | null
-}
-
-// ─── Audit Entry List Item (lighter version for list rendering) ───────────────
-// Identical to AuditEntry in this implementation — the backend returns full entries.
-export type AuditEntryListItem = AuditEntry
-
-// ─── Audit Filters ────────────────────────────────────────────────────────────
-export interface AuditFilters {
-  actorSearch?: string           // Officer name or badge number
-  eventTypes?: AuditEventType[]
-  dateFrom?: string              // 'YYYY-MM-DD'
-  dateTo?: string                // 'YYYY-MM-DD'
-  // Global audit log only:
-  linkedCaseId?: string
-  linkedOfficerId?: string
-  page?: number
-  pageSize?: number
-}
-
-// Default filter: last 7 days, all event types
-export const DEFAULT_AUDIT_PAGE_SIZE = 25
-
-// ─── Add Case Note ────────────────────────────────────────────────────────────
-export interface AddCaseNotePayload {
-  text: string
-}
-
-// ─── Audit Export ─────────────────────────────────────────────────────────────
-export interface AuditExportParams {
-  surface: 'case' | 'officer' | 'person' | 'global'
-  entityId: string       // caseId, officerId, personId, or 'all' for global
-  filters: AuditFilters
+interface BulkAction {
+  label: string
+  icon: LucideIcon
+  variant?: 'default' | 'destructive'
+  onClick: () => void
+  requiredPermission?: Permission
+  disabled?: boolean
+  disabledTooltip?: string
 }
 ```
 
-## 4.2 `src/features/audit/types/index.ts`
+The DataTable's checkbox column state is managed by the parent page component using `@tanstack/react-table`'s built-in `rowSelection` state. The selected row IDs are passed to the `BulkActionBar` as `selectedCount`, and the full `selectedIds` array is used in the mutation payload.
+
+## 4.2 Bulk Case Status Update
+
+### 4.2.1 New service function — `src/services/domain/cases.service.ts`
+
+Add to the existing cases service:
 
 ```typescript
-export * from './audit.types'
+/**
+ * PATCH /api/v1/cases/bulk/status
+ * Updates the status of multiple cases in a single atomic operation.
+ * Backend validates each case's current state machine eligibility.
+ * Returns { updated: number, failed: number, errors: string[] }
+ */
+export async function bulkUpdateCaseStatus(payload: {
+  caseIds: string[]
+  status: CaseStatus
+  reason?: string
+}): Promise<BulkOperationResult> {
+  const raw = await apiClient.patch('/api/v1/cases/bulk/status', payload)
+  return bulkOperationResultSchema.parse(raw)
+}
 ```
 
----
+New shared type in `src/shared/types/bulk.types.ts`:
 
-# 5. Zod Schemas
+```typescript
+export interface BulkOperationResult {
+  updated: number
+  failed: number
+  errors: string[]   // Human-readable error messages for each failed item
+}
+```
 
-## 5.1 `src/features/audit/schemas/audit-api.schema.ts`
+New shared Zod schema in `src/shared/schemas/bulk.schema.ts`:
 
 ```typescript
 import { z } from 'zod'
-import { AuditEventType, AuditEventCategory, SecuritySeverity } from '../types/audit.types'
 
-const auditActorSchema = z.object({
-  officerId: z.string().uuid(),
-  fullName: z.string(),
-  badgeNumber: z.string(),
-  departmentName: z.string(),
+export const bulkOperationResultSchema = z.object({
+  updated: z.number(),
+  failed: z.number(),
+  errors: z.array(z.string()),
 })
-
-const auditDiffFieldSchema = z.object({
-  field: z.string(),
-  before: z.string().nullable(),
-  after: z.string().nullable(),
-})
-
-const auditDiffSchema = z.object({
-  fields: z.array(auditDiffFieldSchema),
-})
-
-const custodyGapSchema = z.object({
-  gapHours: z.number(),
-  fromTimestamp: z.string(),
-  toTimestamp: z.string(),
-})
-
-export const auditEntrySchema = z.object({
-  id: z.string().uuid(),
-  eventType: z.nativeEnum(AuditEventType),
-  category: z.nativeEnum(AuditEventCategory),
-  actor: auditActorSchema,
-  timestamp: z.string(),
-  description: z.string(),
-  diff: auditDiffSchema.nullable(),
-  noteText: z.string().nullable(),
-  securitySeverity: z.nativeEnum(SecuritySeverity).nullable(),
-  custodyGap: custodyGapSchema.nullable(),
-  isImmutable: z.boolean(),
-  linkedCaseId: z.string().uuid().nullable(),
-  linkedCaseNumber: z.string().nullable(),
-})
-
-export const paginatedAuditEntriesSchema = z.object({
-  data: z.array(auditEntrySchema),
-  total: z.number(),
-  page: z.number(),
-  pageSize: z.number(),
-  totalPages: z.number(),
-})
-
-// Add case note response — the server echoes back the created AuditEntry
-export const addCaseNoteResponseSchema = auditEntrySchema
 ```
 
----
-
-# 6. `src/features/audit/utils/auditUtils.ts`
+### 4.2.2 New mutation hook — `useBulkUpdateCaseStatus.ts`
 
 ```typescript
-import {
-  AuditEventType,
-  AuditEventCategory,
-  SecuritySeverity,
-  SECURITY_EVENT_TYPES,
-  EVENT_TYPE_CATEGORY,
-} from '../types/audit.types'
-import type { LucideIcon } from 'lucide-react'
-import {
-  Shield,
-  Folder,
-  Upload,
-  User,
-  Gavel,
-  MessageSquare,
-  AlertTriangle,
-  LogIn,
-  LogOut,
-  Key,
-  Eye,
-} from 'lucide-react'
+// src/features/cases/hooks/useBulkUpdateCaseStatus.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { bulkUpdateCaseStatus } from '@services/domain/cases.service'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import type { CaseStatus } from '../types/cases.types'
 
-// ─── Event icon mapping ───────────────────────────────────────────────────────
-export const EVENT_TYPE_ICONS: Record<AuditEventType, LucideIcon> = {
-  CASE_CREATED:             Folder,
-  CASE_UPDATED:             Folder,
-  CASE_STATUS_CHANGED:      Folder,
-  CASE_OFFICER_ASSIGNED:    User,
-  CASE_OFFICER_REMOVED:     User,
-  CASE_PERMISSIONS_CHANGED: Shield,
-  CASE_DELETED:             Folder,
-  EVIDENCE_ADDED:           Upload,
-  EVIDENCE_UPDATED:         Upload,
-  EVIDENCE_DELETED:         Upload,
-  CUSTODY_TRANSFERRED:      Upload,
-  CUSTODY_EXAMINED:         Upload,
-  CUSTODY_STORED:           Upload,
-  CUSTODY_PRESENTED:        Upload,
-  LOGIN_SUCCESS:            LogIn,
-  LOGIN_FAILURE:            AlertTriangle,
-  LOGOUT:                   LogOut,
-  SESSION_EXPIRED:          LogOut,
-  FORCED_LOGOUT:            LogOut,
-  PERMISSION_GRANTED:       Key,
-  PERMISSION_REVOKED:       Key,
-  ROLE_CHANGED:             Key,
-  PASSWORD_RESET:           Key,
-  PII_ACCESSED:             Eye,
-  CHARGE_FILED:             Gavel,
-  CHARGE_UPDATED:           Gavel,
-  CHARGE_DROPPED:           Gavel,
-  SENTENCE_RECORDED:        Gavel,
-  COURT_CASE_CREATED:       Gavel,
-  COURT_CASE_UPDATED:       Gavel,
-  HEARING_SCHEDULED:        Gavel,
-  PERSON_CREATED:           User,
-  PERSON_UPDATED:           User,
-  PERSON_ROLE_PROMOTED:     User,
-  OFFICER_CREATED:          User,
-  OFFICER_UPDATED:          User,
-  OFFICER_ACTIVATED:        User,
-  OFFICER_DEACTIVATED:      User,
-  CASE_NOTE_ADDED:          MessageSquare,
-}
+export function useBulkUpdateCaseStatus() {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('cases')
 
-// ─── Event icon colour by category ───────────────────────────────────────────
-// Returns a Tailwind text colour class for the event icon.
-export function getEventIconColour(category: AuditEventCategory): string {
-  switch (category) {
-    case AuditEventCategory.CASE:       return 'text-primary'
-    case AuditEventCategory.EVIDENCE:   return 'text-accent'
-    case AuditEventCategory.SECURITY:   return 'text-destructive'
-    case AuditEventCategory.LEGAL:      return 'text-warning'
-    case AuditEventCategory.PERSONNEL:  return 'text-success'
-    case AuditEventCategory.ANNOTATION: return 'text-muted'
-    default: return 'text-muted'
-  }
-}
-
-// ─── Security severity badge variant ─────────────────────────────────────────
-import type { BadgeVariant } from '@shared/types/ui.types'
-
-export const SECURITY_SEVERITY_VARIANTS: Record<SecuritySeverity, BadgeVariant> = {
-  LOW:    'muted',
-  MEDIUM: 'warning',
-  HIGH:   'destructive',
-}
-
-// ─── Security event check ─────────────────────────────────────────────────────
-export function isSecurityEvent(eventType: AuditEventType): boolean {
-  return SECURITY_EVENT_TYPES.includes(eventType)
-}
-
-// ─── Diff-producing event check ───────────────────────────────────────────────
-// Returns true when the event type is expected to carry a diff payload.
-const DIFF_PRODUCING_TYPES: AuditEventType[] = [
-  AuditEventType.CASE_UPDATED,
-  AuditEventType.CASE_STATUS_CHANGED,
-  AuditEventType.CASE_PERMISSIONS_CHANGED,
-  AuditEventType.EVIDENCE_UPDATED,
-  AuditEventType.CHARGE_UPDATED,
-  AuditEventType.COURT_CASE_UPDATED,
-  AuditEventType.PERSON_UPDATED,
-  AuditEventType.OFFICER_UPDATED,
-  AuditEventType.ROLE_CHANGED,
-]
-
-export function isDiffProducingEvent(eventType: AuditEventType): boolean {
-  return DIFF_PRODUCING_TYPES.includes(eventType)
-}
-
-// ─── Custody event check ─────────────────────────────────────────────────────
-const CUSTODY_EVENT_TYPES: AuditEventType[] = [
-  AuditEventType.CUSTODY_TRANSFERRED,
-  AuditEventType.CUSTODY_EXAMINED,
-  AuditEventType.CUSTODY_STORED,
-  AuditEventType.CUSTODY_PRESENTED,
-  AuditEventType.EVIDENCE_ADDED,
-]
-
-export function isCustodyEvent(eventType: AuditEventType): boolean {
-  return CUSTODY_EVENT_TYPES.includes(eventType)
-}
-
-// ─── Format custody gap duration ─────────────────────────────────────────────
-export function formatCustodyGapHours(gapHours: number): string {
-  if (gapHours < 24) return `${gapHours} hour${gapHours === 1 ? '' : 's'}`
-  const days = Math.floor(gapHours / 24)
-  const rem = gapHours % 24
-  if (rem === 0) return `${days} day${days === 1 ? '' : 's'}`
-  return `${days} day${days === 1 ? '' : 's'}, ${rem} hour${rem === 1 ? '' : 's'}`
-}
-
-// ─── Audit CSV filename ───────────────────────────────────────────────────────
-import { format } from 'date-fns'
-
-export function buildAuditCsvFilename(
-  surface: 'case' | 'officer' | 'person' | 'global',
-  entityLabel?: string,
-): string {
-  const date = format(new Date(), 'yyyy-MM-dd')
-  if (entityLabel) return `ccms-audit-${surface}-${entityLabel}-${date}.csv`
-  return `ccms-audit-${surface}-${date}.csv`
-}
-
-// ─── Event type groups for filter multi-select ────────────────────────────────
-// Returns all event types belonging to a category.
-export function getEventTypesByCategory(
-  category: AuditEventCategory,
-): AuditEventType[] {
-  return Object.entries(EVENT_TYPE_CATEGORY)
-    .filter(([, cat]) => cat === category)
-    .map(([type]) => type as AuditEventType)
+  return useMutation({
+    mutationFn: (payload: { caseIds: string[]; status: CaseStatus; reason?: string }) =>
+      bulkUpdateCaseStatus(payload),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: caseKeys.lists() })
+      if (result.failed > 0) {
+        addToast({
+          message: t('bulk.statusUpdate.partialSuccessMessage', {
+            updated: result.updated,
+            failed: result.failed,
+          }),
+          variant: 'warning',
+        })
+      } else {
+        addToast({
+          message: t('bulk.statusUpdate.successMessage', { count: result.updated }),
+          variant: 'success',
+        })
+      }
+    },
+    onError: () => {
+      addToast({ message: t('bulk.statusUpdate.errorMessage'), variant: 'error' })
+    },
+  })
 }
 ```
 
----
+### 4.2.3 `BulkStatusUpdateDialog.tsx`
 
-# 7. Query Key Factory
+Client Component. Wraps `ConfirmDialog` (non-destructive — status updates are reversible).
 
-## 7.1 `src/services/query/keys/auditKeys.ts`
+```
+BulkStatusUpdateDialog
+──────────────────────────────────────────────────────────────
+  Update Status for {count} Cases
 
-```typescript
-import type { AuditFilters } from '@features/audit/types/audit.types'
+  New Status *   [Select — available statuses from state machine]
 
-export const auditKeys = {
-  all: () => ['audit'] as const,
+  Reason         [Input, optional]
+  (hint: Reason is required when changing to ARCHIVED)
 
-  // Case timeline
-  caseTimeline: (caseId: string) =>
-    [...auditKeys.all(), 'case', caseId] as const,
-  caseTimelineFiltered: (caseId: string, filters: AuditFilters) =>
-    [...auditKeys.caseTimeline(caseId), filters] as const,
-
-  // Global audit log (admin+)
-  global: () => [...auditKeys.all(), 'global'] as const,
-  globalFiltered: (filters: AuditFilters) =>
-    [...auditKeys.global(), filters] as const,
-
-  // Officer history (admin+)
-  officerHistory: (officerId: string) =>
-    [...auditKeys.all(), 'officer', officerId] as const,
-  officerHistoryFiltered: (officerId: string, filters: AuditFilters) =>
-    [...auditKeys.officerHistory(officerId), filters] as const,
-
-  // Person history (admin+)
-  personHistory: (personId: string) =>
-    [...auditKeys.all(), 'person', personId] as const,
-  personHistoryFiltered: (personId: string, filters: AuditFilters) =>
-    [...auditKeys.personHistory(personId), filters] as const,
-} as const
+  [Cancel]                              [Update {count} Cases]
+──────────────────────────────────────────────────────────────
 ```
 
----
+The status select shows all valid `CaseStatus` values. The agent does not need to enforce individual case state machine transitions — the backend validates each case and returns partial errors in `BulkOperationResult.errors`. The UI shows a warning toast when `failed > 0`.
 
-# 8. Service Layer
+On submit: calls `useBulkUpdateCaseStatus`. On success: clears row selection, closes dialog, refreshes cases list, shows toast.
 
-## 8.1 `src/services/domain/audit.service.ts`
+### 4.2.4 Wire into `CasesList.tsx`
+
+In the cases list page component, enable the DataTable's checkbox column. Track `rowSelection` state. Render `BulkActionBar` when `Object.keys(rowSelection).length > 0`:
+
+```tsx
+{Object.keys(rowSelection).length > 0 && (
+  <BulkActionBar
+    selectedCount={Object.keys(rowSelection).length}
+    onClearSelection={() => setRowSelection({})}
+    actions={[
+      {
+        label: t('bulk.statusUpdate.actionLabel'),
+        icon: RefreshCw,
+        onClick: () => setBulkStatusOpen(true),
+        requiredPermission: Permission.CASES_MANAGE,
+      },
+    ]}
+  />
+)}
+```
+
+## 4.3 Bulk Evidence Export
+
+Evidence bulk export does NOT delete or mutate evidence records. It exports the metadata of selected evidence items as a CSV download. This is a safe read operation — no `ConfirmDialog` required.
+
+### 4.3.1 New service function — `src/services/domain/evidence.service.ts`
 
 ```typescript
-import { apiClient } from '@services/api/client'
-import { axiosInstance } from '@services/api/client'
-import {
-  paginatedAuditEntriesSchema,
-  addCaseNoteResponseSchema,
-} from '@features/audit/schemas/audit-api.schema'
-import { buildAuditCsvFilename } from '@features/audit/utils/auditUtils'
-import type {
-  AuditEntry,
-  AuditFilters,
-  AddCaseNotePayload,
-} from '@features/audit/types/audit.types'
-import type { PaginatedResponse } from '@shared/types/api.types'
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function buildAuditParams(filters: AuditFilters): string {
-  const p = new URLSearchParams()
-  if (filters.actorSearch) p.set('actorSearch', filters.actorSearch)
-  if (filters.eventTypes?.length)
-    p.set('eventTypes', filters.eventTypes.join(','))
-  if (filters.dateFrom) p.set('dateFrom', filters.dateFrom)
-  if (filters.dateTo) p.set('dateTo', filters.dateTo)
-  if (filters.linkedCaseId) p.set('linkedCaseId', filters.linkedCaseId)
-  if (filters.linkedOfficerId) p.set('linkedOfficerId', filters.linkedOfficerId)
-  p.set('page', String(filters.page ?? 1))
-  p.set('pageSize', String(filters.pageSize ?? 25))
-  return p.toString()
-}
-
-// ─── Case timeline ────────────────────────────────────────────────────────────
-
 /**
- * GET /api/v1/cases/{caseId}/timeline
- * Paginated audit entries for a specific investigation case.
- * Returns newest-first. Includes custody gap metadata on chain-of-custody entries.
+ * GET /api/v1/cases/{caseId}/evidence/export?ids={id1,id2,...}&format=csv
+ * Downloads selected evidence metadata as a CSV file.
+ * PII fields are masked for roles below admin.
  */
-export async function getCaseTimeline(
+export async function bulkExportEvidence(
   caseId: string,
-  filters: AuditFilters,
-): Promise<PaginatedResponse<AuditEntry>> {
-  const raw = await apiClient.get(
-    `/api/v1/cases/${caseId}/timeline?${buildAuditParams(filters)}`,
-  )
-  return paginatedAuditEntriesSchema.parse(raw)
-}
-
-/**
- * POST /api/v1/cases/{caseId}/timeline/note
- * Appends a case note audit entry to the case timeline.
- * Returns the created AuditEntry.
- */
-export async function addCaseNote(
-  caseId: string,
-  payload: AddCaseNotePayload,
-): Promise<AuditEntry> {
-  const raw = await apiClient.post(
-    `/api/v1/cases/${caseId}/timeline/note`,
-    payload,
-  )
-  return addCaseNoteResponseSchema.parse(raw)
-}
-
-// ─── Global audit log (admin+) ────────────────────────────────────────────────
-
-/**
- * GET /api/v1/audit
- * System-wide paginated audit log. Admin+ only.
- * Supports entity scope filters (linkedCaseId, linkedOfficerId).
- */
-export async function getGlobalAuditLog(
-  filters: AuditFilters,
-): Promise<PaginatedResponse<AuditEntry>> {
-  const raw = await apiClient.get(
-    `/api/v1/audit?${buildAuditParams(filters)}`,
-  )
-  return paginatedAuditEntriesSchema.parse(raw)
-}
-
-// ─── Officer audit history (admin+) ──────────────────────────────────────────
-
-/**
- * GET /api/v1/personnel/officers/{officerId}/audit
- * All audit entries where the officer was the actor. Admin+ only.
- */
-export async function getOfficerAuditHistory(
-  officerId: string,
-  filters: AuditFilters,
-): Promise<PaginatedResponse<AuditEntry>> {
-  const raw = await apiClient.get(
-    `/api/v1/personnel/officers/${officerId}/audit?${buildAuditParams(filters)}`,
-  )
-  return paginatedAuditEntriesSchema.parse(raw)
-}
-
-// ─── Person audit history (admin+) ───────────────────────────────────────────
-
-/**
- * GET /api/v1/personnel/persons/{personId}/audit
- * All audit entries related to a person record. Admin+ only.
- */
-export async function getPersonAuditHistory(
-  personId: string,
-  filters: AuditFilters,
-): Promise<PaginatedResponse<AuditEntry>> {
-  const raw = await apiClient.get(
-    `/api/v1/personnel/persons/${personId}/audit?${buildAuditParams(filters)}`,
-  )
-  return paginatedAuditEntriesSchema.parse(raw)
-}
-
-// ─── CSV Export ───────────────────────────────────────────────────────────────
-
-/**
- * Downloads an audit timeline as CSV.
- * The endpoint path varies by surface; append ?format=csv to request the blob.
- *
- * endpointPath examples:
- *   'cases/{caseId}/timeline'
- *   'audit'
- *   'personnel/officers/{id}/audit'
- *   'personnel/persons/{id}/audit'
- */
-export async function downloadAuditCsv(
-  endpointPath: string,
-  filters: AuditFilters,
-  filename: string,
+  evidenceIds: string[],
 ): Promise<void> {
-  const params = buildAuditParams(filters)
   const response = await axiosInstance.get(
-    `/api/v1/${endpointPath}?${params}&format=csv`,
+    `/api/v1/cases/${caseId}/evidence/export?ids=${evidenceIds.join(',')}&format=csv`,
     { responseType: 'blob' },
   )
   const blob = response.data as Blob
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = filename
+  anchor.download = `ccms-evidence-export-${format(new Date(), 'yyyy-MM-dd')}.csv`
   document.body.appendChild(anchor)
   anchor.click()
   document.body.removeChild(anchor)
@@ -846,1789 +407,1583 @@ export async function downloadAuditCsv(
 }
 ```
 
----
-
-# 9. React Query Hooks
-
-## 9.1 `useCaseTimeline.ts`
+### 4.3.2 New mutation hook — `useBulkExportEvidence.ts`
 
 ```typescript
-import { useQuery } from '@tanstack/react-query'
-import { getCaseTimeline } from '@services/domain/audit.service'
-import { auditKeys } from '@services/query/keys/auditKeys'
-import type { AuditFilters } from '../types/audit.types'
-
-export function useCaseTimeline(caseId: string, filters: AuditFilters) {
-  return useQuery({
-    queryKey: auditKeys.caseTimelineFiltered(caseId, filters),
-    queryFn: () => getCaseTimeline(caseId, filters),
-    // No staleTime — case timeline is always considered stale (append-only stream)
-    staleTime: 0,
-    // 30s poll while the tab is in the foreground
-    refetchInterval: 30_000,
-    refetchIntervalInBackground: false,
-    placeholderData: (prev) => prev,
-    enabled: Boolean(caseId),
-  })
-}
-```
-
-## 9.2 `useGlobalAuditLog.ts`
-
-```typescript
-import { useQuery } from '@tanstack/react-query'
-import { getGlobalAuditLog } from '@services/domain/audit.service'
-import { auditKeys } from '@services/query/keys/auditKeys'
-import type { AuditFilters } from '../types/audit.types'
-
-export function useGlobalAuditLog(filters: AuditFilters) {
-  return useQuery({
-    queryKey: auditKeys.globalFiltered(filters),
-    queryFn: () => getGlobalAuditLog(filters),
-    staleTime: 60_000,
-    placeholderData: (prev) => prev,
-    enabled: Boolean(filters.dateFrom),
-  })
-}
-```
-
-## 9.3 `useOfficerAuditHistory.ts`
-
-```typescript
-import { useQuery } from '@tanstack/react-query'
-import { getOfficerAuditHistory } from '@services/domain/audit.service'
-import { auditKeys } from '@services/query/keys/auditKeys'
-import type { AuditFilters } from '../types/audit.types'
-
-export function useOfficerAuditHistory(
-  officerId: string,
-  filters: AuditFilters,
-  enabled: boolean,
-) {
-  return useQuery({
-    queryKey: auditKeys.officerHistoryFiltered(officerId, filters),
-    queryFn: () => getOfficerAuditHistory(officerId, filters),
-    staleTime: 60_000,
-    placeholderData: (prev) => prev,
-    enabled: Boolean(officerId) && enabled,
-  })
-}
-```
-
-## 9.4 `usePersonAuditHistory.ts`
-
-```typescript
-import { useQuery } from '@tanstack/react-query'
-import { getPersonAuditHistory } from '@services/domain/audit.service'
-import { auditKeys } from '@services/query/keys/auditKeys'
-import type { AuditFilters } from '../types/audit.types'
-
-export function usePersonAuditHistory(
-  personId: string,
-  filters: AuditFilters,
-  enabled: boolean,
-) {
-  return useQuery({
-    queryKey: auditKeys.personHistoryFiltered(personId, filters),
-    queryFn: () => getPersonAuditHistory(personId, filters),
-    staleTime: 60_000,
-    placeholderData: (prev) => prev,
-    enabled: Boolean(personId) && enabled,
-  })
-}
-```
-
-## 9.5 `useAddCaseNote.ts`
-
-```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+// src/features/evidence/hooks/useBulkExportEvidence.ts
+import { useMutation } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { addCaseNote } from '@services/domain/audit.service'
-import { auditKeys } from '@services/query/keys/auditKeys'
+import { bulkExportEvidence } from '@services/domain/evidence.service'
 import { useNotificationStore } from '@shared/stores/notification.store'
-import { ApiError } from '@services/api/errors'
-import type { AddCaseNotePayload } from '../types/audit.types'
 
-export function useAddCaseNote(caseId: string) {
-  const queryClient = useQueryClient()
+export function useBulkExportEvidence(caseId: string) {
   const { addToast } = useNotificationStore()
-  const t = useTranslations('audit')
+  const t = useTranslations('evidence')
 
   return useMutation({
-    mutationFn: (payload: AddCaseNotePayload) => addCaseNote(caseId, payload),
+    mutationFn: (ids: string[]) => bulkExportEvidence(caseId, ids),
     onSuccess: () => {
-      // Invalidate the case timeline so the new note appears immediately.
-      // The 30s poll will also pick it up, but optimistic invalidation is
-      // acceptable for append-only annotations (low consequence of a false
-      // refetch).
-      void queryClient.invalidateQueries({
-        queryKey: auditKeys.caseTimeline(caseId),
-      })
-      addToast({ message: t('note.successMessage'), variant: 'success' })
+      addToast({ message: t('bulk.export.successMessage'), variant: 'success' })
+    },
+    onError: () => {
+      addToast({ message: t('bulk.export.errorMessage'), variant: 'error' })
+    },
+  })
+}
+```
+
+### 4.3.3 Wire into `EvidenceTab.tsx`
+
+Enable the DataTable checkbox column in the evidence tab. When rows are selected, render `BulkActionBar` with the export action. The export fires immediately on click (no confirm dialog — it is a read operation):
+
+```tsx
+actions={[
+  {
+    label: t('evidence.bulk.export.actionLabel'),
+    icon: Download,
+    onClick: () => {
+      void exportMutation.mutateAsync(selectedIds)
+      setRowSelection({})
+    },
+    disabled: exportMutation.isPending,
+    disabledTooltip: t('evidence.bulk.export.downloading'),
+  },
+]}
+```
+
+## 4.4 Bulk Drop Charges
+
+### 4.4.1 Business rules
+
+- Only non-terminal charges can be bulk-dropped. The selection validation must filter out `CONVICTED`, `ACQUITTED`, and already-`DROPPED` charges.
+- If the officer selects a mix of terminal and non-terminal charges, the `BulkDropChargesDialog` shows a warning: "N of your selected charges are already at a final status and will be skipped."
+- Bulk drop requires `Permission.LEGAL_MANAGE`.
+
+### 4.4.2 New service function — `src/services/domain/legal.service.ts`
+
+```typescript
+/**
+ * POST /api/v1/charges/bulk/drop
+ * Sets multiple charges to DROPPED status. Skips terminal charges.
+ * Returns BulkOperationResult.
+ */
+export async function bulkDropCharges(payload: {
+  chargeIds: string[]
+}): Promise<BulkOperationResult> {
+  const raw = await apiClient.post('/api/v1/charges/bulk/drop', payload)
+  return bulkOperationResultSchema.parse(raw)
+}
+```
+
+### 4.4.3 New mutation hook — `useBulkDropCharges.ts`
+
+```typescript
+// src/features/legal/hooks/useBulkDropCharges.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { bulkDropCharges } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
+import { caseKeys } from '@services/query/keys/caseKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+
+export function useBulkDropCharges(courtCaseId: string, caseId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('legal')
+
+  return useMutation({
+    mutationFn: (chargeIds: string[]) => bulkDropCharges({ chargeIds }),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: legalKeys.chargeList(courtCaseId) })
+      void queryClient.invalidateQueries({ queryKey: legalKeys.courtCaseByCase(caseId) })
+      void queryClient.invalidateQueries({ queryKey: caseKeys.summary(caseId) })
+      if (result.failed > 0) {
+        addToast({
+          message: t('charges.bulkDrop.partialSuccessMessage', {
+            updated: result.updated,
+            failed: result.failed,
+          }),
+          variant: 'warning',
+        })
+      } else {
+        addToast({
+          message: t('charges.bulkDrop.successMessage', { count: result.updated }),
+          variant: 'success',
+        })
+      }
+    },
+    onError: () => {
+      addToast({ message: t('charges.bulkDrop.errorMessage'), variant: 'error' })
+    },
+  })
+}
+```
+
+### 4.4.4 `BulkDropChargesDialog.tsx`
+
+```
+BulkDropChargesDialog (DestructiveConfirmDialog)
+──────────────────────────────────────────────────────────────
+  Drop {droppableCount} Charges?
+
+  [Warning notice if terminalCount > 0]:
+  ⚠ {terminalCount} of your selected charges are already at a
+     final status (Convicted/Acquitted/Dropped) and will be
+     skipped. Only {droppableCount} charge(s) will be affected.
+
+  The following charges will be permanently set to Dropped:
+  · {charge.crimeType} — {charge.suspectName}   (× droppableCount)
+
+  This action cannot be undone.
+
+  [Cancel]                              [Drop {droppableCount} Charges]
+──────────────────────────────────────────────────────────────
+```
+
+Uses `DestructiveConfirmDialog`. No confirm phrase (bulk drop is significant but not as severe as case deletion). The "Drop charges" button is disabled when `droppableCount === 0` (all selected are terminal).
+
+### 4.4.5 Wire into `ChargesTable.tsx`
+
+Enable the DataTable checkbox column. When non-terminal rows are selected, show `BulkActionBar`:
+
+```tsx
+const selectedCharges = selectedIds.map(id =>
+  data?.data.find(c => c.id === id)
+).filter(Boolean)
+const terminalSelected = selectedCharges.filter(c => isChargeTerminal(c!.status))
+const droppableSelected = selectedCharges.filter(c => !isChargeTerminal(c!.status))
+
+actions={[
+  {
+    label: t('charges.bulkDrop.actionLabel'),
+    icon: Trash2,
+    variant: 'destructive',
+    onClick: () => setBulkDropOpen(true),
+    requiredPermission: Permission.LEGAL_MANAGE,
+    disabled: droppableSelected.length === 0,
+    disabledTooltip: t('charges.bulkDrop.allTerminalTooltip'),
+  },
+]}
+```
+
+---
+
+# 5. Legal Module Enhancements
+
+## 5.1 New Types — add to `src/features/legal/types/legal.types.ts`
+
+```typescript
+// ─── Edit Sentence Payload ────────────────────────────────────────────────────
+export interface EditSentencePayload {
+  sentenceType: SentenceType
+  durationMonths?: number | null
+  fineAmountETB?: number | null
+  notes?: string | null
+  issuedAt: string
+  issuedByJudge?: string | null
+  // Required for audit trail: reason for amendment
+  amendmentReason: string
+}
+
+// ─── Appeal Record ────────────────────────────────────────────────────────────
+export const AppealOutcome = {
+  PENDING:   'PENDING',
+  UPHELD:    'UPHELD',
+  DISMISSED: 'DISMISSED',
+} as const
+export type AppealOutcome = (typeof AppealOutcome)[keyof typeof AppealOutcome]
+
+export interface AppealRecord {
+  id: string
+  chargeId: string
+  filedAt: string          // ISO 8601
+  filedByOfficerId: string
+  outcome: AppealOutcome
+  outcomeDate: string | null
+  notes: string | null
+}
+
+// ─── Appeal Charge Payload ────────────────────────────────────────────────────
+export interface AppealChargePayload {
+  notes?: string
+}
+```
+
+## 5.2 New Zod Schemas — add to `src/features/legal/schemas/legal-api.schema.ts`
+
+```typescript
+export const appealRecordSchema = z.object({
+  id: z.string().uuid(),
+  chargeId: z.string().uuid(),
+  filedAt: z.string(),
+  filedByOfficerId: z.string().uuid(),
+  outcome: z.nativeEnum(AppealOutcome),
+  outcomeDate: z.string().nullable(),
+  notes: z.string().nullable(),
+})
+```
+
+## 5.3 New Service Functions — `src/services/domain/legal.service.ts`
+
+```typescript
+/**
+ * PATCH /api/v1/charges/{chargeId}/sentence
+ * Amends an existing sentence. Admin+ only.
+ * The backend creates an audit entry preserving the original values.
+ * Returns the updated Charge (with amended sentence).
+ */
+export async function editSentence(
+  chargeId: string,
+  payload: EditSentencePayload,
+): Promise<Charge> {
+  const raw = await apiClient.patch(
+    `/api/v1/charges/${chargeId}/sentence`,
+    payload,
+  )
+  return chargeDetailSchema.parse(raw)
+}
+
+/**
+ * POST /api/v1/charges/{chargeId}/appeal
+ * Files an appeal for a CONVICTED or ACQUITTED charge. Superadmin only.
+ * Reverts the charge status to ACTIVE. Creates an AppealRecord.
+ * Returns the updated Charge.
+ */
+export async function appealCharge(
+  chargeId: string,
+  payload: AppealChargePayload,
+): Promise<Charge> {
+  const raw = await apiClient.post(
+    `/api/v1/charges/${chargeId}/appeal`,
+    payload,
+  )
+  return chargeDetailSchema.parse(raw)
+}
+```
+
+## 5.4 New Mutation Hooks
+
+### 5.4.1 `useEditSentence.ts`
+
+```typescript
+// src/features/legal/hooks/useEditSentence.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { editSentence } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { EditSentencePayload } from '../types/legal.types'
+
+export function useEditSentence(chargeId: string, courtCaseId: string, caseId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('legal')
+
+  return useMutation({
+    // No optimistic update — sentence amendment is security-sensitive and irreversible
+    mutationFn: (payload: EditSentencePayload) => editSentence(chargeId, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: legalKeys.chargeDetail(chargeId) })
+      void queryClient.invalidateQueries({ queryKey: legalKeys.chargeList(courtCaseId) })
+      void queryClient.invalidateQueries({ queryKey: legalKeys.courtCaseByCase(caseId) })
+      addToast({ message: t('charges.editSentence.successMessage'), variant: 'success' })
     },
     onError: (err: unknown) => {
       const message =
-        err instanceof ApiError ? err.message : t('note.errorMessage')
+        err instanceof ApiError ? err.message : t('charges.editSentence.errorMessage')
       addToast({ message, variant: 'error' })
     },
   })
 }
 ```
 
-## 9.6 `useDownloadAuditCsv.ts`
+### 5.4.2 `useAppealCharge.ts`
 
 ```typescript
-import { useMutation } from '@tanstack/react-query'
+// src/features/legal/hooks/useAppealCharge.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
-import { downloadAuditCsv } from '@services/domain/audit.service'
+import { appealCharge } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
+import { caseKeys } from '@services/query/keys/caseKeys'
 import { useNotificationStore } from '@shared/stores/notification.store'
-import { buildAuditCsvFilename } from '../utils/auditUtils'
-import type { AuditExportParams } from '../types/audit.types'
+import { ApiError } from '@services/api/errors'
+import type { AppealChargePayload } from '../types/legal.types'
 
-export function useDownloadAuditCsv() {
+export function useAppealCharge(chargeId: string, courtCaseId: string, caseId: string) {
+  const queryClient = useQueryClient()
   const { addToast } = useNotificationStore()
-  const t = useTranslations('audit')
-
-  const surfaceToEndpoint = (
-    surface: AuditExportParams['surface'],
-    entityId: string,
-  ): string => {
-    switch (surface) {
-      case 'case':    return `cases/${entityId}/timeline`
-      case 'officer': return `personnel/officers/${entityId}/audit`
-      case 'person':  return `personnel/persons/${entityId}/audit`
-      case 'global':  return 'audit'
-    }
-  }
+  const t = useTranslations('legal')
 
   return useMutation({
-    mutationFn: (params: AuditExportParams) =>
-      downloadAuditCsv(
-        surfaceToEndpoint(params.surface, params.entityId),
-        params.filters,
-        buildAuditCsvFilename(params.surface),
-      ),
+    // No optimistic update — appeal is a legal reversal; must be server-confirmed
+    mutationFn: (payload: AppealChargePayload) => appealCharge(chargeId, payload),
     onSuccess: () => {
-      addToast({ message: t('export.csvSuccessMessage'), variant: 'success' })
+      void queryClient.invalidateQueries({ queryKey: legalKeys.chargeDetail(chargeId) })
+      void queryClient.invalidateQueries({ queryKey: legalKeys.chargeList(courtCaseId) })
+      void queryClient.invalidateQueries({ queryKey: legalKeys.courtCaseByCase(caseId) })
+      void queryClient.invalidateQueries({ queryKey: caseKeys.summary(caseId) })
+      addToast({ message: t('charges.appeal.successMessage'), variant: 'success' })
     },
-    onError: () => {
-      addToast({ message: t('export.csvErrorMessage'), variant: 'error' })
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('charges.appeal.errorMessage')
+      addToast({ message, variant: 'error' })
     },
   })
 }
 ```
 
-## 9.7 `src/features/audit/hooks/index.ts`
+## 5.5 `EditSentenceDrawer.tsx`
+
+Client Component wrapping `SlideOverDrawer` (480px). Accessible to `admin+` only.
+
+### 5.5.1 How it opens
+
+In the updated `ViewSentenceDrawer.tsx`, add at the bottom of the drawer (inside `PermissionGuard permission={Permission.ADMIN_MANAGE}`):
+
+```tsx
+<div className="border-t border-border pt-4 mt-4">
+  <PermissionGuard permission={Permission.ADMIN_MANAGE}>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setEditOpen(true)}
+    >
+      <Pencil className="mr-2 h-3.5 w-3.5" />
+      {t('charges.editSentence.openButton')}
+    </Button>
+    <p className="text-xs text-foreground-muted mt-1">
+      {t('charges.editSentence.openButtonHint')}
+    </p>
+  </PermissionGuard>
+</div>
+```
+
+### 5.5.2 Layout
+
+```
+EditSentenceDrawer (480px)
+──────────────────────────────────────────────────────────────
+  Amend Sentence
+  Amend the recorded sentence for this conviction.
+──────────────────────────────────────────────────────────────
+ ┌── Amendment Notice ─────────────────────────────────────────┐
+ │  ⚠  Amending this sentence creates a permanent audit entry  │
+ │     showing the original and amended values. The original   │
+ │     values cannot be deleted.                               │
+ └─────────────────────────────────────────────────────────────┘
+
+ ┌── Sentence Details ─────────────────────────────────────────┐
+ │  (Pre-populated with current sentence values)               │
+ │  Sentence Type *    [Select]                                │
+ │  Duration (months)  [Input, conditional]                    │
+ │  Fine Amount (ETB)  [Input, conditional]                    │
+ │  Sentence Date *    [DatePicker]                            │
+ │  Issued By Judge    [Input, optional]                       │
+ │  Notes              [Textarea, optional]                    │
+ └─────────────────────────────────────────────────────────────┘
+
+ ┌── Amendment Reason ─────────────────────────────────────────┐
+ │  Reason for Amendment *  [Textarea, required]               │
+ │  (This will appear in the audit trail)                      │
+ └─────────────────────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Cancel]                    [Save Amendment]
+```
+
+Uses `recordSentenceSchema` extended with `amendmentReason`:
 
 ```typescript
-export { useCaseTimeline } from './useCaseTimeline'
-export { useGlobalAuditLog } from './useGlobalAuditLog'
-export { useOfficerAuditHistory } from './useOfficerAuditHistory'
-export { usePersonAuditHistory } from './usePersonAuditHistory'
-export { useAddCaseNote } from './useAddCaseNote'
-export { useDownloadAuditCsv } from './useDownloadAuditCsv'
+const editSentenceSchema = recordSentenceSchema.extend({
+  amendmentReason: z
+    .string()
+    .min(10, { message: 'Amendment reason must be at least 10 characters.' })
+    .max(1000),
+})
+```
+
+Dirty state guard: if `formState.isDirty`, prompt "Discard amendment? No changes will be saved."
+
+On success: `EditSentenceDrawer` closes, `ViewSentenceDrawer` closes (the sentence has changed; the parent should re-fetch), `ChargesTable` refreshes.
+
+## 5.6 `AppealChargeDrawer.tsx`
+
+Client Component wrapping `SlideOverDrawer` (480px). Accessible to `superadmin` only.
+
+### 5.6.1 How it opens
+
+In the updated `ChargesTable.tsx`, add to the CONVICTED/ACQUITTED charge row kebab menu (after "View Sentence"):
+
+```tsx
+// Only for SUPERADMIN
+<PermissionGuard permission={Permission.SUPERADMIN_ONLY}>
+  <DropdownMenuSeparator />
+  <DropdownMenuItem
+    onClick={() => { setSelectedChargeId(charge.id); setAppealOpen(true) }}
+    className="text-warning"
+  >
+    <AlertTriangle className="mr-2 h-4 w-4" />
+    {t('charges.appeal.kebabLabel')}
+  </DropdownMenuItem>
+</PermissionGuard>
+```
+
+### 5.6.2 Layout
+
+```
+AppealChargeDrawer (480px)
+──────────────────────────────────────────────────────────────
+  File Appeal
+  Reverse this terminal charge via an appeal record.
+──────────────────────────────────────────────────────────────
+ ┌── Charge Context ────────────────────────────────────────────┐
+ │  Suspect    John Bekele                                     │
+ │  Charge     Robbery with Violence                           │
+ │  Status     [Convicted badge]                               │
+ └─────────────────────────────────────────────────────────────┘
+
+ ┌── Appeal Consequences Notice ───────────────────────────────┐
+ │  ⚠  Filing this appeal will:                               │
+ │     · Revert the charge status from {status} → ACTIVE      │
+ │     · Create a permanent appeal record in the audit trail   │
+ │     · Remove the existing sentence record (if any)         │
+ │                                                             │
+ │  This action is logged and cannot be reversed without       │
+ │  filing another appeal.                                     │
+ └─────────────────────────────────────────────────────────────┘
+
+ ┌── Appeal Details ───────────────────────────────────────────┐
+ │  Notes (optional)   [Textarea]                              │
+ └─────────────────────────────────────────────────────────────┘
+
+ ────────────────────────────────────────────
+ [Cancel]              [Confirm Appeal — Revert to Active]
+```
+
+The consequence notice amber bar uses the same styling as the conviction notice bar from Phase 6.
+
+On success: drawer closes, charge status badge in the table reverts to ACTIVE (amber), sentence indicator clears, toast confirms.
+
+---
+
+# 6. Personnel Module Enhancement — Person De-Promotion
+
+## 6.1 Business Rules
+
+- De-promotion removes a specific role (`SUSPECT`, `VICTIM`, or `WITNESS`) from a person.
+- A person can be re-promoted to the same role after de-promotion via the existing `PromoteTo*Drawer` flow.
+- De-promotion is only available when the person has **no active case associations** in that role, OR the admin explicitly acknowledges the warning. The backend enforces the final check; the frontend shows the warning.
+- De-promotion requires `Permission.ADMIN_MANAGE`.
+- The padlock icon on the role card in Phase 7 indicated permanence — this is removed in Phase 11 for `admin+` roles who can now see a "Remove Role" button.
+
+## 6.2 New Service Function — `src/services/domain/personnel.service.ts`
+
+```typescript
+/**
+ * DELETE /api/v1/personnel/persons/{personId}/roles/{role}
+ * Removes a specific role designation from a person. Admin+ only.
+ * Returns the updated Person.
+ */
+export async function demotePersonRole(
+  personId: string,
+  role: PersonRole,
+): Promise<Person> {
+  const raw = await apiClient.delete(
+    `/api/v1/personnel/persons/${personId}/roles/${role}`,
+  )
+  return personDetailSchema.parse(raw)
+}
+```
+
+## 6.3 New Mutation Hook — `useDemotePersonRole.ts`
+
+```typescript
+// src/features/personnel/hooks/useDemotePersonRole.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { demotePersonRole } from '@services/domain/personnel.service'
+import { personnelKeys } from '@services/query/keys/personnelKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { PersonRole } from '../types/personnel.types'
+
+export function useDemotePersonRole(personId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('personnel')
+
+  return useMutation({
+    // No optimistic update — role removal affects active case associations server-side
+    mutationFn: (role: PersonRole) => demotePersonRole(personId, role),
+    onSuccess: (_, role) => {
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.person(personId) })
+      void queryClient.invalidateQueries({ queryKey: personnelKeys.personList() })
+      addToast({
+        message: t('persons.demoteRole.successMessage', { role }),
+        variant: 'success',
+      })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('persons.demoteRole.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+```
+
+## 6.4 `DemotePersonRoleDialog.tsx`
+
+Wraps `DestructiveConfirmDialog`.
+
+```typescript
+interface DemotePersonRoleDialogProps {
+  open: boolean
+  onClose: () => void
+  personId: string
+  personName: string
+  role: PersonRole
+  activeCaseCount: number   // Number of active cases this person has in this role
+}
+```
+
+```
+DemotePersonRoleDialog
+──────────────────────────────────────────────────────────────
+  Remove {roleName} designation from {personName}?
+
+  [If activeCaseCount > 0]:
+  ⚠ This person is linked to {activeCaseCount} active case(s)
+     as {roleName}. Removing this role does not unlink them
+     from those cases. Contact the case lead to update case
+     records manually.
+
+  This person will no longer appear as {roleName} in new
+  case assignments. This action is logged.
+
+  [Cancel]                     [Remove {roleName} Designation]
+──────────────────────────────────────────────────────────────
+```
+
+Uses `DestructiveConfirmDialog`. No confirm phrase — de-promotion is less severe than case deletion.
+
+## 6.5 Update `PersonRoleCards.tsx`
+
+For `admin+`, each role card gains a "Remove Role" button in its footer:
+
+```tsx
+// At the bottom of each rendered role card, inside PermissionGuard ADMIN_MANAGE:
+<PermissionGuard permission={Permission.ADMIN_MANAGE}>
+  <div className="mt-3 pt-3 border-t border-border">
+    <Button
+      variant="ghost"
+      size="sm"
+      className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2"
+      onClick={() => {
+        setDemoteRole(PersonRole.SUSPECT)  // or VICTIM / WITNESS
+        setDemoteOpen(true)
+      }}
+    >
+      <Trash2 className="mr-1.5 h-3 w-3" />
+      {t('persons.demoteRole.buttonLabel')}
+    </Button>
+  </div>
+</PermissionGuard>
+```
+
+The "Remove Role" button is absent for roles without `ADMIN_MANAGE`. For such roles, the role card remains read-only with no footer.
+
+Mount `DemotePersonRoleDialog` at the bottom of `PersonDetail.tsx` alongside the promotion drawers.
+
+---
+
+# 7. Offline Resilience
+
+## 7.1 What is Persisted
+
+Only stable, non-sensitive reference data is persisted. Security-sensitive and PII-bearing data is never persisted in `localStorage`.
+
+```typescript
+// src/services/query/persister.ts
+
+// Query key prefixes whose data IS persisted across page reloads.
+// The persister uses partial-key matching — any query key starting with one of these
+// prefix arrays will be included.
+export const PERSIST_WHITELIST = [
+  // Reference data (changes rarely)
+  ['departments'],
+  ['crimeTypes'],
+  ['locations'],
+  // Case lists (gives immediate stale list before refetch)
+  ['cases', 'list'],
+  // Court case lists
+  ['courtCases', 'list'],
+] as const
+
+// Query key prefixes that MUST NOT be persisted.
+// These take precedence over PERSIST_WHITELIST (deny wins).
+export const PERSIST_BLACKLIST = [
+  // PII-bearing data
+  ['persons'],                    // Contains masked PII; masking is server-side per role
+  ['officers'],                   // Contains last activity timestamps; live only
+  // Security-sensitive
+  ['audit'],                      // Audit entries must always come from the server
+  // High-frequency polling data
+  ['dashboard'],                  // Dashboard data is role-scoped and time-sensitive
+  ['health'],                     // System health must be live
+  // Case detail (too large and stale-sensitive)
+  ['cases', 'detail'],
+] as const
+```
+
+## 7.2 Persister Configuration — `src/services/query/persister.ts`
+
+```typescript
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
+import { PERSIST_WHITELIST, PERSIST_BLACKLIST } from './persister'
+
+// Check if a given query key should be persisted.
+// Deny-wins: if ANY blacklist prefix matches, do not persist.
+// Then: if ANY whitelist prefix matches, persist.
+function shouldPersist(queryKey: readonly unknown[]): boolean {
+  const keyAsStrings = queryKey.map(String)
+
+  // Check blacklist first (deny-wins)
+  for (const blacklistKey of PERSIST_BLACKLIST) {
+    const matches = blacklistKey.every((part, i) => keyAsStrings[i] === String(part))
+    if (matches) return false
+  }
+
+  // Check whitelist
+  for (const whitelistKey of PERSIST_WHITELIST) {
+    const matches = whitelistKey.every((part, i) => keyAsStrings[i] === String(part))
+    if (matches) return true
+  }
+
+  return false
+}
+
+export const localStoragePersister = createSyncStoragePersister({
+  storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+  key: 'ccms-query-cache',
+  // Only serialise queries that pass the whitelist/blacklist check
+  serialize: (client) => {
+    const filtered = {
+      ...client,
+      queries: client.queries.filter((q) =>
+        shouldPersist(q.queryKey as readonly unknown[]),
+      ),
+      mutations: [],   // Never persist mutations
+    }
+    return JSON.stringify(filtered)
+  },
+})
+```
+
+## 7.3 Update `src/app/layout.tsx` (or `src/shared/providers/QueryProvider.tsx`)
+
+Replace `QueryClientProvider` with `PersistQueryClientProvider`:
+
+```typescript
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
+import { localStoragePersister } from '@services/query/persister'
+import { queryClient } from '@services/query/queryClient'
+
+// In the providers component:
+<PersistQueryClientProvider
+  client={queryClient}
+  persistOptions={{
+    persister: localStoragePersister,
+    maxAge: 24 * 60 * 60 * 1000,     // 24 hours max cache age
+    buster: process.env.NEXT_PUBLIC_BUILD_ID ?? '',  // Cache-bust on new deployments
+  }}
+>
+  {children}
+</PersistQueryClientProvider>
+```
+
+### 7.3.1 Build ID for cache busting
+
+In `next.config.ts`, expose the build ID:
+
+```typescript
+const config: NextConfig = {
+  env: {
+    NEXT_PUBLIC_BUILD_ID: process.env.VERCEL_GIT_COMMIT_SHA ?? Date.now().toString(),
+  },
+  // ... rest of config
+}
+```
+
+This ensures that when a new deployment is made, the persisted cache is invalidated (old data structure may not match new types).
+
+## 7.4 Critical constraints
+
+- The `authStore` (Zustand with `sessionStorage`) is NOT affected by this change. Auth state management is unchanged.
+- The `uiStore` (Zustand with `localStorage`) is NOT affected.
+- The `PersistQueryClientProvider` must be the outermost React Query wrapper, inside the auth provider.
+- On logout, call `queryClient.clear()` to remove all in-memory AND persisted cache entries:
+
+```typescript
+// In the logout handler (auth.service.ts or auth hook):
+import { queryClient } from '@services/query/queryClient'
+
+async function handleLogout() {
+  await logoutUser()
+  queryClient.clear()                              // Clears in-memory cache
+  localStorage.removeItem('ccms-query-cache')      // Clears persisted cache
+  router.push('/login')
+}
 ```
 
 ---
 
-# 10. i18n Messages
+# 8. Performance Hardening
 
-## 10.1 `messages/en/audit.json` — Full Population
+## 8.1 Bundle Analyzer Integration
+
+### 8.1.1 `next.config.ts` update
+
+```typescript
+import type { NextConfig } from 'next'
+import withBundleAnalyzer from '@next/bundle-analyzer'
+
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+  openAnalyzer: false,
+  analyzerMode: 'static',
+  reportFilename: '../analyze/report.html',
+})
+
+const nextConfig: NextConfig = {
+  // ... existing config
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/ccms-evidence/**',   // Scope to the CCMS Cloudinary folder
+      },
+    ],
+  },
+}
+
+export default withAnalyzer(nextConfig)
+```
+
+### 8.1.2 Add npm script to `package.json`
 
 ```json
 {
-  "pageTitle": "Audit Log",
-  "caseTimeline": {
-    "pageTitle": "Timeline",
-    "heading": "Case Timeline",
-    "pollingIndicator": "Live — updates every 30s",
-    "loading": "Loading timeline...",
-    "loadingMore": "Loading more entries...",
-    "empty": {
-      "title": "No Timeline Entries",
-      "description": "No audit events have been recorded for this case yet."
-    },
-    "emptyFiltered": "No entries match your current filters.",
-    "error": "Failed to load the case timeline.",
-    "entryCount": "{count} event(s)"
-  },
-  "globalLog": {
-    "heading": "Global Audit Log",
-    "description": "System-wide audit trail for all entities and actors.",
-    "loading": "Loading audit log...",
-    "empty": {
-      "title": "No Audit Entries",
-      "description": "No audit events match the selected filters."
-    },
-    "error": "Failed to load the audit log.",
-    "entityScope": {
-      "label": "Scope",
-      "allEntities": "All Entities",
-      "caseLabel": "Case",
-      "officerLabel": "Officer",
-      "casePlaceholder": "Filter by case number...",
-      "officerPlaceholder": "Filter by officer badge..."
-    }
-  },
-  "officerHistory": {
-    "drawerTitle": "Officer Audit History",
-    "drawerDescription": "All audit events involving this officer.",
-    "empty": "No audit history for this officer.",
-    "error": "Failed to load officer audit history.",
-    "openButton": "View Audit History"
-  },
-  "personHistory": {
-    "drawerTitle": "Person Audit History",
-    "drawerDescription": "All audit events related to this person record.",
-    "empty": "No audit history for this person.",
-    "error": "Failed to load person audit history.",
-    "openButton": "View Audit History"
-  },
-  "filter": {
-    "label": "Filter",
-    "actorSearch": "Search by officer name or badge...",
-    "eventType": "Event Type",
-    "dateFrom": "From",
-    "dateTo": "To",
-    "clearAll": "Clear filters",
-    "activeFiltersLabel": "{count} filter(s) active",
-    "categories": {
-      "CASE": "Case Events",
-      "EVIDENCE": "Evidence & Custody",
-      "SECURITY": "Security Events",
-      "LEGAL": "Legal Events",
-      "PERSONNEL": "Personnel Events",
-      "ANNOTATION": "Annotations"
-    }
-  },
-  "entry": {
-    "actor": "by {actorName}",
-    "badgeNumber": "({badgeNumber})",
-    "timestamp": {
-      "absolute": "Absolute time",
-      "relative": "Relative time"
-    },
-    "immutableTooltip": "This audit record cannot be modified or deleted.",
-    "diffLabel": "Changes",
-    "diffBefore": "Before",
-    "diffAfter": "After",
-    "diffNoChange": "—",
-    "noteLabel": "Note",
-    "securityBadge": {
-      "LOW": "Low Severity",
-      "MEDIUM": "Medium Severity",
-      "HIGH": "High Severity"
-    }
-  },
-  "custodyGap": {
-    "badgeLabel": "Custody Gap Detected",
-    "tooltipText": "A gap of {duration} was detected between sequential custody events. This may require investigation.",
-    "fromTo": "From {from} to {to}"
-  },
-  "eventType": {
-    "CASE_CREATED":            "Case Created",
-    "CASE_UPDATED":            "Case Updated",
-    "CASE_STATUS_CHANGED":     "Status Changed",
-    "CASE_OFFICER_ASSIGNED":   "Officer Assigned",
-    "CASE_OFFICER_REMOVED":    "Officer Removed",
-    "CASE_PERMISSIONS_CHANGED":"Permissions Changed",
-    "CASE_DELETED":            "Case Deleted",
-    "EVIDENCE_ADDED":          "Evidence Added",
-    "EVIDENCE_UPDATED":        "Evidence Updated",
-    "EVIDENCE_DELETED":        "Evidence Deleted",
-    "CUSTODY_TRANSFERRED":     "Custody Transferred",
-    "CUSTODY_EXAMINED":        "Custody Examined",
-    "CUSTODY_STORED":          "Custody Stored",
-    "CUSTODY_PRESENTED":       "Presented in Court",
-    "LOGIN_SUCCESS":           "Login",
-    "LOGIN_FAILURE":           "Failed Login Attempt",
-    "LOGOUT":                  "Logout",
-    "SESSION_EXPIRED":         "Session Expired",
-    "FORCED_LOGOUT":           "Forced Logout",
-    "PERMISSION_GRANTED":      "Permission Granted",
-    "PERMISSION_REVOKED":      "Permission Revoked",
-    "ROLE_CHANGED":            "Role Changed",
-    "PASSWORD_RESET":          "Password Reset",
-    "PII_ACCESSED":            "PII Field Accessed",
-    "CHARGE_FILED":            "Charge Filed",
-    "CHARGE_UPDATED":          "Charge Updated",
-    "CHARGE_DROPPED":          "Charge Dropped",
-    "SENTENCE_RECORDED":       "Sentence Recorded",
-    "COURT_CASE_CREATED":      "Court Case Created",
-    "COURT_CASE_UPDATED":      "Court Case Updated",
-    "HEARING_SCHEDULED":       "Hearing Scheduled",
-    "PERSON_CREATED":          "Person Record Created",
-    "PERSON_UPDATED":          "Person Record Updated",
-    "PERSON_ROLE_PROMOTED":    "Role Assigned",
-    "OFFICER_CREATED":         "Officer Account Created",
-    "OFFICER_UPDATED":         "Officer Account Updated",
-    "OFFICER_ACTIVATED":       "Officer Activated",
-    "OFFICER_DEACTIVATED":     "Officer Deactivated",
-    "CASE_NOTE_ADDED":         "Note Added"
-  },
-  "note": {
-    "formLabel": "Add a case note",
-    "placeholder": "Write a note for the case record...",
-    "submitButton": "Add Note",
-    "successMessage": "Note added to the case timeline.",
-    "errorMessage": "Failed to add note. Please try again.",
-    "characterCount": "{count} / 2000"
-  },
-  "export": {
-    "csvButton": "Export CSV",
-    "printButton": "Print Timeline",
-    "csvDownloading": "Downloading...",
-    "csvSuccessMessage": "Audit log downloaded.",
-    "csvErrorMessage": "Failed to download audit log. Please try again.",
-    "printTitle": "CCMS Audit Timeline",
-    "printClassification": "CLASSIFICATION: INTERNAL — RESTRICTED",
-    "printAuthorisedNotice": "Authorised personnel only. All access is logged and audited.",
-    "printGeneratedAt": "Generated: {datetime}",
-    "printPageOf": "Page {page} of {total}"
-  },
-  "pagination": {
-    "previous": "Previous",
-    "next": "Next",
-    "pageSize": "Per page",
-    "showing": "Showing {from}–{to} of {total}"
+  "scripts": {
+    "build:analyze": "ANALYZE=true pnpm build"
   }
 }
 ```
 
-## 10.2 `messages/am/audit.json` — Full Amharic Equivalent
+Running `pnpm build:analyze` generates a static HTML report at `.next/analyze/report.html`.
 
-```json
-{
-  "pageTitle": "የኦዲት ምዝገባ",
-  "caseTimeline": {
-    "pageTitle": "የጊዜ ሰሌዳ",
-    "heading": "የጉዳይ ሰሌዳ",
-    "pollingIndicator": "ቀጥታ — በ30 ሰከንዶች ይዘምናል",
-    "loading": "ሰሌዳ እየጫነ ነው...",
-    "loadingMore": "ተጨማሪ ግቤቶች እየጫነ ነው...",
-    "empty": {
-      "title": "ምንም የሰሌዳ ግቤቶች የሉም",
-      "description": "ለዚህ ጉዳይ ምንም ክስተቶች ገና አልተመዘገቡም።"
-    },
-    "emptyFiltered": "ምንም ግቤቶች ከማጣሪያዎ ጋር አይዛመዱም።",
-    "error": "የጉዳዩን ሰሌዳ ለመጫን አልተሳካም።",
-    "entryCount": "{count} ክስተት(ቾ)"
+## 8.2 Dynamic Imports for Heavy Components
+
+Heavy components that are not needed on initial page load must be dynamically imported with `next/dynamic`. This reduces the initial bundle size and defers JavaScript parsing for components that are only shown on user interaction.
+
+### 8.2.1 Chart components
+
+In `src/shared/components/charts/`, create lazy-loaded wrappers:
+
+```typescript
+// src/shared/components/charts/LazyCharts.ts
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@shared/components/feedback/Skeleton'
+
+export const LazyCcmsLineChart = dynamic(
+  () => import('./CcmsLineChart').then((m) => ({ default: m.CcmsLineChart })),
+  {
+    loading: () => <Skeleton className="w-full h-[280px]" />,
+    ssr: false,   // Recharts uses window; disable SSR
   },
-  "globalLog": {
-    "heading": "ዓለም አቀፍ የኦዲት ምዝገባ",
-    "description": "ለሁሉም አካላት እና ተዋናዮች የስርዓት ሙሉ ኦዲት።",
-    "loading": "ምዝገባ እየጫነ ነው...",
-    "empty": {
-      "title": "ምንም ኦዲት ግቤቶች የሉም",
-      "description": "ምንም ክስተቶች ከተምረጡ ማጣሪያዎች ጋር አይዛመዱም።"
-    },
-    "error": "ምዝገባ ለመጫን አልተሳካም።",
-    "entityScope": {
-      "label": "ወሰን",
-      "allEntities": "ሁሉም አካላት",
-      "caseLabel": "ጉዳይ",
-      "officerLabel": "ፖሊስ",
-      "casePlaceholder": "በጉዳይ ቁጥር አጣራ...",
-      "officerPlaceholder": "በፖሊስ ባጅ አጣራ..."
-    }
+)
+
+export const LazyCcmsBarChart = dynamic(
+  () => import('./CcmsBarChart').then((m) => ({ default: m.CcmsBarChart })),
+  {
+    loading: () => <Skeleton className="w-full h-[280px]" />,
+    ssr: false,
   },
-  "officerHistory": {
-    "drawerTitle": "የፖሊስ ኦዲት ታሪክ",
-    "drawerDescription": "ፖሊሱን የሚሳተፉ ሁሉም ክስተቶች።",
-    "empty": "ለዚህ ፖሊስ ምንም ኦዲት ታሪክ የለም።",
-    "error": "የፖሊስ ኦዲት ታሪክ ለመጫን አልተሳካም።",
-    "openButton": "ኦዲት ታሪክ ተመልከት"
+)
+
+export const LazyCcmsDonutChart = dynamic(
+  () => import('./CcmsDonutChart').then((m) => ({ default: m.CcmsDonutChart })),
+  {
+    loading: () => <Skeleton className="w-full h-[240px]" />,
+    ssr: false,
   },
-  "personHistory": {
-    "drawerTitle": "የሰው ኦዲት ታሪክ",
-    "drawerDescription": "ከዚህ ሰው መዝገብ ጋር ሁሉም ክስተቶች።",
-    "empty": "ለዚህ ሰው ምንም ኦዲት ታሪክ የለም።",
-    "error": "የሰው ኦዲት ታሪክ ለመጫን አልተሳካም።",
-    "openButton": "ኦዲት ታሪክ ተመልከት"
+)
+```
+
+Replace all direct imports of `CcmsLineChart`, `CcmsBarChart`, `CcmsDonutChart` in dashboard widgets and report pages with their lazy equivalents.
+
+### 8.2.2 Evidence Lightbox
+
+```typescript
+// src/features/evidence/components/LazyLightbox.ts
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@shared/components/feedback/Skeleton'
+
+export const LazyLightbox = dynamic(
+  () => import('./EvidenceLightbox').then((m) => ({ default: m.EvidenceLightbox })),
+  {
+    loading: () => (
+      <div className="fixed inset-0 bg-black/90 flex items-center justify-center">
+        <Skeleton className="w-[600px] h-[400px]" />
+      </div>
+    ),
+    ssr: false,
   },
-  "filter": {
-    "label": "አጣራ",
-    "actorSearch": "በፖሊስ ስም ወይም ባጅ ፈልግ...",
-    "eventType": "የክስተት ዓይነት",
-    "dateFrom": "ከ",
-    "dateTo": "እስከ",
-    "clearAll": "ማጣሪያዎች አጽዳ",
-    "activeFiltersLabel": "{count} ማጣሪያ(ዎች) ንቁ",
-    "categories": {
-      "CASE": "የጉዳይ ክስተቶች",
-      "EVIDENCE": "ማስረጃ እና ቁጥጥር",
-      "SECURITY": "የጸጥታ ክስተቶች",
-      "LEGAL": "ሕጋዊ ክስተቶች",
-      "PERSONNEL": "የፒርሰን ክስተቶች",
-      "ANNOTATION": "ማስታወሻዎች"
-    }
+)
+```
+
+### 8.2.3 Evidence Gallery (grid view)
+
+```typescript
+export const LazyEvidenceGallery = dynamic(
+  () => import('./EvidenceGallery').then((m) => ({ default: m.EvidenceGallery })),
+  {
+    loading: () => <Skeleton className="w-full h-[300px]" />,
+    ssr: false,
   },
-  "entry": {
-    "actor": "በ {actorName}",
-    "badgeNumber": "({badgeNumber})",
-    "timestamp": {
-      "absolute": "ፍጹም ጊዜ",
-      "relative": "አንፃራዊ ጊዜ"
-    },
-    "immutableTooltip": "ይህ ኦዲት መዝገብ ሊቀየር ወይም ሊሰረዝ አይችልም።",
-    "diffLabel": "ለውጦች",
-    "diffBefore": "ቀደም",
-    "diffAfter": "ዛሬ",
-    "diffNoChange": "—",
-    "noteLabel": "ማስታወሻ",
-    "securityBadge": {
-      "LOW": "ዝቅተኛ ክብደት",
-      "MEDIUM": "መካከለኛ ክብደት",
-      "HIGH": "ከፍተኛ ክብደት"
-    }
-  },
-  "custodyGap": {
-    "badgeLabel": "የቁጥጥር ክፍተት ተገኝቷል",
-    "tooltipText": "ተከታታይ ክስተቶች መካከል {duration} ክፍተት ተገኝቷል። ምርመራ ሊያስፈልግ ይችላል።",
-    "fromTo": "ከ {from} እስከ {to}"
-  },
-  "eventType": {
-    "CASE_CREATED":            "ጉዳይ ተፈጥሯል",
-    "CASE_UPDATED":            "ጉዳይ ተዘምኗል",
-    "CASE_STATUS_CHANGED":     "ሁኔታ ተቀይሯል",
-    "CASE_OFFICER_ASSIGNED":   "ፖሊስ ተሰጥቷል",
-    "CASE_OFFICER_REMOVED":    "ፖሊስ ተወግዷል",
-    "CASE_PERMISSIONS_CHANGED":"ፈቃዶች ተቀይረዋል",
-    "CASE_DELETED":            "ጉዳይ ተሰርዟል",
-    "EVIDENCE_ADDED":          "ማስረጃ ተጨምሯል",
-    "EVIDENCE_UPDATED":        "ማስረጃ ተዘምኗል",
-    "EVIDENCE_DELETED":        "ማስረጃ ተሰርዟል",
-    "CUSTODY_TRANSFERRED":     "ቁጥጥር ተላልፏል",
-    "CUSTODY_EXAMINED":        "ቁጥጥር ተፈትሷል",
-    "CUSTODY_STORED":          "ቁጥጥር ተቀምጧል",
-    "CUSTODY_PRESENTED":       "በፍርድ ቤት ቀርቧል",
-    "LOGIN_SUCCESS":           "ግቤት",
-    "LOGIN_FAILURE":           "ያልተሳካ ሙከራ",
-    "LOGOUT":                  "ወጥቷል",
-    "SESSION_EXPIRED":         "ክፍለ ጊዜ አልቋል",
-    "FORCED_LOGOUT":           "ግዳጅ ወጥቷል",
-    "PERMISSION_GRANTED":      "ፈቃድ ተሰጥቷል",
-    "PERMISSION_REVOKED":      "ፈቃድ ተሰርዟል",
-    "ROLE_CHANGED":            "ሚና ተቀይሯል",
-    "PASSWORD_RESET":          "የይለፍ ቃል ዳግም ጀምሯል",
-    "PII_ACCESSED":            "ሚስጥራዊ መስክ ተይቷል",
-    "CHARGE_FILED":            "ክስ ቀርቧል",
-    "CHARGE_UPDATED":          "ክስ ተዘምኗል",
-    "CHARGE_DROPPED":          "ክስ ውድቅ ሆኗል",
-    "SENTENCE_RECORDED":       "ቅጣት ተሰፍሯል",
-    "COURT_CASE_CREATED":      "ፍርድ ቤት ጉዳይ ተፈጥሯል",
-    "COURT_CASE_UPDATED":      "ፍርድ ቤት ጉዳይ ተዘምኗል",
-    "HEARING_SCHEDULED":       "ችሎት ተዘጋጅቷል",
-    "PERSON_CREATED":          "ሰው ተፈጥሯል",
-    "PERSON_UPDATED":          "ሰው ተዘምኗል",
-    "PERSON_ROLE_PROMOTED":    "ሚና ተሰጥቷል",
-    "OFFICER_CREATED":         "ፖሊስ ተፈጥሯል",
-    "OFFICER_UPDATED":         "ፖሊስ ተዘምኗል",
-    "OFFICER_ACTIVATED":       "ፖሊስ ንቁ ሆኗል",
-    "OFFICER_DEACTIVATED":     "ፖሊስ ቆሟል",
-    "CASE_NOTE_ADDED":         "ማስታወሻ ታክሏል"
-  },
-  "note": {
-    "formLabel": "ማስታወሻ ጨምር",
-    "placeholder": "ለጉዳዩ ማስታወሻ ይፃፉ...",
-    "submitButton": "ማስታወሻ ጨምር",
-    "successMessage": "ማስታወሻ ወደ ጊዜ ሰሌዳ ታክሏል።",
-    "errorMessage": "ማስታወሻ ለማከል አልተሳካም። እንደገና ይሞክሩ።",
-    "characterCount": "{count} / 2000"
-  },
-  "export": {
-    "csvButton": "CSV ወርዶ አውርድ",
-    "printButton": "ሰሌዳ አትም",
-    "csvDownloading": "እያወረደ ነው...",
-    "csvSuccessMessage": "ኦዲት ምዝገባ ወርዶ ተጫነ።",
-    "csvErrorMessage": "ምዝገባ ለማውረድ አልተሳካም። እንደገና ይሞክሩ።",
-    "printTitle": "CCMS ኦዲት ሰሌዳ",
-    "printClassification": "ምደባ: ውስጣዊ — ተገቢ",
-    "printAuthorisedNotice": "ፈቃደኛ ሰዎች ብቻ። ሁሉም ሁሉም ሁሉም።",
-    "printGeneratedAt": "ተፈጥሯል: {datetime}",
-    "printPageOf": "ገጽ {page} ከ {total}"
-  },
-  "pagination": {
-    "previous": "ቀዳሚ",
-    "next": "ቀጣይ",
-    "pageSize": "በገጽ",
-    "showing": "{from}–{to} ከ {total}"
-  }
-}
+)
+```
+
+## 8.3 Next.js Image Migration
+
+Every `<img>` tag used in the evidence module must be replaced with `next/image`. The primary usage points are:
+
+### 8.3.1 Evidence thumbnail in DataTable cell
+
+```tsx
+// BEFORE (Phase 5 implementation):
+<img
+  src={evidence.thumbnailUrl}
+  alt={evidence.description}
+  className="h-10 w-10 rounded object-cover"
+/>
+
+// AFTER:
+import Image from 'next/image'
+
+<Image
+  src={evidence.thumbnailUrl}
+  alt={evidence.description}
+  width={40}
+  height={40}
+  className="rounded object-cover"
+  unoptimized={false}    // Allow Next.js to optimise via Cloudinary remote pattern
+/>
+```
+
+### 8.3.2 Evidence gallery card thumbnail
+
+```tsx
+// BEFORE:
+<img src={evidence.imageUrl} alt={evidence.description} />
+
+// AFTER:
+<Image
+  src={evidence.imageUrl}
+  alt={evidence.description}
+  width={240}
+  height={160}
+  className="rounded-t-lg object-cover w-full"
+  sizes="(max-width: 768px) 100vw, 240px"
+/>
+```
+
+### 8.3.3 Evidence lightbox full-resolution image
+
+The lightbox renders the full-resolution Cloudinary image. Use `fill` layout with a constrained container:
+
+```tsx
+<div className="relative w-full h-full max-w-4xl max-h-[80vh]">
+  <Image
+    src={evidence.fullImageUrl}
+    alt={evidence.description}
+    fill
+    className="object-contain"
+    priority    // Lightbox images are above-the-fold after user interaction
+    sizes="(max-width: 1200px) 90vw, 960px"
+  />
+</div>
 ```
 
 ---
 
-# 11. Shared Component — `AuditFilterBar`
+# 9. Accessibility Hardening
 
-## 11.1 `src/shared/components/timeline/AuditFilterBar.tsx`
+## 9.1 Skip-to-Main Link
 
-Client Component. Renders the filter bar used across all four audit surfaces. Filter state is managed by the parent component and passed down via props.
+### 9.1.1 `src/shared/components/layout/SkipToMain.tsx`
 
 ```typescript
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { Search, X } from 'lucide-react'
-import { Input } from '@shared/components/ui/Input'
-import { Button } from '@shared/components/ui/Button'
-import { DatePicker } from '@shared/components/forms/DatePicker'
-import { parseISO, format } from 'date-fns'
-import {
-  AuditEventCategory,
-  AuditEventType,
-  EVENT_TYPE_CATEGORY,
-} from '@features/audit/types/audit.types'
-import { getEventTypesByCategory } from '@features/audit/utils/auditUtils'
 
-interface AuditFilterBarProps {
-  actorSearch: string
-  onActorSearchChange: (value: string) => void
-  selectedEventTypes: AuditEventType[]
-  onEventTypesChange: (types: AuditEventType[]) => void
-  dateFrom: string
-  dateTo: string
-  onDateFromChange: (date: string) => void
-  onDateToChange: (date: string) => void
-  onClearAll: () => void
-  // Optional: active filter chip count for accessibility label
-  activeFilterCount: number
+export function SkipToMain() {
+  const t = useTranslations('accessibility')
+
+  return (
+    <a
+      href="#main-content"
+      className={[
+        'absolute top-0 left-0 z-[9999] px-4 py-2',
+        'bg-primary text-white text-sm font-medium rounded-br-md',
+        // Visually hidden until focused
+        'sr-only focus:not-sr-only focus:outline-none',
+        'transition-transform focus:translate-x-0 -translate-x-full',
+        'print:hidden',
+      ].join(' ')}
+    >
+      {t('skipToMain')}
+    </a>
+  )
 }
 ```
 
-### 11.1.1 Layout
+### 9.1.2 Mount in `AppShell`
 
-```
-AuditFilterBar
-──────────────────────────────────────────────────────────────
-[🔍 Search by officer name or badge... ]  [📅 From] [📅 To]
-[Event Type ▼]  → opens a Popover with grouped checkboxes
-
-Active filter chips:
-  [Actor: Sara Haile ×]  [Type: Case Events ×]  [After: Jun 1 ×]
-  [Clear all filters]
-──────────────────────────────────────────────────────────────
-```
-
-### 11.1.2 Event type multi-select structure
-
-The Event Type filter opens a `Popover` containing grouped checkboxes:
-
-```
-Event Type ▼
-┌─────────────────────────────────┐
-│ [✓] Case Events            (7)  │  ← selects/deselects all in category
-│   [✓] Case Created              │
-│   [✓] Case Updated              │
-│   ...                           │
-│ [ ] Evidence & Custody     (7)  │
-│ [ ] Security Events        (10) │
-│ [ ] Legal Events           (7)  │
-│ [ ] Personnel Events       (7)  │
-│ [ ] Annotations             (1) │
-└─────────────────────────────────┘
-```
-
-Selecting a category checkbox toggles all event types within that category. The category checkbox is in an indeterminate state when some (but not all) of its types are selected.
-
-### 11.1.3 Active filter chips
-
-A chip renders for each active filter dimension:
-- Actor search: `Actor: {actorSearch} ×`
-- Event types: one chip per category that has at least one type selected: `Type: Case Events ×` (clicking × deselects all types in that category)
-- Date from: `After: {dateFrom} ×`
-- Date to: `Before: {dateTo} ×`
-
-"Clear all filters" link appears when any filter is active.
-
----
-
-# 12. Shared Component — `DiffViewer`
-
-## 12.1 `src/shared/components/timeline/DiffViewer.tsx`
-
-Client Component. Renders a side-by-side before/after diff for `AuditDiff` payloads.
-
-### 12.1.1 Layout
-
-```
-DiffViewer
-──────────────────────────────────────────────────────────────
-Changes
-──────────────────────────────────────────────────────────────
-┌── Field: Case Title ─────────────────────────────────────────┐
-│  Before                    │  After                         │
-│  [red bg]                  │  [green bg]                    │
-│  Robbery Investigation     │  Robbery at Bole, June 2026    │
-└──────────────────────────────────────────────────────────────┘
-┌── Field: Status ─────────────────────────────────────────────┐
-│  Before                    │  After                         │
-│  [red bg]                  │  [green bg]                    │
-│  OPEN                      │  UNDER_INVESTIGATION            │
-└──────────────────────────────────────────────────────────────┘
-```
-
-### 12.1.2 Colours (use CSS variables — NOT Tailwind colour classes, because these are semantic backgrounds)
-
-```css
-/* Before panel */
-background-color: rgba(239, 68, 68, 0.08);   /* destructive at 8% opacity */
-border-left: 2px solid var(--color-destructive);
-
-/* After panel */
-background-color: rgba(34, 197, 94, 0.08);   /* success at 8% opacity */
-border-left: 2px solid var(--color-success);
-```
-
-### 12.1.3 Null value rendering
-
-- `before === null`: Before panel shows `t('audit.entry.diffNoChange')` ("—") in muted text. This indicates the field was newly added.
-- `after === null`: After panel shows `t('audit.entry.diffNoChange')` in muted text. This indicates the field was deleted.
-
-### 12.1.4 Font
-
-All diff values render in `JetBrains Mono` (monospace font), font size `xs` (11px). This matches the blueprint specification: "Monospace font for values."
-
-### 12.1.5 Collapsing
-
-When `diff.fields.length > 5`, render the first 5 fields and a "Show {n} more changes" expand button. Clicking expands all fields. Use local `useState` for expand state — no URL state.
-
----
-
-# 13. Shared Component — `CustodyGapBadge`
-
-## 13.1 `src/shared/components/timeline/CustodyGapBadge.tsx`
-
-Client Component. Renders the amber warning badge between timeline entries when a custody gap is detected.
-
-### 13.1.1 Visual structure
-
-```
-CustodyGapBadge
-──────────────────────────────────────────────────────────────
-  [amber dashed vertical line — 24px gap]
-
-  ⚠ Custody Gap Detected
-    72 hours between sequential events
-    From: 14 Jun 2026 08:32 → To: 17 Jun 2026 09:15
-
-  [amber dashed vertical line — 24px gap]
-──────────────────────────────────────────────────────────────
-```
-
-The badge itself:
-- Background: `rgba(245, 158, 11, 0.08)` (warning at 8%)
-- Border: `1px solid var(--color-warning)`
-- Border radius: `var(--radius-sm)` (4px)
-- Padding: 8px 12px
-- Icon: `AlertTriangle` (14px, `text-warning`)
-
-The dashed connectors above and below use `border-left: 2px dashed var(--color-warning)` instead of the solid connector used between normal entries.
-
-The badge is not interactive — no tooltip needed. The gap duration and timestamps render as plain text within the badge.
-
----
-
-# 14. Shared Component — `TimelineEntry`
-
-## 14.1 `src/shared/components/timeline/TimelineEntry.tsx`
-
-Client Component. Replaces the Phase 1 scaffold. Renders a single immutable audit entry card.
-
-### 14.1.1 Full entry anatomy
-
-```
-TimelineEntry
-──────────────────────────────────────────────────────────────
-┌── Entry card ────────────────────────────────────────────────┐
-│  [Event icon 16px]  Event Type Label         [🔒 padlock]   │
-│                                                              │
-│  Actor: Sara Haile (BD-082) — Criminal Investigations Dept  │
-│  [Link to officer detail for admin+; unlinked for others]   │
-│                                                              │
-│  [Absolute timestamp in JetBrains Mono]                     │
-│  (Relative time "5 minutes ago" shown on hover as tooltip)  │
-│                                                              │
-│  Description text (plain text, no HTML)                     │
-│                                                              │
-│  [Security badge if SECURITY category]                      │
-│  ⚠ High Severity                                            │
-│                                                              │
-│  [DiffViewer if diff !== null] (collapsed by default if >5) │
-│                                                              │
-│  [Note block if noteText !== null]                          │
-│  📝 "Note text rendered in muted italic text"               │
-└──────────────────────────────────────────────────────────────┘
-```
-
-### 14.1.2 Card styling
-
-```typescript
-// Card base styles — no shadow, border-based separation
-className="rounded-lg border border-border bg-card px-4 py-3 flex flex-col gap-2"
-```
-
-Security events with severity `HIGH` receive an additional subtle left border tint:
-```typescript
-// HIGH severity security events only
-className="... border-l-2 border-l-destructive"
-```
-
-### 14.1.3 Actor line and linking
+In `src/shared/layouts/AppShell.tsx`, add `<SkipToMain />` as the very first child of the root element, before the sidebar:
 
 ```tsx
-// For admin+ roles: actor name is a link to the officer detail page
-<PermissionGuard permission={Permission.OFFICERS_MANAGE}>
-  <Link href={`/personnel/officers/${entry.actor.officerId}`}
-    className="text-sm text-primary hover:underline font-medium">
-    {entry.actor.fullName}
-  </Link>
-</PermissionGuard>
-// For lower roles: plain text
-<span className="text-sm text-foreground font-medium">
-  {entry.actor.fullName}
-</span>
-// Always rendered (both roles):
-<span className="text-xs text-foreground-muted font-mono">
-  ({entry.actor.badgeNumber})
-</span>
-<span className="text-xs text-foreground-muted">
-  — {entry.actor.departmentName}
-</span>
-```
-
-### 14.1.4 Timestamp rendering
-
-```tsx
-import { format, formatDistanceToNow, parseISO } from 'date-fns'
-
-const parsed = parseISO(entry.timestamp)
-const absolute = format(parsed, 'dd MMM yyyy, HH:mm:ss')
-const relative = formatDistanceToNow(parsed, { addSuffix: true })
-
-<Tooltip content={relative}>
-  <time
-    dateTime={entry.timestamp}
-    className="text-xs font-mono text-foreground-muted cursor-default"
-    suppressHydrationWarning
-  >
-    {absolute}
-  </time>
-</Tooltip>
-```
-
-`suppressHydrationWarning` is required because `format` uses the local timezone, which may differ between server and client.
-
-### 14.1.5 Padlock immutability indicator
-
-```tsx
-<Tooltip content={t('audit.entry.immutableTooltip')}>
-  <Lock className="h-3.5 w-3.5 text-muted flex-shrink-0" aria-label={t('audit.entry.immutableTooltip')} />
-</Tooltip>
-```
-
-Rendered in the top-right corner of every entry. Non-interactive.
-
----
-
-# 15. Shared Component — `TimelineConnector`
-
-## 15.1 `src/shared/components/timeline/TimelineConnector.tsx`
-
-The connector renders the vertical line linking one entry to the next. Two variants:
-
-**Normal connector:**
-```tsx
-<div className="ml-[19px] w-[2px] h-6 bg-border" aria-hidden="true" />
-```
-
-**Gap connector (amber dashed):** Used when the next entry has `custodyGap !== null`. The `CustodyGapBadge` is inserted between the two connectors.
-
-```tsx
-<div
-  className="ml-[19px] w-[2px] h-6"
-  style={{ background: 'repeating-linear-gradient(to bottom, var(--color-warning) 0px, var(--color-warning) 4px, transparent 4px, transparent 8px)' }}
-  aria-hidden="true"
-/>
-```
-
----
-
-# 16. Shared Component — `AuditExportPanel`
-
-## 16.1 `src/shared/components/timeline/AuditExportPanel.tsx`
-
-Client Component. Renders the CSV export and print buttons. Mounted at the top-right of every audit surface.
-
-```typescript
-interface AuditExportPanelProps {
-  surface: 'case' | 'officer' | 'person' | 'global'
-  entityId: string          // caseId, officerId, personId, or 'all'
-  filters: AuditFilters
-  printTitle?: string       // e.g. "Case #0042 — Robbery Investigation"
-}
-```
-
-### 16.1.1 Layout
-
-```tsx
-<div className="flex items-center gap-2">
-  <Button
-    variant="outline"
-    size="sm"
-    onClick={handlePrint}
-    className="print:hidden"
-  >
-    <Printer className="mr-1.5 h-3.5 w-3.5" />
-    {t('audit.export.printButton')}
-  </Button>
-  <Button
-    variant="outline"
-    size="sm"
-    onClick={handleCsvExport}
-    disabled={downloadMutation.isPending}
-  >
-    {downloadMutation.isPending ? (
-      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-    ) : (
-      <Download className="mr-1.5 h-3.5 w-3.5" />
-    )}
-    {downloadMutation.isPending
-      ? t('audit.export.csvDownloading')
-      : t('audit.export.csvButton')}
-  </Button>
+<div className="flex h-screen overflow-hidden">
+  <SkipToMain />
+  <Sidebar />
+  <div className="flex-1 flex flex-col overflow-hidden">
+    <TopBar />
+    <main id="main-content" className="flex-1 overflow-y-auto p-6">
+      {children}
+    </main>
+  </div>
 </div>
 ```
 
-### 16.1.2 Print trigger
+The `id="main-content"` on the `<main>` element is what the skip link targets.
 
-`handlePrint` calls `window.print()`. The print CSS (§17) handles stripping navigation chrome. No separate print page route is needed — the print stylesheet handles everything.
+## 9.2 Focus Restoration on Modal/Drawer Close
 
----
+When a modal or drawer closes, focus should return to the element that triggered it. Currently, Radix Dialog/Sheet manages the focus trap but does not always restore focus correctly when the trigger is in a complex component tree.
 
-# 17. Shared Component — `AddCaseNoteForm`
-
-## 17.1 `src/shared/components/timeline/AddCaseNoteForm.tsx`
-
-Client Component. Formalises the Phase 4 inline add-note form. Rendered at the **bottom** of the case timeline only (not on officer, person, or global surfaces).
+### 9.2.1 `src/shared/utils/focusUtils.ts`
 
 ```typescript
-interface AddCaseNoteFormProps {
-  caseId: string
+/**
+ * Returns a focus restoration handler.
+ * Call getFocusRestorer() BEFORE opening a modal.
+ * Call the returned restorer() AFTER the modal closes.
+ *
+ * Usage:
+ *   const restoreFocus = getFocusRestorer()
+ *   openModal()
+ *   // ... when modal closes:
+ *   restoreFocus()
+ */
+export function getFocusRestorer(): () => void {
+  const activeElement = document.activeElement as HTMLElement | null
+  return () => {
+    if (activeElement && typeof activeElement.focus === 'function') {
+      // Use requestAnimationFrame to ensure the DOM has settled after modal unmount
+      requestAnimationFrame(() => {
+        activeElement.focus({ preventScroll: true })
+      })
+    }
+  }
+}
+
+/**
+ * React hook that wraps getFocusRestorer().
+ * Call openWithFocusRestore(stateSetter) instead of stateSetter(true).
+ * The returned value is a handler that restores focus when called.
+ */
+export function useFocusRestore() {
+  let restorer: (() => void) | null = null
+
+  function openWithFocusRestore(open: () => void): void {
+    restorer = getFocusRestorer()
+    open()
+  }
+
+  function restoreFocusOnClose(): void {
+    restorer?.()
+    restorer = null
+  }
+
+  return { openWithFocusRestore, restoreFocusOnClose }
 }
 ```
 
-### 17.1.1 Layout
+### 9.2.2 Apply focus restoration to all drawers and dialogs
 
-```
-AddCaseNoteForm (rendered below the timeline list)
-──────────────────────────────────────────────────────────────
-  Add a case note
-  ┌────────────────────────────────────────────────────────────┐
-  │ Write a note for the case record...                       │
-  │                                                            │
-  │                                    (0 / 2000 chars)        │
-  └────────────────────────────────────────────────────────────┘
-  [Add Note]   (disabled when empty or exceeds 2000 chars)
-──────────────────────────────────────────────────────────────
-```
-
-Uses React Hook Form with a single `text` field. Zod schema:
+In every component that opens a `SlideOverDrawer` or `ConfirmDialog`, wrap the `onClose` callback:
 
 ```typescript
-const addNoteSchema = z.object({
-  text: z
-    .string()
-    .min(1, { message: 'Note text is required.' })
-    .max(2000, { message: 'Note cannot exceed 2000 characters.' }),
-})
-```
+// Before: just close
+const handleClose = () => setOpen(false)
 
-On submit: calls `useAddCaseNote(caseId)`. On success: form resets, timeline invalidates, new note appears at the top. The submit button shows a spinner during submission.
+// After: close + restore focus
+const { openWithFocusRestore, restoreFocusOnClose } = useFocusRestore()
 
-Guard: wrap the form in `PermissionGuard permission={Permission.CASES_MANAGE}`. Officers without case write access see a read-only timeline with no note form.
-
----
-
-# 18. Shared Component — `AuditTimeline`
-
-## 18.1 `src/shared/components/timeline/AuditTimeline.tsx`
-
-Client Component. The master orchestration component. All four audit surfaces compose this.
-
-```typescript
-interface AuditTimelineProps {
-  // Data
-  entries: AuditEntry[]
-  total: number
-  isLoading: boolean
-  isFetchingNext: boolean
-  isError: boolean
-  onRetry: () => void
-
-  // Pagination
-  page: number
-  pageSize: number
-  onPageChange: (page: number) => void
-  onPageSizeChange: (size: number) => void
-
-  // Filters (managed externally)
-  filters: AuditFilters
-  onFiltersChange: (filters: Partial<AuditFilters>) => void
-
-  // Export
-  surface: 'case' | 'officer' | 'person' | 'global'
-  entityId: string
-  exportPrintTitle?: string
-
-  // Case note form (case timeline only)
-  showNoteForm?: boolean
-  caseId?: string
-
-  // Entity scope (global audit log only)
-  showEntityScope?: boolean
-
-  // Polling indicator (case timeline only)
-  showPollingIndicator?: boolean
-
-  // Empty state customisation
-  emptyTitle?: string
-  emptyDescription?: string
+const handleOpen = () => openWithFocusRestore(() => setOpen(true))
+const handleClose = () => {
+  setOpen(false)
+  restoreFocusOnClose()
 }
 ```
 
-### 18.1.1 Render tree
+Apply this pattern to all drawer/dialog triggers in:
+- `LegalTab.tsx`
+- `OfficerDetail.tsx`
+- `PersonDetail.tsx`
+- `CasesList.tsx`
+- `EvidenceTab.tsx`
+- `ChargesTable.tsx`
+- All drawer components that contain "Cancel" buttons
 
-```
-AuditTimeline
-├── [showPollingIndicator] → polling indicator dot + label (top-right, screen only)
-├── AuditFilterBar (filter controls)
-│     [showEntityScope] → entity scope dropdowns
-├── AuditExportPanel (top-right, screen only)
-├── Active filter chips
-│
-├── [isLoading && entries.length === 0] → Skeleton entries (5× TimelineEntry shapes)
-├── [isError] → inline ErrorState with retry button
-├── [entries.length === 0 && !isLoading] → EmptyState
-│
-└── Timeline list (entries.length > 0):
-    For each entry (newest first):
-      [entry.custodyGap !== null] → CustodyGapBadge ABOVE this entry
-      [connector (gap variant if custodyGap)] OR [connector (normal)]
-      TimelineEntry
-    [connector not rendered after last entry]
-│
-├── Pagination strip (prev/next, page numbers, page size selector, total count)
-│
-└── [showNoteForm && caseId] → AddCaseNoteForm (bottom, screen only)
-```
+## 9.3 Toast Notification ARIA Region
 
-### 18.1.2 Loading skeleton
-
-On initial load (`isLoading === true` and `entries.length === 0`), render 5 skeleton entries. Each skeleton matches the TimelineEntry layout:
+Verify the toast container in `src/shared/providers/ToastProvider.tsx` (or equivalent) has the correct ARIA attributes. If not present, add them:
 
 ```tsx
-<div className="flex flex-col gap-3">
-  {Array.from({ length: 5 }).map((_, i) => (
-    <div key={i} className="rounded-lg border border-border bg-card px-4 py-3">
-      <div className="flex items-center gap-2 mb-2">
-        <Skeleton className="h-4 w-4 rounded" />
-        <Skeleton className="h-4 w-32" />
-      </div>
-      <Skeleton className="h-3 w-48 mb-1" />
-      <Skeleton className="h-3 w-24" />
-    </div>
+<div
+  role="status"
+  aria-live="polite"
+  aria-atomic="false"
+  aria-label={t('accessibility.toastRegion')}
+  className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"
+>
+  {toasts.map((toast) => (
+    <ToastItem key={toast.id} toast={toast} />
   ))}
 </div>
 ```
 
-On background refetch (poll every 30s), existing entries remain visible — no skeleton overlay. Use `isLoading` (not `isFetching`) to guard skeleton visibility.
+- `role="status"` + `aria-live="polite"` — screen readers announce new toasts after completing the current announcement.
+- `aria-atomic="false"` — each toast is announced individually, not as a combined region update.
 
-### 18.1.3 Polling indicator
+## 9.4 Status Badge High-Contrast Compatibility
 
-A subtle animated green dot with label renders in the top-right of the timeline when `showPollingIndicator={true}`:
+The CCMS design uses colour exclusively for semantic meaning (green=success, red=danger). This violates WCAG 1.4.1 (Use of Color). Add a text label alongside the colour for all `StatusBadge` variants:
+
+Update `src/shared/components/display/StatusBadge.tsx` to always include the text label (already the case for most usages). Verify that no badge renders with colour as the ONLY differentiator — every badge must have a visible text label.
+
+For status badges used in DataTable cells (where space is constrained), ensure the full status label is available via `aria-label`:
 
 ```tsx
-<div className="flex items-center gap-1.5 text-xs text-foreground-muted">
-  <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
-  {t('audit.caseTimeline.pollingIndicator')}
-</div>
-```
-
-This is a screen-only element — add `print:hidden` to its className.
-
----
-
-# 19. Print Stylesheet
-
-## 19.1 `src/shared/styles/print.css`
-
-```css
-@media print {
-  /* ── Hide navigation chrome ─────────────────────────────────── */
-  .print\:hidden,
-  nav,
-  aside,
-  header,
-  [data-sidebar],
-  [data-topbar],
-  [data-breadcrumb] {
-    display: none !important;
-  }
-
-  /* ── Page setup ──────────────────────────────────────────────── */
-  @page {
-    size: A4 portrait;
-    margin: 20mm 15mm 20mm 15mm;
-  }
-
-  body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    font-family: 'Times New Roman', serif;
-    font-size: 10pt;
-  }
-
-  /* ── CCMS letterhead (injected via JS into a .print-header div) */
-  .print-header {
-    display: block !important;
-    border-bottom: 2px solid #000;
-    padding-bottom: 8px;
-    margin-bottom: 16px;
-  }
-
-  .print-header .print-title {
-    font-size: 16pt;
-    font-weight: bold;
-    text-align: center;
-  }
-
-  .print-header .print-classification {
-    font-size: 8pt;
-    text-align: center;
-    letter-spacing: 0.05em;
-    font-weight: bold;
-  }
-
-  .print-header .print-notice {
-    font-size: 8pt;
-    text-align: center;
-    font-style: italic;
-    margin-top: 4px;
-  }
-
-  /* ── Timeline entries ────────────────────────────────────────── */
-  [data-timeline-entry] {
-    border: 1px solid #cccccc !important;
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border-radius: 0 !important;
-    page-break-inside: avoid;
-    margin-bottom: 8px;
-    padding: 8px 10px;
-  }
-
-  /* ── Diff viewer ─────────────────────────────────────────────── */
-  [data-diff-before] {
-    background-color: #fff0f0 !important;
-    border-left: 2px solid #cc0000 !important;
-  }
-
-  [data-diff-after] {
-    background-color: #f0fff0 !important;
-    border-left: 2px solid #007700 !important;
-  }
-
-  /* ── Custody gap badge ───────────────────────────────────────── */
-  [data-custody-gap] {
-    border: 1px solid #b45309 !important;
-    background-color: #fffbeb !important;
-    color: #92400e !important;
-  }
-
-  /* ── Timeline connector ──────────────────────────────────────── */
-  [data-timeline-connector] {
-    border-left: 1px solid #cccccc !important;
-    background: none !important;
-  }
-
-  /* ── Pagination and filter bar — hide on print ───────────────── */
-  [data-pagination],
-  [data-filter-bar],
-  [data-export-panel],
-  [data-note-form] {
-    display: none !important;
-  }
-
-  /* ── Links: show URL ─────────────────────────────────────────── */
-  a[href]::after {
-    content: none;  /* Do NOT print URLs — audit entries contain no links */
-  }
-
-  /* ── Page footer with page numbers ──────────────────────────── */
-  @bottom-center {
-    content: counter(page) ' / ' counter(pages);
-    font-size: 8pt;
-    color: #555555;
-  }
-}
-```
-
-### 19.1.1 Import this stylesheet
-
-In `src/app/layout.tsx`, add the import:
-
-```typescript
-import '@shared/styles/print.css'
-```
-
-This ensures print styles apply globally.
-
-### 19.1.2 Letterhead injection
-
-In `AuditExportPanel`, `handlePrint()` should inject the print header before calling `window.print()`:
-
-```typescript
-function handlePrint() {
-  // Inject a print-only header into the DOM before printing
-  const existing = document.getElementById('ccms-print-header')
-  if (existing) existing.remove()
-
-  const header = document.createElement('div')
-  header.id = 'ccms-print-header'
-  header.className = 'print-header'
-  header.innerHTML = `
-    <div class="print-classification">${t('audit.export.printClassification')}</div>
-    <div class="print-title">${t('audit.export.printTitle')}</div>
-    ${printTitle ? `<div class="print-subtitle">${printTitle}</div>` : ''}
-    <div class="print-notice">${t('audit.export.printAuthorisedNotice')}</div>
-    <div class="print-notice">${t('audit.export.printGeneratedAt', {
-      datetime: format(new Date(), 'dd MMM yyyy HH:mm:ss'),
-    })}</div>
-  `
-  document.body.prepend(header)
-  window.print()
-
-  // Remove the header after printing to keep the DOM clean
-  setTimeout(() => {
-    const el = document.getElementById('ccms-print-header')
-    if (el) el.remove()
-  }, 1000)
-}
+<StatusBadge
+  variant="success"
+  aria-label={`Status: ${t('officers.officerStatus.ACTIVE')}`}
+>
+  {t('officers.officerStatus.ACTIVE')}
+</StatusBadge>
 ```
 
 ---
 
-# 20. Route Pages
+# 10. Storybook Documentation
 
-## 20.1 `src/app/(dashboard)/cases/[caseId]/timeline/page.tsx`
+## 10.1 Storybook 8 Configuration
 
-Replace the Phase 4 implementation entirely:
+### 10.1.1 `.storybook/main.ts`
 
 ```typescript
-'use client'
+import type { StorybookConfig } from '@storybook/nextjs'
 
-import { useParams } from 'next/navigation'
-import { useQueryStates, parseAsString, parseAsInteger, parseAsArrayOf } from 'nuqs'
-import { format, subDays } from 'date-fns'
-import { AuditTimeline } from '@shared/components/timeline/AuditTimeline'
-import { useCaseTimeline } from '@features/audit/hooks'
-import { AuditEventType, DEFAULT_AUDIT_PAGE_SIZE } from '@features/audit/types/audit.types'
-import { useTranslations } from 'next-intl'
+const config: StorybookConfig = {
+  stories: ['../stories/**/*.stories.@(ts|tsx)'],
+  addons: [
+    '@storybook/addon-essentials',
+    '@storybook/addon-a11y',
+  ],
+  framework: {
+    name: '@storybook/nextjs',
+    options: {},
+  },
+  staticDirs: ['../public'],
+  docs: {
+    autodocs: 'tag',
+  },
+}
 
-export default function CaseTimelinePage() {
-  const params = useParams<{ caseId: string }>()
-  const caseId = params.caseId
-  const t = useTranslations('audit')
+export default config
+```
 
-  const [filters, setFilters] = useQueryStates({
-    actorSearch:   parseAsString.withDefault(''),
-    eventTypes:    parseAsArrayOf(parseAsString).withDefault([]),
-    dateFrom:      parseAsString.withDefault(''),
-    dateTo:        parseAsString.withDefault(''),
-    page:          parseAsInteger.withDefault(1),
-    pageSize:      parseAsInteger.withDefault(DEFAULT_AUDIT_PAGE_SIZE),
-  })
+### 10.1.2 `.storybook/preview.ts`
 
-  const { data, isLoading, isError, refetch, isFetching } = useCaseTimeline(
-    caseId,
-    {
-      ...filters,
-      eventTypes: filters.eventTypes as AuditEventType[],
+```typescript
+import type { Preview } from '@storybook/nextjs'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { NextIntlClientProvider } from 'next-intl'
+import '../src/app/globals.css'
+import '../src/shared/styles/print.css'
+import enMessages from '../messages/en/common.json'
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+})
+
+const preview: Preview = {
+  parameters: {
+    backgrounds: {
+      default: 'CCMS Dark',
+      values: [
+        { name: 'CCMS Dark', value: '#0F172A' },
+        { name: 'CCMS Card', value: '#1E293B' },
+      ],
     },
-  )
-
-  return (
-    <AuditTimeline
-      entries={data?.data ?? []}
-      total={data?.total ?? 0}
-      isLoading={isLoading}
-      isFetchingNext={isFetching && !isLoading}
-      isError={isError}
-      onRetry={refetch}
-      page={filters.page}
-      pageSize={filters.pageSize}
-      onPageChange={(page) => setFilters({ page })}
-      onPageSizeChange={(pageSize) => setFilters({ pageSize, page: 1 })}
-      filters={{
-        ...filters,
-        eventTypes: filters.eventTypes as AuditEventType[],
-      }}
-      onFiltersChange={(partial) =>
-        setFilters({ ...partial, page: 1 } as typeof filters)
-      }
-      surface="case"
-      entityId={caseId}
-      showNoteForm={true}
-      caseId={caseId}
-      showPollingIndicator={true}
-      emptyTitle={t('caseTimeline.empty.title')}
-      emptyDescription={t('caseTimeline.empty.description')}
-    />
-  )
-}
-```
-
-## 20.2 `src/app/(dashboard)/admin/audit/page.tsx`
-
-Replace the skeleton:
-
-```typescript
-import { getTranslations } from 'next-intl/server'
-import { GlobalAuditLog } from '@features/audit/components/GlobalAuditLog'
-import type { Metadata } from 'next'
-
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('audit')
-  return { title: t('pageTitle') }
+    a11y: {
+      config: {
+        rules: [
+          { id: 'color-contrast', enabled: true },
+          { id: 'focus-trap', enabled: true },
+        ],
+      },
+    },
+  },
+  decorators: [
+    (Story) => (
+      <QueryClientProvider client={queryClient}>
+        <NextIntlClientProvider locale="en" messages={{ common: enMessages }}>
+          <div className="bg-background text-foreground p-4 min-h-screen">
+            <Story />
+          </div>
+        </NextIntlClientProvider>
+      </QueryClientProvider>
+    ),
+  ],
 }
 
-export default function AuditLogPage() {
-  return <GlobalAuditLog />
-}
+export default preview
 ```
 
----
+### 10.1.3 Add script to `package.json`
 
-# 21. Feature Components
-
-## 21.1 `GlobalAuditLog.tsx`
-
-Client Component. Full-page component for `/admin/audit`.
-
-### 21.1.1 Filter state
-
-```typescript
-const [filters, setFilters] = useQueryStates({
-  actorSearch:      parseAsString.withDefault(''),
-  eventTypes:       parseAsArrayOf(parseAsString).withDefault([]),
-  dateFrom:         parseAsString.withDefault(
-    format(subDays(new Date(), 6), 'yyyy-MM-dd')
-  ),
-  dateTo:           parseAsString.withDefault(format(new Date(), 'yyyy-MM-dd')),
-  linkedCaseId:     parseAsString.withDefault(''),
-  linkedOfficerId:  parseAsString.withDefault(''),
-  page:             parseAsInteger.withDefault(1),
-  pageSize:         parseAsInteger.withDefault(DEFAULT_AUDIT_PAGE_SIZE),
-})
-```
-
-### 21.1.2 PageHeader
-
-```tsx
-<PageHeader
-  title={t('audit.globalLog.heading')}
-  description={t('audit.globalLog.description')}
-/>
-```
-
-No action buttons in the PageHeader — the export panel is inside `AuditTimeline`.
-
-### 21.1.3 Entity scope filter
-
-The entity scope filter renders as two optional input fields below the main filter bar, visible only for `admin+`:
-
-```
-Entity Scope (optional):
-  [Scope ▼]   ←  Dropdown: "All Entities" / "Case" / "Officer"
-
-  When "Case":
-    [Search case number...] → sets linkedCaseId filter
-
-  When "Officer":
-    [Search officer badge...] → sets linkedOfficerId filter
-```
-
-### 21.1.4 Compose with AuditTimeline
-
-```tsx
-<AuditTimeline
-  entries={data?.data ?? []}
-  total={data?.total ?? 0}
-  // ...standard props
-  surface="global"
-  entityId="all"
-  showEntityScope={true}
-  showNoteForm={false}
-  showPollingIndicator={false}
-/>
-```
-
-## 21.2 `OfficerAuditDrawer.tsx`
-
-Client Component. Wraps `AuditTimeline` in a `SlideOverDrawer` (480px width — exception: audit drawers use 640px due to content density).
-
-```typescript
-interface OfficerAuditDrawerProps {
-  officerId: string
-  officerName: string
-  open: boolean
-  onClose: () => void
-}
-```
-
-### 21.2.1 How to open this drawer
-
-In `OfficerDetail.tsx` (Phase 7 component), add:
-
-```typescript
-// In the officer detail page state:
-const [auditOpen, setAuditOpen] = useState(false)
-
-// In the PageHeader actions (PermissionGuard: OFFICERS_MANAGE):
-<Button variant="outline" size="sm" onClick={() => setAuditOpen(true)}>
-  <ClipboardList className="mr-2 h-3.5 w-3.5" />
-  {t('audit.officerHistory.openButton')}
-</Button>
-
-// At the bottom of OfficerDetail render tree:
-<OfficerAuditDrawer
-  officerId={officer.id}
-  officerName={`${officer.firstName} ${officer.lastName}`}
-  open={auditOpen}
-  onClose={() => setAuditOpen(false)}
-/>
-```
-
-### 21.2.2 Internal filter state
-
-```typescript
-const [filters, setFilters] = useState<AuditFilters>({
-  page: 1,
-  pageSize: DEFAULT_AUDIT_PAGE_SIZE,
-})
-```
-
-The officer audit drawer uses local React state for filters (NOT URL state) because it's a drawer, not a page. URL state would pollute the officer detail page URL. Local state resets when the drawer is closed.
-
-### 21.2.3 Drawer footer
-
-The `AuditExportPanel` renders inside the drawer content area (not the footer), above the `AuditTimeline`.
-
-### 21.2.4 Closing
-
-On close, reset `filters` to defaults. Dirty state guard: not needed — this is a read-only drawer.
-
-## 21.3 `PersonAuditDrawer.tsx`
-
-Identical architecture to `OfficerAuditDrawer`. Differences:
-
-- Props: `personId`, `personName`
-- Opens from `PersonDetail.tsx` (Phase 7 component) via a "View Audit History" button guarded by `PERSONNEL_MANAGE`
-- Uses `usePersonAuditHistory(personId, filters, open)`
-- Drawer title: `t('audit.personHistory.drawerTitle')`
-- Surface: `"person"`
-
----
-
-# 22. Updates to Phase 7 Components
-
-## 22.1 Officer Detail page — add audit history button
-
-Open `src/features/personnel/components/officers/OfficerDetail.tsx`. Add:
-
-1. Import `OfficerAuditDrawer` from `@features/audit/components/OfficerAuditDrawer`
-2. Add `const [auditOpen, setAuditOpen] = useState(false)` to state
-3. Add the "View Audit History" button to the PageHeader actions:
-
-```tsx
-<PermissionGuard permission={Permission.OFFICERS_MANAGE}>
-  <Button variant="outline" size="sm" onClick={() => setAuditOpen(true)}>
-    <ClipboardList className="mr-2 h-3.5 w-3.5" />
-    {t('audit.officerHistory.openButton')}
-  </Button>
-</PermissionGuard>
-```
-
-4. Mount `OfficerAuditDrawer` at the bottom of the render tree.
-5. Remove the Phase 7 "Recent Activity" stub section from the officer detail page — `OfficerAuditDrawer` replaces it entirely.
-
-## 22.2 Person Detail page — add audit history button
-
-Open `src/features/personnel/components/persons/PersonDetail.tsx`. Apply the same pattern:
-
-1. Import `PersonAuditDrawer`
-2. Add audit drawer state
-3. Add "View Audit History" to the promote dropdown (as a secondary action, separated by a divider from the promote options):
-
-```tsx
-<DropdownMenuSeparator />
-<DropdownMenuItem onClick={() => setAuditOpen(true)}>
-  <ClipboardList className="mr-2 h-4 w-4" />
-  {t('audit.personHistory.openButton')}
-</DropdownMenuItem>
-```
-
-Guard this menu item with `PermissionGuard permission={Permission.PERSONNEL_MANAGE}`.
-
-4. Mount `PersonAuditDrawer` at the bottom of the render tree.
-5. Remove the Phase 7 "Recent Activity" stub section from the person detail page.
-
----
-
-# 23. Sidebar Navigation Update
-
-## 23.1 Verify `/admin/audit` is in the Sidebar
-
-The sidebar navigation's "System" section (from Phase 1) should already include:
-
-```
-System: Admin, Health, Audit
-```
-
-The "Audit" item links to `/admin/audit` and is visible to `admin` and `superadmin` roles. If this item is missing from the sidebar configuration (`src/shared/constants/navigation.ts` or equivalent), add it now:
-
-```typescript
+```json
 {
-  label: 'navigation.audit',         // i18n key
-  href: '/admin/audit',
-  icon: ClipboardList,
-  requiredRole: ['admin', 'superadmin'],
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  }
 }
 ```
 
----
+## 10.2 Stories to Create
 
-# 24. `src/features/audit/index.ts`
+Create one `.stories.tsx` file per shared component. Each story file must include:
+- A `Default` story showing the component in its primary state
+- Variant stories for each meaningful configuration
+- The `autodocs` tag for auto-generated documentation pages
 
-Public barrel export:
+**Required story files:**
+
+```
+stories/shared/
+├── display/
+│   ├── StatusBadge.stories.tsx       # All badge variants (primary, warning, destructive, success, muted, accent)
+│   ├── KpiCard.stories.tsx           # Loading, with/without trend, linkTo, changeIsPositiveWhenUp
+│   ├── MetadataCard.stories.tsx      # Populated, sparse data
+│   ├── SensitiveField.stories.tsx    # Masked, revealed, no reveal permission
+│   ├── PageHeader.stories.tsx        # With/without description, with/without actions
+│   ├── SectionHeader.stories.tsx     # With/without actions
+│   └── EmptyState.stories.tsx        # With/without action, different icons
+├── feedback/
+│   ├── Skeleton.stories.tsx          # Various dimensions
+│   ├── ErrorState.stories.tsx        # With/without retry
+│   └── ForbiddenState.stories.tsx
+├── table/
+│   ├── DataTable.stories.tsx         # Populated, empty, loading, with pagination, with bulk selection
+│   ├── TableEmptyState.stories.tsx
+│   └── BulkActionBar.stories.tsx     # With one action, with multiple actions, destructive action
+├── forms/
+│   ├── FormField.stories.tsx         # Default, error, helper text
+│   ├── DatePicker.stories.tsx        # Default, with min/max, disabled
+│   ├── DateRangePicker.stories.tsx   # All presets, custom range
+│   └── SearchableSelect.stories.tsx  # Loading options, selected value, empty options
+├── modals/
+│   ├── ConfirmDialog.stories.tsx
+│   ├── DestructiveConfirmDialog.stories.tsx  # Without/with error, loading state
+│   └── SlideOverDrawer.stories.tsx   # Empty content, form content, 640px width variant
+├── timeline/
+│   ├── AuditTimeline.stories.tsx     # Loading, empty, with entries, with custody gap
+│   ├── TimelineEntry.stories.tsx     # All event categories, with diff, with note, security HIGH
+│   ├── DiffViewer.stories.tsx        # 3 fields, 8 fields (collapsed), null before/after
+│   ├── CustodyGapBadge.stories.tsx
+│   └── AddCaseNoteForm.stories.tsx
+├── charts/
+│   ├── CcmsLineChart.stories.tsx     # Single series, multi-series, empty data
+│   ├── CcmsBarChart.stories.tsx      # Horizontal, vertical, with per-bar colours
+│   └── CcmsDonutChart.stories.tsx    # With centre label, without, empty data
+└── layout/
+    └── SkipToMain.stories.tsx        # Shows the link on focus (keyboard interaction)
+```
+
+### 10.2.1 Example story — `StatusBadge.stories.tsx`
 
 ```typescript
-// Types
-export * from './types/audit.types'
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import { StatusBadge } from '@shared/components/display/StatusBadge'
 
-// Hooks
-export {
-  useCaseTimeline,
-  useGlobalAuditLog,
-  useOfficerAuditHistory,
-  usePersonAuditHistory,
-  useAddCaseNote,
-  useDownloadAuditCsv,
-} from './hooks'
+const meta = {
+  title: 'Shared/Display/StatusBadge',
+  component: StatusBadge,
+  tags: ['autodocs'],
+  parameters: {
+    layout: 'centered',
+  },
+} satisfies Meta<typeof StatusBadge>
 
-// Components
-export { GlobalAuditLog } from './components/GlobalAuditLog'
-export { OfficerAuditDrawer } from './components/OfficerAuditDrawer'
-export { PersonAuditDrawer } from './components/PersonAuditDrawer'
+export default meta
+type Story = StoryObj<typeof meta>
 
-// Utils
-export {
-  EVENT_TYPE_ICONS,
-  getEventIconColour,
-  SECURITY_SEVERITY_VARIANTS,
-  isSecurityEvent,
-  isDiffProducingEvent,
-  isCustodyEvent,
-  formatCustodyGapHours,
-  buildAuditCsvFilename,
-  getEventTypesByCategory,
-} from './utils/auditUtils'
+export const Primary: Story = {
+  args: { variant: 'primary', children: 'Open' },
+}
+
+export const Warning: Story = {
+  args: { variant: 'warning', children: 'Under Investigation' },
+}
+
+export const Destructive: Story = {
+  args: { variant: 'destructive', children: 'Convicted' },
+}
+
+export const Success: Story = {
+  args: { variant: 'success', children: 'Active' },
+}
+
+export const Muted: Story = {
+  args: { variant: 'muted', children: 'Archived' },
+}
+
+export const Accent: Story = {
+  args: { variant: 'accent', children: 'Protected' },
+}
+
+export const AllVariants: Story = {
+  render: () => (
+    <div className="flex flex-wrap gap-2">
+      <StatusBadge variant="primary">Open</StatusBadge>
+      <StatusBadge variant="warning">Under Investigation</StatusBadge>
+      <StatusBadge variant="destructive">Convicted</StatusBadge>
+      <StatusBadge variant="success">Active</StatusBadge>
+      <StatusBadge variant="muted">Archived</StatusBadge>
+      <StatusBadge variant="accent">Protected</StatusBadge>
+    </div>
+  ),
+}
+```
+
+All story files must follow this pattern: `Meta` with `tags: ['autodocs']`, individual variant stories, and an `AllVariants` / `AllStates` composite story.
+
+---
+
+# 11. i18n Updates
+
+Phase 11 adds keys to existing message files. Do not create new namespace files. Add the following keys to their respective existing files:
+
+## 11.1 Additions to `messages/en/cases.json`
+
+```json
+{
+  "bulk": {
+    "statusUpdate": {
+      "actionLabel": "Update Status",
+      "dialogTitle": "Update Status for {count} Case(s)",
+      "newStatusLabel": "New Status",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "Reason for status change...",
+      "submitButton": "Update {count} Cases",
+      "successMessage": "{count} case(s) updated successfully.",
+      "partialSuccessMessage": "{updated} case(s) updated. {failed} could not be updated.",
+      "errorMessage": "Failed to update case statuses. Please try again.",
+      "clearSelection": "Clear selection"
+    }
+  }
+}
+```
+
+## 11.2 Additions to `messages/en/evidence.json`
+
+```json
+{
+  "bulk": {
+    "export": {
+      "actionLabel": "Export Selected",
+      "successMessage": "Evidence export downloaded.",
+      "errorMessage": "Failed to export evidence. Please try again.",
+      "downloading": "Downloading..."
+    }
+  }
+}
+```
+
+## 11.3 Additions to `messages/en/legal.json`
+
+```json
+{
+  "charges": {
+    "bulkDrop": {
+      "actionLabel": "Drop Selected",
+      "dialogTitle": "Drop {droppableCount} Charge(s)?",
+      "terminalWarning": "{terminalCount} of your selected charges are already at a final status and will be skipped.",
+      "submitButton": "Drop {count} Charges",
+      "allTerminalTooltip": "All selected charges are at a final status. No action available.",
+      "successMessage": "{count} charge(s) dropped successfully.",
+      "partialSuccessMessage": "{updated} charge(s) dropped. {failed} could not be updated.",
+      "errorMessage": "Failed to drop charges. Please try again."
+    },
+    "editSentence": {
+      "openButton": "Amend Sentence",
+      "openButtonHint": "Amendments are logged in the audit trail with the original values preserved.",
+      "drawerTitle": "Amend Sentence",
+      "drawerDescription": "Amend the recorded sentence for this conviction.",
+      "amendmentNotice": "Amending this sentence creates a permanent audit entry showing the original and amended values. The original values cannot be deleted.",
+      "amendmentReasonLabel": "Reason for Amendment",
+      "amendmentReasonPlaceholder": "Explain the reason for amending this sentence...",
+      "submitButton": "Save Amendment",
+      "cancelButton": "Cancel",
+      "successMessage": "Sentence amended successfully. The audit trail has been updated.",
+      "errorMessage": "Failed to amend sentence. Please try again."
+    },
+    "appeal": {
+      "kebabLabel": "File Appeal",
+      "drawerTitle": "File Appeal",
+      "drawerDescription": "Reverse this terminal charge via an appeal record.",
+      "consequencesNotice": "Filing this appeal will revert the charge status to Active, create a permanent appeal record, and remove the existing sentence record (if any). This action is logged.",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Grounds for the appeal...",
+      "submitButton": "Confirm Appeal — Revert to Active",
+      "cancelButton": "Cancel",
+      "successMessage": "Appeal filed. Charge status reverted to Active.",
+      "errorMessage": "Failed to file appeal. Please try again."
+    }
+  }
+}
+```
+
+## 11.4 Additions to `messages/en/personnel.json`
+
+```json
+{
+  "persons": {
+    "demoteRole": {
+      "buttonLabel": "Remove Role",
+      "dialogTitle": "Remove {roleName} Designation?",
+      "dialogDescription": "{personName} will no longer be designated as {roleName} in this system. This action is logged.",
+      "activeCasesWarning": "This person is linked to {count} active case(s) as {roleName}. Removing this role does not unlink them from those cases. Contact the case lead to update case records manually.",
+      "confirmButton": "Remove {roleName} Designation",
+      "cancelButton": "Cancel",
+      "successMessage": "{roleName} designation removed from {personName}.",
+      "errorMessage": "Failed to remove role designation. Please try again."
+    }
+  }
+}
+```
+
+## 11.5 Additions to `messages/en/common.json` (or `accessibility.json` if it exists)
+
+```json
+{
+  "accessibility": {
+    "skipToMain": "Skip to main content",
+    "toastRegion": "Notifications"
+  }
+}
+```
+
+Add corresponding Amharic translations to all `messages/am/*.json` files for every English key added above.
+
+---
+
+# 12. `src/features/legal/index.ts` — Barrel Export Updates
+
+Add the new hooks and components to the legal module barrel:
+
+```typescript
+// Add to existing exports:
+export { useEditSentence } from './hooks/useEditSentence'
+export { useAppealCharge } from './hooks/useAppealCharge'
+export { useBulkDropCharges } from './hooks/useBulkDropCharges'
+
+export { EditSentenceDrawer } from './components/EditSentenceDrawer'
+export { AppealChargeDrawer } from './components/AppealChargeDrawer'
+export { BulkDropChargesDialog } from './components/BulkDropChargesDialog'
+
+// New types:
+export type { EditSentencePayload, AppealChargePayload, AppealRecord, AppealOutcome } from './types/legal.types'
 ```
 
 ---
 
-# 25. Testing Requirements
+# 13. `src/features/personnel/index.ts` — Barrel Export Updates
 
-## 25.1 Unit Tests — `auditUtils.ts`
-
-Create `src/features/audit/utils/auditUtils.test.ts`:
-
-- `isSecurityEvent('LOGIN_FAILURE')` → `true`
-- `isSecurityEvent('CASE_CREATED')` → `false`
-- `isDiffProducingEvent('CASE_UPDATED')` → `true`
-- `isDiffProducingEvent('CASE_CREATED')` → `false`
-- `isCustodyEvent('CUSTODY_TRANSFERRED')` → `true`
-- `isCustodyEvent('CASE_UPDATED')` → `false`
-- `formatCustodyGapHours(6)` → `"6 hours"`
-- `formatCustodyGapHours(24)` → `"1 day"`
-- `formatCustodyGapHours(36)` → `"1 day, 12 hours"`
-- `formatCustodyGapHours(48)` → `"2 days"`
-- `getEventTypesByCategory('SECURITY')` → array containing `'LOGIN_FAILURE'`, `'ROLE_CHANGED'`, etc.
-- `getEventTypesByCategory('ANNOTATION')` → array containing only `'CASE_NOTE_ADDED'`
-- `EVENT_TYPE_CATEGORY['CASE_CREATED']` → `'CASE'`
-- `EVENT_TYPE_CATEGORY['HEARING_SCHEDULED']` → `'LEGAL'`
-
-## 25.2 Unit Tests — Zod Schemas
-
-Create `src/features/audit/schemas/audit-schemas.test.ts`:
-
-**`auditEntrySchema`:**
-- Valid entry with all required fields → no error
-- Missing `id` (not a UUID) → validation error
-- `eventType: 'UNKNOWN_EVENT'` (not in enum) → validation error
-- `diff: null` → valid (nullable)
-- `noteText: null` → valid (nullable)
-- `securitySeverity: 'LOW'` → valid
-- `custodyGap.gapHours: -1` → no schema error (schema validates type, not semantics)
-
-**`paginatedAuditEntriesSchema`:**
-- Valid paginated response → no error
-- Missing `totalPages` → validation error
-
-## 25.3 Component Tests — `DiffViewer`
-
-Create `src/shared/components/timeline/DiffViewer.test.tsx`:
-
-- Renders one row per `diff.fields` entry
-- `before: null` → Before panel shows "—" in muted text
-- `after: null` → After panel shows "—" in muted text
-- When `diff.fields.length === 3`: all fields render without expand button
-- When `diff.fields.length === 8`: first 5 fields render, "Show 3 more changes" button present
-- Clicking "Show 3 more changes" expands all 8 fields
-- All values render in monospace font
-
-## 25.4 Component Tests — `TimelineEntry`
-
-Create `src/shared/components/timeline/TimelineEntry.test.tsx`:
-
-- Event icon renders for each event category
-- Actor name renders as a link when `OFFICERS_MANAGE` permission is present
-- Actor name renders as plain text when permission is absent
-- Padlock icon is always rendered (immutability indicator)
-- Timestamp renders in `dd MMM yyyy, HH:mm:ss` format
-- Security badge renders for `SECURITY` category events
-- Security badge absent for non-security events
-- `diff !== null` → `DiffViewer` renders within the entry
-- `diff === null` → `DiffViewer` is not rendered
-- `noteText !== null` → Note block renders in muted italic
-- `HIGH` severity security event has `border-l-destructive` class
-
-## 25.5 Component Tests — `AuditFilterBar`
-
-Create `src/shared/components/timeline/AuditFilterBar.test.tsx`:
-
-- Actor search input calls `onActorSearchChange` on change
-- Event type category selection toggles all types in that category
-- Selecting some (not all) types in a category → category checkbox is indeterminate
-- Active filter chips render for each active filter dimension
-- "Clear all filters" link calls `onClearAll`
-- Date pickers call `onDateFromChange` and `onDateToChange`
-
-## 25.6 Component Tests — `AddCaseNoteForm`
-
-Create `src/shared/components/timeline/AddCaseNoteForm.test.tsx`:
-
-- Submit button is disabled when the text field is empty
-- Submit button is disabled when text exceeds 2000 characters
-- Character count label renders and updates as user types
-- Submitting a valid note calls `useAddCaseNote().mutateAsync`
-- On success, the form resets to empty
-- On error, the form does not reset and shows error toast
-
-## 25.7 Component Tests — `CustodyGapBadge`
-
-Create `src/shared/components/timeline/CustodyGapBadge.test.tsx`:
-
-- Renders the badge with formatted gap duration
-- `gapHours: 6` → "6 hours" appears in the badge
-- `gapHours: 48` → "2 days" appears in the badge
-- From and to timestamps render in the badge
-
-## 25.8 i18n Completeness
-
-Extend the existing i18n completeness test to cover the `audit` namespace. All keys in `en/audit.json` must have corresponding keys in `am/audit.json`. Test runner: `pnpm test`.
+```typescript
+// Add to existing exports:
+export { useDemotePersonRole } from './hooks/useDemotePersonRole'
+export { DemotePersonRoleDialog } from './components/persons/DemotePersonRoleDialog'
+```
 
 ---
 
-# 26. Anti-Pattern Reference
+# 14. Anti-Pattern Reference
 
-The following patterns are strictly forbidden.
+The following patterns are strictly forbidden in Phase 11.
 
-**Immutability violations:**
-- Adding any edit, delete, or reorder action to any audit entry — the audit trail is immutable. No exceptions.
-- Rendering an "Edit Note" button on `CASE_NOTE_ADDED` entries — case notes are append-only. The note text within the entry is read-only.
-- Allowing `useAddCaseNote` to be called without the submit button displaying a loading spinner — the user must see feedback that the request is in progress.
+**Bulk operation violations:**
+- Implementing a bulk delete action for any entity — cases, officers, persons, and evidence items cannot be bulk-deleted from the UI in this phase.
+- Firing the bulk mutation without a `ConfirmDialog` for destructive bulk actions — bulk case status update and bulk charge drop both require confirmation with the affected count displayed.
+- Firing the bulk evidence export without a `BulkActionBar` — users must explicitly select rows before the export action is available; no "export all" button.
+- Allowing terminal charges to be included in the bulk drop mutation payload — filter them out client-side before building the `chargeIds` array, and warn the officer in the dialog.
+- Not clearing `rowSelection` after a successful bulk mutation — stale selections must be cleared so the `BulkActionBar` disappears.
 
-**Polling violations:**
-- Setting `refetchIntervalInBackground: true` on `useCaseTimeline` — the 30-second poll must pause when the browser tab is inactive to avoid unnecessary server load.
-- Using `isFetching` to show the skeleton loading state on the case timeline — `isFetching` is true on every 30-second poll, which would cause the skeleton to flash on every refetch. Use `isLoading` only (true only on the first fetch when no data exists yet).
-- Setting `staleTime > 0` on `useCaseTimeline` — the case timeline must always be considered stale. Any nonzero stale time would suppress background refetches.
+**Legal enhancement violations:**
+- Allowing `EditSentenceDrawer` to be opened by roles below `admin` — the "Amend Sentence" button must be inside `PermissionGuard permission={Permission.ADMIN_MANAGE}`.
+- Allowing `AppealChargeDrawer` to be opened by roles below `superadmin` — appeals are a superadmin-only action; use `Permission.SUPERADMIN_ONLY`.
+- Omitting the `amendmentReason` field from `EditSentenceDrawer` — this field is required for the audit trail and cannot be optional.
+- Displaying `AppealChargeDrawer` for `FILED`, `ACTIVE`, or `DROPPED` charges — the appeal flow is only for `CONVICTED` and `ACQUITTED` terminal statuses.
+- Using `DELETE` HTTP method for appeal (the appeal files a new record and reverts the status; it does not delete the charge).
 
-**Filter state violations:**
-- Using local React state for the case timeline tab's filter state — the case timeline is a full page (not a drawer), so all filter state must live in URL query params via `nuqs`. Filter state must survive page refresh.
-- Using URL query params for the officer and person audit drawers' filter state — drawers are ephemeral UI. URL state would pollute the officer/person detail page URL with audit filter params. Use local React state for drawer filter state.
-- Sharing filter state between the case timeline filter bar and the add-note form — these are independent concerns.
+**Person de-promotion violations:**
+- Showing the "Remove Role" button on role cards for roles that the person does not currently have — only show "Remove Role" for roles that exist in `person.roles`.
+- Calling `demotePersonRole` without confirming via `DemotePersonRoleDialog` — the `DestructiveConfirmDialog` is mandatory for all de-promotion actions.
+- Omitting the `activeCaseCount` warning in `DemotePersonRoleDialog` when the count is greater than zero — this warning is mandatory when the person has active case links.
 
-**DiffViewer violations:**
-- Using a third-party diff library — the diff viewer renders plain before/after text values. No syntax highlighting, no `react-diff-viewer`, no line-by-line AST diff.
-- Rendering `dangerouslySetInnerHTML` for diff values — all diff values from the server are plain text and must be rendered as text nodes, never as HTML.
-- Showing the DiffViewer for `CASE_NOTE_ADDED` events — note events have `diff: null` by design. The DiffViewer must not render when `diff === null`.
+**Offline resilience violations:**
+- Persisting PII-bearing query data to `localStorage` — any query key matching `['persons']`, `['officers']`, or any other PII-containing key must be on the PERSIST_BLACKLIST.
+- Persisting the `authStore` through React Query — auth state is managed by Zustand with sessionStorage. Do not mix these systems.
+- Not calling `queryClient.clear()` on logout — persisted stale data from one officer must not be accessible to another officer who logs in on the same device.
+- Setting `maxAge` higher than 24 hours — persisted cache older than 24 hours should be invalidated to avoid serving very stale operational data.
+- Not adding the `buster` option tied to the build ID — without cache-busting, officers on old deployments may have incompatible persisted data structures.
 
-**Custody gap violations:**
-- Rendering `CustodyGapBadge` for non-custody events — only entries where `entry.custodyGap !== null` trigger the gap badge. The parent `AuditTimeline` checks `entries[i].custodyGap !== null` to decide whether to render the badge above entry `i`.
-- Using a normal solid connector between the gap badge and the entries around it — gap connectors use amber dashed styling. The solid connector only appears between entries with no gap.
-- Computing custody gaps on the frontend — gap detection is a backend responsibility. The frontend only renders what the backend provides in `entry.custodyGap`.
+**Performance violations:**
+- Importing `CcmsLineChart`, `CcmsBarChart`, or `CcmsDonutChart` directly (not the lazy-loaded `Lazy*` variants) in dashboard widgets or report pages — all chart components must be dynamically imported.
+- Using `<img>` tags for evidence thumbnails after Phase 11 — all evidence image renders must use `next/image`.
+- Not setting `ssr: false` on dynamic chart imports — Recharts accesses `window` and will fail on SSR without this flag.
+- Specifying an overly broad Cloudinary `remotePatterns` path (e.g., `/**`) — scope the `pathname` to `/ccms-evidence/**` to prevent the Next.js image optimizer from being used as an open proxy.
 
-**Print violations:**
-- Using `@media print` styles within Tailwind classes — all print overrides must live in `src/shared/styles/print.css`. Tailwind's print: prefix (`print:hidden`) is acceptable for simple hide/show, but complex print layout overrides belong in the dedicated stylesheet.
-- Omitting `data-timeline-entry`, `data-diff-before`, `data-diff-after`, `data-custody-gap`, `data-pagination`, `data-filter-bar`, `data-export-panel`, `data-note-form` attributes from their respective components — these data attributes are how the print stylesheet targets elements. They must be applied as `data-timeline-entry=""` (empty string value) on the outermost element of each component.
-- Calling `window.print()` from a `useEffect` hook — call it directly from the button's `onClick` handler after DOM manipulation completes.
+**Accessibility violations:**
+- Rendering `<SkipToMain />` inside the Sidebar or TopBar — it must be the first child of the root element in `AppShell`, before all navigation chrome.
+- Using `aria-live="assertive"` for toast notifications — error toasts are loud but not urgent enough to interrupt screen reader flow; use `polite` for all toasts.
+- Not applying `suppressHydrationWarning` on timestamp `<time>` elements — timestamps formatted with `date-fns` use the local timezone and will hydration-mismatch without this attribute.
 
-**Global audit log violations:**
-- Allowing the global audit log to fire a query without a date range — the `enabled` condition on `useGlobalAuditLog` must require `Boolean(filters.dateFrom)`. The default filter should set `dateFrom` to the last 7 days.
-- Rendering the entity scope filters (linked case/officer) for non-admin roles — the global audit log itself is admin-only, but if the component is ever rendered below the permission level, the entity scope section must be absent.
-
-**Officer/Person audit drawer violations:**
-- Using URL state for drawer filter state — as explained above, this pollutes the parent page URL.
-- Not resetting the drawer filter state when the drawer closes — stale filter state from a previous drawer open should not persist to the next open. Reset `filters` to defaults in the `onClose` handler.
-- Leaving the Phase 7 "Recent Activity" stub sections in `OfficerDetail.tsx` and `PersonDetail.tsx` after Phase 10 — these stubs are replaced by the audit drawers. Remove them.
+**Storybook violations:**
+- Adding stories for feature-specific domain components (e.g., `CourtCaseCard`, `EvidenceLightbox`, `ChargesTable`) — Storybook in Phase 11 documents only `src/shared/components/` components.
+- Importing real API services or making network requests in stories — all stories must use mock data passed as args. Use the `@tanstack/react-query` mock client configured in `preview.ts`.
+- Not including `tags: ['autodocs']` in the story meta — without this, the automatic documentation page is not generated.
 
 **Module boundary violations:**
-- Importing `AuditTimeline` from `@features/audit/components/` — `AuditTimeline` is a **shared** component (`@shared/components/timeline/AuditTimeline`). It must not be in the `features/audit` directory. Feature-specific wrappers (`GlobalAuditLog`, `OfficerAuditDrawer`, `PersonAuditDrawer`) live in `features/audit/components/` and consume the shared component.
-- Adding chart or data visualisation components to the audit module — no charts in the audit system. All data is presented as timeline entries and tables.
-
-**i18n violations:**
-- Hardcoding event type labels (`"Case Created"`) instead of `t('audit.eventType.CASE_CREATED')`
-- Hardcoding security severity labels instead of `t('audit.entry.securityBadge.LOW')`
-- Hardcoding event category labels in the filter multi-select instead of `t('audit.filter.categories.CASE')`
+- Importing the lazy-loaded chart wrappers from `@features/dashboard/` or `@features/reports/` — they must be imported from `@shared/components/charts/LazyCharts`.
+- Placing the persister configuration inside a feature module — `src/services/query/persister.ts` is a service-layer concern, not a feature concern.
 
 ---
 
-# 27. Final Verification Checklist
+# 15. Final Verification Checklist
 
-## 27.1 Case Timeline Tab
+## 15.1 Bulk Operations
 
-- [ ] `/cases/[caseId]/timeline` renders the full audit timeline (not the Phase 4 basic list)
-- [ ] Polling indicator dot is visible and animates
-- [ ] Timeline polls every 30s while the tab is active
-- [ ] Timeline does NOT show skeleton overlay during 30s background refetch — existing entries stay visible
-- [ ] Timeline stops polling when the browser tab is in the background
-- [ ] Filter bar renders: actor search input, event type multi-select, date from/to pickers
-- [ ] Actor search filters entries in real-time (each keystroke triggers a query key change)
-- [ ] Event type category checkboxes toggle all types in that category
-- [ ] Category checkbox is indeterminate when some (not all) types are selected
-- [ ] Date range filter updates query and re-fetches entries
-- [ ] Active filter chips render and can be dismissed individually
-- [ ] "Clear all filters" removes all active filters
-- [ ] Filter state survives page refresh (URL params)
-- [ ] Timeline entries render: event icon, event type label, actor line, timestamp, padlock
-- [ ] Hovering the timestamp shows the relative time tooltip
-- [ ] Actor name is a link to officer detail for admin+; plain text for lower roles
-- [ ] `DiffViewer` renders for `CASE_UPDATED` and other diff-producing events
-- [ ] `DiffViewer` shows null values as "—" with muted styling
-- [ ] `DiffViewer` collapses to 5 fields with "Show N more" when >5 fields
-- [ ] Security badge renders for security events with correct severity colour
-- [ ] `HIGH` severity security entries have a red left border accent
-- [ ] `CustodyGapBadge` renders above custody entries that have `custodyGap !== null`
-- [ ] Gap connector uses amber dashed styling; normal connector uses solid styling
-- [ ] Badge shows formatted gap duration and from/to timestamps
-- [ ] `AddCaseNoteForm` renders at the bottom (for users with `CASES_MANAGE` permission)
-- [ ] Note form submit button is disabled when empty and when >2000 characters
-- [ ] Character count updates as user types
-- [ ] Submitting a note closes the form, invalidates the timeline, new note appears at top
-- [ ] Note form is absent for users without `CASES_MANAGE` permission
-- [ ] CSV export downloads `ccms-audit-case-{date}.csv`
-- [ ] Print button triggers the print dialog with CCMS letterhead visible
-- [ ] Print view hides: nav, sidebar, filter bar, pagination, export panel, note form
-- [ ] Print view shows all timeline entries in black-and-white card format
-- [ ] Pagination controls render and function correctly
-- [ ] Empty state renders when no entries match filters
-- [ ] Error state renders with retry button on fetch failure
+- [ ] Cases DataTable shows checkbox column; selecting rows reveals `BulkActionBar`
+- [ ] `BulkActionBar` shows selected count and "Clear selection" link
+- [ ] "Update Status" bulk action is hidden for roles without `CASES_MANAGE`
+- [ ] `BulkStatusUpdateDialog` opens with status select and optional reason field
+- [ ] Submitting updates cases, shows success toast, clears row selection, refreshes list
+- [ ] Partial success (some failed): warning toast with updated/failed counts
+- [ ] Evidence DataTable shows checkbox column; selecting rows reveals `BulkActionBar`
+- [ ] "Export Selected" fires immediately (no confirm dialog) and downloads CSV
+- [ ] Export button shows loading state during download; row selection clears after success
+- [ ] Charges DataTable shows checkbox column; selecting rows reveals `BulkActionBar`
+- [ ] "Drop Selected" is disabled when all selected charges are terminal
+- [ ] `BulkDropChargesDialog` shows terminal charges warning when applicable
+- [ ] Droppable charge list is shown in the dialog before confirmation
+- [ ] Confirming drops charges, refreshes charges table and case overview count
+- [ ] Partial success: warning toast with updated/failed counts
 
-## 27.2 Global Audit Log
+## 15.2 Legal Module Enhancements
 
-- [ ] `/admin/audit` renders the global audit log (not the skeleton)
-- [ ] Page is accessible only to `admin` and `superadmin`
-- [ ] Filter bar renders: actor search, event type multi-select, date range
-- [ ] Entity scope filter renders: "All Entities" / "Case" / "Officer" dropdown
-- [ ] Selecting "Case" reveals a case number input that sets `linkedCaseId`
-- [ ] Selecting "Officer" reveals a badge number input that sets `linkedOfficerId`
-- [ ] Default date range is Last 7 Days (dateFrom = today−6)
-- [ ] Filter state survives page refresh
-- [ ] All timeline entry anatomy renders correctly (same as case timeline)
-- [ ] CSV export downloads `ccms-audit-global-{date}.csv`
-- [ ] Print button triggers print with global audit log letterhead
+- [ ] `ViewSentenceDrawer` shows "Amend Sentence" button for `admin+` only
+- [ ] "Amend Sentence" button is absent for roles below `admin`
+- [ ] `EditSentenceDrawer` opens pre-populated with current sentence values
+- [ ] Amendment reason field is required; submitting without it shows validation error
+- [ ] Amendment notice bar is visible (amber styling)
+- [ ] Successful amendment: drawer closes, sentence values update, audit entry created
+- [ ] `AppealChargeDrawer` is accessible from the charge row kebab for `CONVICTED`/`ACQUITTED` charges (superadmin only)
+- [ ] Appeal consequences notice bar lists all three effects (status revert, appeal record, sentence removal)
+- [ ] Confirming appeal: charge status reverts to ACTIVE badge (amber), sentence indicator clears, appeal toast confirms
+- [ ] `AppealChargeDrawer` kebab item is absent for roles below `superadmin`
+- [ ] `AppealChargeDrawer` kebab item is absent for `FILED`, `ACTIVE`, `DROPPED` charges
 
-## 27.3 Officer Audit Drawer
+## 15.3 Personnel Module Enhancements
 
-- [ ] "View Audit History" button is visible on `/personnel/officers/[officerId]` for admin+
-- [ ] Button is absent for roles without `OFFICERS_MANAGE`
-- [ ] Clicking opens `OfficerAuditDrawer` (640px width)
-- [ ] Drawer shows the officer's full name in the title
-- [ ] Timeline renders officer's audit entries (filter bar, entries, pagination)
-- [ ] Filter state is local React state — NOT in the URL
-- [ ] Closing the drawer resets filter state to defaults
-- [ ] Phase 7 "Recent Activity" stub section is removed from the officer detail page
-- [ ] CSV export downloads `ccms-audit-officer-{date}.csv`
+- [ ] Each role card on person detail shows "Remove Role" button for `admin+`
+- [ ] "Remove Role" button is absent for roles without `ADMIN_MANAGE`
+- [ ] `DemotePersonRoleDialog` opens with the person name and role name in the title
+- [ ] `DemotePersonRoleDialog` shows the active-cases warning when `activeCaseCount > 0`
+- [ ] Confirming de-promotion: role card disappears from person detail, person list roles column updates, toast confirms
+- [ ] After de-promotion, the "Promote to" dropdown shows the removed role again (re-promotion is possible)
 
-## 27.4 Person Audit Drawer
+## 15.4 Offline Resilience
 
-- [ ] "View Audit History" option appears in the "Promote to" dropdown on person detail for admin+
-- [ ] Option is absent for roles without `PERSONNEL_MANAGE`
-- [ ] Clicking opens `PersonAuditDrawer` (640px width)
-- [ ] Drawer shows the person's full name in the title
-- [ ] Timeline renders person's audit entries (filter bar, entries, pagination)
-- [ ] Filter state is local React state — NOT in the URL
-- [ ] Closing the drawer resets filter state to defaults
-- [ ] Phase 7 "Recent Activity" stub section is removed from the person detail page
-- [ ] CSV export downloads `ccms-audit-person-{date}.csv`
+- [ ] Navigating to `/cases` after a page reload shows stale list data immediately (not a blank loading state)
+- [ ] Reference data (departments, crime types) loads instantly on subsequent page loads from persisted cache
+- [ ] Logging out clears both the in-memory and persisted cache (`localStorage.getItem('ccms-query-cache')` returns null after logout)
+- [ ] Logging in as a different officer on the same device shows no data from the previous officer's session
+- [ ] `localStorage` does NOT contain any `['persons']` or `['officers']` query data
+- [ ] `localStorage` does NOT contain any `['audit']` query data
+- [ ] Deploying a new build invalidates the persisted cache (buster mismatch)
+- [ ] `PersistQueryClientProvider` wraps the app without breaking any existing query behaviour
 
-## 27.5 Print View
+## 15.5 Performance Hardening
 
-- [ ] Navigating to any audit surface and clicking "Print Timeline" opens the print dialog
-- [ ] CCMS letterhead is visible: classification, title, authorised notice, generation timestamp
-- [ ] Sidebar, topbar, breadcrumb, filter bar, pagination, export panel, note form are hidden
-- [ ] Timeline entries render in black-and-white card format with 1px solid border
-- [ ] Diff viewer panels render with red (before) and green (after) tints
-- [ ] Custody gap badge renders with amber border
-- [ ] Print CSS is imported via `src/app/layout.tsx` and applies globally
+- [ ] `pnpm build:analyze` runs without error and produces `.next/analyze/report.html`
+- [ ] No `<img>` tags remain in evidence thumbnail, gallery card, or lightbox components
+- [ ] `next/image` renders evidence thumbnails with correct `width` and `height`
+- [ ] Cloudinary images load correctly via `next/image` optimisation
+- [ ] `next.config.ts` has `images.remotePatterns` scoped to `res.cloudinary.com/ccms-evidence/**`
+- [ ] Dashboard widget charts use `LazyCcmsLineChart`, `LazyCcmsBarChart`, `LazyCcmsDonutChart`
+- [ ] Report page charts use the lazy chart variants
+- [ ] Chart skeleton placeholders display while the chart bundle loads
+- [ ] `EvidenceLightbox` is dynamically imported — no Lightbox code in the initial bundle
 
-## 27.6 Shared Components — `DiffViewer`
+## 15.6 Accessibility Hardening
 
-- [ ] Each `diff.fields` entry renders as one row
-- [ ] `before: null` → Before panel shows "—" in muted text
-- [ ] `after: null` → After panel shows "—" in muted text
-- [ ] All values render in monospace font (`JetBrains Mono`)
-- [ ] Expand/collapse works correctly for >5 fields
+- [ ] Tab-press when the page loads reveals the "Skip to main content" link at the top-left
+- [ ] Clicking "Skip to main content" moves focus to `id="main-content"` and scrolls to it
+- [ ] Opening and closing any `SlideOverDrawer` returns focus to the element that triggered it
+- [ ] Opening and closing any `ConfirmDialog`/`DestructiveConfirmDialog` returns focus to the trigger
+- [ ] Toast notifications are announced by screen readers (verify `role="status"` + `aria-live="polite"` is present)
+- [ ] All `StatusBadge` components have text labels (no colour-only differentiation)
+- [ ] `StatusBadge` components have `aria-label` when used in icon-only contexts
 
-## 27.7 Shared Components — `CustodyGapBadge`
+## 15.7 Storybook
 
-- [ ] Badge background and border use amber (`warning`) token colours
-- [ ] Gap duration formats correctly for hours and days
-- [ ] From/to timestamps render
+- [ ] `pnpm storybook` starts without error on port 6006
+- [ ] Dark background (`#0F172A`) is the default Storybook background
+- [ ] All 29 story files are present and load without import errors
+- [ ] Each story file has a `Default` story and variant stories
+- [ ] Each story file has `tags: ['autodocs']` in the meta
+- [ ] The a11y addon tab shows zero violations for `StatusBadge`, `KpiCard`, `DataTable`, and `SkipToMain`
+- [ ] `pnpm build-storybook` completes without error
 
-## 27.8 i18n
-
-- [ ] All audit UI text is retrieved from message files — no hardcoded English
-- [ ] Switching to Amharic updates all audit text across all four surfaces
-- [ ] i18n completeness test passes with zero missing keys in `audit` namespace (EN + AM)
-- [ ] Event type labels render in selected locale
-- [ ] Security severity labels render in selected locale
-- [ ] Event category filter labels render in selected locale
-
-## 27.9 Tooling
+## 15.8 Tooling
 
 - [ ] `pnpm type-check` exits with zero errors
 - [ ] `pnpm lint` exits with zero warnings
-- [ ] `pnpm test` — all audit module tests pass (unit tests for auditUtils, schemas, component tests)
 - [ ] `pnpm build` — production build succeeds without errors
-- [ ] `axiosInstance` is exported from `@services/api/client` (required for CSV blob download)
-- [ ] `print.css` is imported in `src/app/layout.tsx`
+- [ ] `pnpm build:analyze` — bundle analyzer builds and produces report HTML
+- [ ] `pnpm storybook` — Storybook dev server starts on port 6006
 
 ---
 
-*End of CCMS Phase 10 Instruction — Audit System Module*
+*End of CCMS Phase 11 Instruction — Hardening & Feature Completion*
 *Prepared for AI Agent execution — 2026 production-grade engineering standards*
 *Package manager: pnpm throughout*
-*Next phase: Phase 11 will implement the Hardening phase — accessibility audit (WCAG 2.1 AA sweep across all primary pages), full E2E test coverage (Playwright — login, case status transition, officer assignment, evidence upload), performance profiling (bundle size analysis, image optimisation, code splitting verification), offline resilience (React Query persistence via `@tanstack/query-sync-storage-persister`), bulk operations (bulk case status update, bulk charge operations, bulk evidence export), sentence editing workflow (updating conviction details post-sentence), appeal charge workflow (reversing CONVICTED status via admin action), person de-promotion UI (admin-only removal of SUSPECT/VICTIM/WITNESS roles), advanced diff features (syntax-highlighted diffs for JSON payloads), PDF/print export of court documents, and Storybook documentation for all shared components*
