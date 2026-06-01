@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ChevronLeft,
@@ -226,7 +227,7 @@ export function EvidenceLightbox({
       <div className="absolute inset-0 flex items-center justify-center px-6">
         <div
           className={cn(
-            'relative flex items-center justify-center overflow-hidden transition-[margin-right] duration-200',
+            'relative flex items-center justify-center overflow-hidden transition-[margin-right] duration-200 w-[80vw] h-[80vh]',
             showMetadata ? 'mr-[320px]' : 'mr-0',
           )}
           onPointerDown={handlePointerDown}
@@ -235,21 +236,25 @@ export function EvidenceLightbox({
           onTouchEnd={handleTouchEnd}
         >
           {currentPhoto.thumbnailUrl ? (
-            <img
+            <Image
               src={currentPhoto.thumbnailUrl}
               alt={currentPhoto.description}
+              fill
+              unoptimized
               className={cn(
-                'absolute max-h-[80vh] max-w-[80vw] object-contain transition-opacity duration-200',
+                'absolute object-contain transition-opacity duration-200',
                 isFullLoaded ? 'opacity-0' : 'opacity-100',
               )}
               style={{ filter: 'blur(8px)' }}
             />
           ) : null}
-          <img
+          <Image
             src={currentPhoto.mediaUrl ?? currentPhoto.thumbnailUrl ?? ''}
             alt={currentPhoto.description}
+            fill
+            unoptimized
             className={cn(
-              'max-h-[80vh] max-w-[80vw] object-contain transition-opacity duration-200',
+              'object-contain transition-opacity duration-200',
               isFullLoaded || reduceMotion ? 'opacity-100' : 'opacity-0',
             )}
             style={{

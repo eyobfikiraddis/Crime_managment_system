@@ -177,5 +177,13 @@
   "update": {
     "successMessage": "ማስረጃ በተሳካ ሁኔታ ተዘምኗል።",
     "errorMessage": "ማስረጃን ለማዘመን አልተሳካም።"
+  },
+  "bulk": {
+    "export": {
+      "actionLabel": "የተመረጡትን ላክ",
+      "successMessage": "ማስረጃው በተሳካ ሁኔታ ተልኳል።",
+      "errorMessage": "ማስረጃውን ለመላክ አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+      "downloading": "በማውረድ ላይ..."
+    }
   }
 }

@@ -2,7 +2,8 @@
 
 import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { CcmsBarChart, type CcmsBarSeries } from '@/shared/components/charts/CcmsBarChart'
+import { CcmsBarChart } from '@/shared/components/charts/LazyCharts'
+import type { CcmsBarSeries } from '@/shared/components/charts/CcmsBarChart'
 import { CHART_COLORS } from '@/shared/constants/chartColors'
 import { Skeleton } from '@/shared/components/feedback/Skeleton'
 import type { OfficerWorkloadDataPoint } from '../../types/dashboard.types'

@@ -18,8 +18,12 @@ import type {
   CreateChargePayload,
   UpdateChargePayload,
   RecordSentencePayload,
+  EditSentencePayload,
+  AppealChargePayload,
 } from '@features/legal/types/legal.types'
 import type { PaginatedResponse } from '@shared/types/api.types'
+import { bulkOperationResultSchema } from '@shared/schemas/bulk.schema'
+import type { BulkOperationResult } from '@shared/types/bulk.types'
 
 // ─── Court Cases ──────────────────────────────────────────────────────────────
 
@@ -138,6 +142,52 @@ export async function recordSentence(
   payload: RecordSentencePayload,
 ): Promise<Charge> {
   const raw = await apiClient.post(`/api/v1/charges/${chargeId}/sentence`, payload)
+  return chargeDetailSchema.parse(raw)
+}
+
+/**
+ * POST /api/v1/charges/bulk/drop
+ * Sets multiple charges to DROPPED status. Skips terminal charges.
+ * Returns BulkOperationResult.
+ */
+export async function bulkDropCharges(payload: {
+  chargeIds: string[]
+}): Promise<BulkOperationResult> {
+  const raw = await apiClient.post('/api/v1/charges/bulk/drop', payload)
+  return bulkOperationResultSchema.parse(raw)
+}
+
+/**
+ * PATCH /api/v1/charges/{chargeId}/sentence
+ * Amends an existing sentence. Admin+ only.
+ * The backend creates an audit entry preserving the original values.
+ * Returns the updated Charge (with amended sentence).
+ */
+export async function editSentence(
+  chargeId: string,
+  payload: EditSentencePayload,
+): Promise<Charge> {
+  const raw = await apiClient.patch(
+    `/api/v1/charges/${chargeId}/sentence`,
+    payload,
+  )
+  return chargeDetailSchema.parse(raw)
+}
+
+/**
+ * POST /api/v1/charges/{chargeId}/appeal
+ * Files an appeal for a CONVICTED or ACQUITTED charge. Superadmin only.
+ * Reverts the charge status to ACTIVE. Creates an AppealRecord.
+ * Returns the updated Charge.
+ */
+export async function appealCharge(
+  chargeId: string,
+  payload: AppealChargePayload,
+): Promise<Charge> {
+  const raw = await apiClient.post(
+    `/api/v1/charges/${chargeId}/appeal`,
+    payload,
+  )
   return chargeDetailSchema.parse(raw)
 }
 

@@ -220,4 +220,39 @@ export interface RecordSentencePayload {
   issuedByJudge?: string | null | undefined
 }
 
+// ─── Edit Sentence Payload ────────────────────────────────────────────────────
+export interface EditSentencePayload {
+  sentenceType: SentenceType
+  durationMonths?: number | null
+  fineAmountETB?: number | null
+  notes?: string | null
+  issuedAt: string
+  issuedByJudge?: string | null
+  // Required for audit trail: reason for amendment
+  amendmentReason: string
+}
+
+// ─── Appeal Record ────────────────────────────────────────────────────────────
+export const AppealOutcome = {
+  PENDING:   'PENDING',
+  UPHELD:    'UPHELD',
+  DISMISSED: 'DISMISSED',
+} as const
+export type AppealOutcome = (typeof AppealOutcome)[keyof typeof AppealOutcome]
+
+export interface AppealRecord {
+  id: string
+  chargeId: string
+  filedAt: string          // ISO 8601
+  filedByOfficerId: string
+  outcome: AppealOutcome
+  outcomeDate: string | null
+  notes: string | null
+}
+
+// ─── Appeal Charge Payload ────────────────────────────────────────────────────
+export interface AppealChargePayload {
+  notes?: string
+}
+
 

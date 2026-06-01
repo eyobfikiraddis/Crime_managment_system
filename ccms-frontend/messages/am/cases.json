@@ -185,5 +185,19 @@
     "officers": "መኮንኖች — በ Phase 8 ይቀርባል",
     "reports": "ሪፖርቶች — በ Phase 10 ይቀርባል",
     "permissions": "ፈቃዶች — በ Phase 8 ይቀርባል"
+  },
+  "bulk": {
+    "statusUpdate": {
+      "actionLabel": "ሁኔታ አዘምን",
+      "dialogTitle": "ለ{count} ጉዳዮች ሁኔታ አዘምን",
+      "newStatusLabel": "አዲስ ሁኔታ",
+      "reasonLabel": "ምክንያት (አማራጭ)",
+      "reasonPlaceholder": "የሁኔታ ለውጥ ምክንያት...",
+      "submitButton": "{count} ጉዳዮችን አዘምን",
+      "successMessage": "{count} ጉዳዮች በተሳካ ሁኔታ ተዘምነዋል።",
+      "partialSuccessMessage": "{updated} ጉዳዮች ተዘምነዋል። {failed} ማዘመን አልተቻለም።",
+      "errorMessage": "የጉዳዮቹን ሁኔታዎች ለማዘመን አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+      "clearSelection": "ምርጫ አጽዳ"
+    }
   }
 }

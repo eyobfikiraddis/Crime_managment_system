@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useState, useTransition } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -345,10 +346,13 @@ export function EvidenceUploadDrawer({
                   <div className="flex items-center justify-between rounded-md border border-border p-3">
                     <div className="flex items-center gap-3">
                       {selectedFile.type.startsWith('image/') && objectUrl ? (
-                        <img
+                        <Image
                           src={objectUrl}
                           alt={selectedFile.name}
-                          className="size-12 rounded object-cover border border-border"
+                          width={48}
+                          height={48}
+                          unoptimized
+                          className="rounded object-cover border border-border"
                         />
                       ) : (
                         <FileText className="size-8 text-foreground-muted" />

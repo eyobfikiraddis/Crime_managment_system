@@ -221,7 +221,8 @@
       "noJudge": "አልተመዘገበም",
       "notes": "ማስታወሻ",
       "noNotes": "ምንም ማስታወሻ የለም።",
-      "closeButton": "ዝጋ"
+      "closeButton": "ዝጋ",
+      "amendButton": "ቅጣት አሻሽል"
     },
     "sentenceType": {
       "IMPRISONMENT": "እስር",
@@ -230,6 +231,58 @@
       "SUSPENDED": "የተቋረጠ ፍርድ",
       "DEATH_PENALTY": "ሞት ቅጣት",
       "LIFE_IMPRISONMENT": "የዕድሜ ልክ እስር"
+    },
+    "bulkDrop": {
+      "actionLabel": "የተመረጡትን ሰርዝ",
+      "dialogTitle": "{count} ክሶችን ይሰርዙ?",
+      "dialogDescription": "የተመረጡት ክሶች ይሰረዛሉ።",
+      "undoneNotice": "ይህ ድርጊት ሊቀለበስ አይችልም።",
+      "terminalWarning": "ከመረጧቸው ክሶች ውስጥ {terminalCount} ቀደም ሲል የመጨረሻ ደረጃ ላይ ስላሉ ይታለፋሉ። {droppableCount} ክሶች ብቻ ይጎዳሉ።",
+      "confirmButton": "{count} ክሶችን ሰርዝ",
+      "cancelButton": "ሰርዝ",
+      "allTerminalTooltip": "ሁሉም የተመረጡ ክሶች በመጨረሻ ሁኔታ ላይ ናቸው። ምንም ተግባር የለም።",
+      "successMessage": "{count} ክሶች በተሳካ ሁኔታ ተሰርዘዋል።",
+      "partialSuccessMessage": "{updated} ክሶች ተሰርዘዋል። {failed} መሰረዝ አልተቻለም።",
+      "errorMessage": "ክሶችን ለመሰረዝ አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+    },
+    "editSentence": {
+      "openButton": "ቅጣት አሻሽል",
+      "openButtonHint": "ማሻሻያዎች በቀድሞ እሴቶች ተጠብቀው በኦዲት መዝገብ ውስጥ ይመዘገባሉ።",
+      "drawerTitle": "ቅጣት አሻሽል",
+      "drawerDescription": "ለዚህ ጥፋተኛ ፍርድ የተቀመጠውን ቅጣት ያሻሽሉ።",
+      "amendmentNotice": "ይህን ቅጣት ማሻሻል የቀድሞውን እና አዲሱን እሴት የሚያሳይ ቋሚ የኦዲት መዝገብ ይፈጥራል። ቀዳሚው ውሂብ ሊሰረዝ አይችልም።",
+      "amendmentReasonLabel": "የማሻሻያ ምክንያት",
+      "amendmentReasonPlaceholder": "ይህን ቅጣት ለማሻሻል ምክንያት ያብራሩ...",
+      "amendmentReasonHint": "ይህን ቅጣት ለምን እንደሚያሻሽሉ ቢያንስ 10 ቁምፊዎችን ያስገቡ።",
+      "submitButton": "ማሻሻያ አስቀምጥ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ቅጣቱ በተሳካ ሁኔታ ተሻሽሏል። የኦዲት መዝገቡ ተዘምኗል።",
+      "errorMessage": "ቅጣቱን ለማሻሻል አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+      "discardTitle": "ለውጦችን ይተው?",
+      "discardDescription": "እርግጠኛ ነዎት ለውጦችዎን መተው ይፈልጋሉ? ያልተቀመጠ ውሂብ ይጠፋል።",
+      "discardConfirm": "ተው",
+      "discardCancel": "አይ"
+    },
+    "appeal": {
+      "kebabLabel": "ይግባኝ ጠይቅ",
+      "drawerTitle": "ይግባኝ ጠይቅ",
+      "drawerDescription": "ይህን የመጨረሻ ውሳኔ በይግባኝ መዝገብ ይቀይሩት።",
+      "contextTitle": "የክስ አውድ",
+      "warningTitle": "ይህን ይግባኝ ማስገባት፡",
+      "consequenceStatus": "የክሱን ሁኔታ ከ {status} ወደ ንቁ (Active) ይመልሳል",
+      "consequenceAudit": "በኦዲት መዝገብ ውስጥ ቋሚ የይግባኝ ታሪክ ይፈጥራል",
+      "consequenceSentence": "ቀደም ሲል የነበረውን የቅጣት መዝገብ (ካለ) ያስወግዳል",
+      "irreversibleNotice": "ይህ ድርጊት የተመዘገበ ነው እና ሌላ ይግባኝ ሳይጠየቅ ሊቀለበስ አይችልም።",
+      "notesLabel": "ማስታወሻ (አማራጭ)",
+      "notesPlaceholder": "የይግባኝ ምክንያቶች...",
+      "submitButton": "ይግባኝ አረጋግጥ — ወደ ንቁ መልስ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "ይግባኝ ቀርቧል። የክስ ሁኔታ ወደ ንቁ ተመልሷል።",
+      "errorMessage": "ይግባኝ ለማቅረብ አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+      "discardTitle": "ለውጦችን ይተው?",
+      "discardDescription": "እርግጠኛ ነዎት ለውጦችዎን መተው ይፈልጋሉ? ያልተቀመጠ ውሂብ ይጠፋል።",
+      "discardConfirm": "ተው",
+      "discardCancel": "አይ"
     }
   },
   "courtCasesList": {

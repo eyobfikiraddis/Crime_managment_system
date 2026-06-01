@@ -185,5 +185,19 @@
     "officers": "Officers — Coming in Phase 8",
     "reports": "Reports — Coming in Phase 10",
     "permissions": "Permissions — Coming in Phase 8"
+  },
+  "bulk": {
+    "statusUpdate": {
+      "actionLabel": "Update Status",
+      "dialogTitle": "Update Status for {count} Case(s)",
+      "newStatusLabel": "New Status",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "Reason for status change...",
+      "submitButton": "Update {count} Cases",
+      "successMessage": "{count} case(s) updated successfully.",
+      "partialSuccessMessage": "{updated} case(s) updated. {failed} could not be updated.",
+      "errorMessage": "Failed to update case statuses. Please try again.",
+      "clearSelection": "Clear selection"
+    }
   }
 }

@@ -221,7 +221,8 @@
       "noJudge": "Not recorded",
       "notes": "Notes",
       "noNotes": "No notes.",
-      "closeButton": "Close"
+      "closeButton": "Close",
+      "amendButton": "Amend Sentence"
     },
     "sentenceType": {
       "IMPRISONMENT": "Imprisonment",
@@ -230,6 +231,58 @@
       "SUSPENDED": "Suspended Sentence",
       "DEATH_PENALTY": "Death Penalty",
       "LIFE_IMPRISONMENT": "Life Imprisonment"
+    },
+    "bulkDrop": {
+      "actionLabel": "Drop Selected",
+      "dialogTitle": "Drop {count} Charge(s)?",
+      "dialogDescription": "The selected charges will be dropped.",
+      "undoneNotice": "This action cannot be undone.",
+      "terminalWarning": "{terminalCount} of your selected charges are already at a final status and will be skipped. Only {droppableCount} charge(s) will be affected.",
+      "confirmButton": "Drop {count} Charges",
+      "cancelButton": "Cancel",
+      "allTerminalTooltip": "All selected charges are at a final status. No action available.",
+      "successMessage": "{count} charge(s) dropped successfully.",
+      "partialSuccessMessage": "{updated} charge(s) dropped. {failed} could not be updated.",
+      "errorMessage": "Failed to drop charges. Please try again."
+    },
+    "editSentence": {
+      "openButton": "Amend Sentence",
+      "openButtonHint": "Amendments are logged in the audit trail with the original values preserved.",
+      "drawerTitle": "Amend Sentence",
+      "drawerDescription": "Amend the recorded sentence for this conviction.",
+      "amendmentNotice": "Amending this sentence creates a permanent audit entry showing the original and amended values. The original values cannot be deleted.",
+      "amendmentReasonLabel": "Reason for Amendment",
+      "amendmentReasonPlaceholder": "Explain the reason for amending this sentence...",
+      "amendmentReasonHint": "Please enter at least 10 characters detailing why this sentence is being amended.",
+      "submitButton": "Save Amendment",
+      "cancelButton": "Cancel",
+      "successMessage": "Sentence amended successfully. The audit trail has been updated.",
+      "errorMessage": "Failed to amend sentence. Please try again.",
+      "discardTitle": "Discard changes?",
+      "discardDescription": "Are you sure you want to discard your changes? Your unsaved data will be lost.",
+      "discardConfirm": "Discard",
+      "discardCancel": "Cancel"
+    },
+    "appeal": {
+      "kebabLabel": "File Appeal",
+      "drawerTitle": "File Appeal",
+      "drawerDescription": "Reverse this terminal charge via an appeal record.",
+      "contextTitle": "Charge Context",
+      "warningTitle": "Filing this appeal will:",
+      "consequenceStatus": "Revert the charge status from {status} to Active",
+      "consequenceAudit": "Create a permanent appeal record in the audit trail",
+      "consequenceSentence": "Remove the existing sentence record (if any)",
+      "irreversibleNotice": "This action is logged and cannot be reversed without filing another appeal.",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "Grounds for the appeal...",
+      "submitButton": "Confirm Appeal — Revert to Active",
+      "cancelButton": "Cancel",
+      "successMessage": "Appeal filed. Charge status reverted to Active.",
+      "errorMessage": "Failed to file appeal. Please try again.",
+      "discardTitle": "Discard changes?",
+      "discardDescription": "Are you sure you want to discard your changes? Your unsaved data will be lost.",
+      "discardConfirm": "Discard",
+      "discardCancel": "Cancel"
     }
   },
   "courtCasesList": {

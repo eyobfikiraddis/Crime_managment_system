@@ -36,6 +36,7 @@ interface DataTableProps<TData> {
   onSortingChange?: (state: SortingState) => void
   enableRowSelection?: boolean
   onRowSelectionChange?: (rows: RowSelectionState) => void
+  rowSelection?: RowSelectionState
   emptyTitle?: string
   emptyMessage?: string
   tableId?: string
@@ -52,6 +53,7 @@ export function DataTable<TData>({
   onSortingChange,
   enableRowSelection,
   onRowSelectionChange,
+  rowSelection,
   emptyTitle,
   emptyMessage,
   onRowClick,
@@ -71,6 +73,7 @@ export function DataTable<TData>({
     state: {
       sorting: sortingState,
       pagination: paginationState,
+      rowSelection,
     },
     onSortingChange: (onSortingChange ?? setInternalSorting) as any,
     onPaginationChange: (onPaginationChange ?? setInternalPagination) as any,

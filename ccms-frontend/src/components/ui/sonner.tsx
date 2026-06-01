@@ -11,6 +11,8 @@ const Toaster = (props: Omit<ToasterProps, 'theme'>) => {
   const sonnerProps = {
     theme: safeTheme,
     className: 'toaster group',
+    role: 'status',
+    'aria-live': 'polite',
     icons: {
       success: <CircleCheckIcon className="size-4" />,
       info: <InfoIcon className="size-4" />,

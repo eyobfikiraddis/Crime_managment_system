@@ -13,6 +13,8 @@ import {
   RotateCcw,
   Search,
   X,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -39,6 +41,9 @@ import { TableSkeleton } from '@/shared/components/table/TableSkeleton'
 import { Permission } from '@/shared/constants/permissions'
 import { hasAllPermissions } from '@/shared/permissions'
 import { useAuthStore } from '@/shared/stores/auth.store'
+import { BulkActionBar } from '@/shared/components/table/BulkActionBar'
+import { BulkDropChargesDialog } from './BulkDropChargesDialog'
+import { AppealChargeDrawer } from './AppealChargeDrawer'
 
 import { useChargeList } from '../hooks/useChargeList'
 import { CHARGE_STATUS_VARIANTS, isChargeTerminal } from '../utils/chargeUtils'
@@ -67,6 +72,7 @@ export function ChargesTable({
   const tErrors = useTranslations('errors')
   const [, startTransition] = useTransition()
   const permissions = useAuthStore((state) => state.permissions)
+  const role = useAuthStore((state) => state.role)
   const canManage = hasAllPermissions(permissions, [Permission.LEGAL_MANAGE])
 
   const [filters, setFilters] = useQueryStates({
@@ -79,6 +85,30 @@ export function ChargesTable({
   })
 
   const [searchValue, setSearchValue] = useState(filters.chargeSearch)
+
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
+  const [bulkDropOpen, setBulkDropOpen] = useState(false)
+  const [appealOpen, setAppealOpen] = useState(false)
+  const [selectedChargeId, setSelectedChargeId] = useState<string | null>(null)
+
+  const selectedIds = useMemo(() => {
+    return Object.keys(rowSelection).filter((id) => rowSelection[id])
+  }, [rowSelection])
+
+  const selectedCharges = useMemo(() => {
+    return selectedIds
+      .map((id) => data?.data.find((c) => c.id === id))
+      .filter(Boolean) as ChargeListItem[]
+  }, [selectedIds, data])
+
+  const droppableSelected = useMemo(() => {
+    return selectedCharges.filter((c) => !isChargeTerminal(c.status))
+  }, [selectedCharges])
+
+  const selectedChargeForAppeal = useMemo(() => {
+    if (!selectedChargeId) return null
+    return data?.data.find((c) => c.id === selectedChargeId) ?? null
+  }, [selectedChargeId, data])
 
   useEffect(() => {
     setSearchValue(filters.chargeSearch)
@@ -167,6 +197,25 @@ export function ChargesTable({
 
   const columns = useMemo<ColumnDef<ChargeListItem>[]>(() => {
     return [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
       {
         accessorKey: 'suspect',
         header: t('charges.columns.suspect'),
@@ -265,6 +314,21 @@ export function ChargesTable({
                   >
                     {t('charges.rowActions.dropCharge')}
                   </DropdownMenuItem>
+                ) : null}
+                {charge.status === ChargeStatus.CONVICTED || charge.status === ChargeStatus.ACQUITTED ? (
+                  <PermissionGuard permission={Permission.SUPERADMIN_ONLY}>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedChargeId(charge.id)
+                        setAppealOpen(true)
+                      }}
+                      className="text-warning focus:bg-warning/10 focus:text-warning"
+                    >
+                      <AlertTriangle className="mr-2 h-4 w-4" />
+                      {t('charges.appeal.kebabLabel')}
+                    </DropdownMenuItem>
+                  </PermissionGuard>
                 ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -368,6 +432,24 @@ export function ChargesTable({
       </div>
 
       <div className="space-y-4">
+        {selectedIds.length > 0 && (
+          <BulkActionBar
+            selectedCount={selectedIds.length}
+            onClearSelection={() => setRowSelection({})}
+            actions={[
+              {
+                label: t('charges.bulkDrop.actionLabel'),
+                icon: Trash2,
+                variant: 'destructive',
+                onClick: () => setBulkDropOpen(true),
+                requiredPermission: Permission.LEGAL_MANAGE,
+                disabled: droppableSelected.length === 0,
+                disabledTooltip: t('charges.bulkDrop.allTerminalTooltip'),
+              },
+            ]}
+          />
+        )}
+
         {isError ? (
           <ErrorState
             title={tErrors('pages.global.title')}
@@ -407,6 +489,9 @@ export function ChargesTable({
             ]}
             onSortingChange={handleSortingChange}
             onRowClick={handleRowClick}
+            enableRowSelection={true}
+            onRowSelectionChange={setRowSelection as any}
+            rowSelection={rowSelection}
           />
         )}
 
@@ -419,6 +504,33 @@ export function ChargesTable({
           />
         )}
       </div>
+
+      {bulkDropOpen && (
+        <BulkDropChargesDialog
+          open={bulkDropOpen}
+          onClose={() => {
+            setBulkDropOpen(false)
+            setRowSelection({})
+          }}
+          selectedCharges={selectedCharges}
+          courtCaseId={courtCaseId}
+          caseId={caseId}
+        />
+      )}
+
+      {appealOpen && selectedChargeForAppeal && (
+        <AppealChargeDrawer
+          open={appealOpen}
+          onOpenChange={(open) => {
+            setAppealOpen(open)
+            if (!open) setSelectedChargeId(null)
+          }}
+          chargeId={selectedChargeForAppeal.id}
+          courtCaseId={courtCaseId}
+          caseId={caseId}
+          charge={selectedChargeForAppeal}
+        />
+      )}
     </div>
   )
 }

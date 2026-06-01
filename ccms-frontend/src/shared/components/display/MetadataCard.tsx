@@ -6,23 +6,28 @@ interface MetadataCardProps {
   title: string
   items: Array<{ label: string; value: ReactNode }>
   actions?: ReactNode
+  children?: ReactNode
 }
 
-export function MetadataCard({ title, items, actions }: MetadataCardProps) {
+export function MetadataCard({ title, items, actions, children }: MetadataCardProps) {
   return (
     <Card className="border-border bg-card">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base font-semibold">{title}</CardTitle>
         {actions}
       </CardHeader>
-      <CardContent className="grid gap-4 sm:grid-cols-2">
-        {items.map((item) => (
-          <div key={item.label} className="space-y-1">
-            <p className="text-xs uppercase text-foreground-muted">{item.label}</p>
-            <div className="text-sm text-foreground">{item.value}</div>
-          </div>
-        ))}
+      <CardContent className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {items.map((item) => (
+            <div key={item.label} className="space-y-1">
+              <p className="text-xs uppercase text-foreground-muted">{item.label}</p>
+              <div className="text-sm text-foreground">{item.value}</div>
+            </div>
+          ))}
+        </div>
+        {children}
       </CardContent>
     </Card>
   )
 }
+

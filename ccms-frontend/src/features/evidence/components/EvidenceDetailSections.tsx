@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { format } from 'date-fns'
 import { Download, FileText } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -117,11 +118,12 @@ export function EvidenceDetailSections({ evidence, onViewImage }: EvidenceDetail
           ) : (
             <div className="flex flex-col gap-3">
               {isPhoto ? (
-                <div className="overflow-hidden rounded-md border border-border">
-                  <img
-                    src={evidence.thumbnailUrl ?? evidence.mediaUrl}
+                <div className="overflow-hidden rounded-md border border-border relative h-64 w-full">
+                  <Image
+                    src={evidence.thumbnailUrl ?? evidence.mediaUrl ?? ''}
                     alt={evidence.description}
-                    className="w-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </div>
               ) : (

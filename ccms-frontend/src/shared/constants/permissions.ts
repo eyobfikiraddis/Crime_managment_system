@@ -27,6 +27,7 @@ export const Permission = {
   // Helper mappings for Phase 10 spec alignment
   OFFICERS_MANAGE: 'personnel:manage',
   CASES_MANAGE: 'cases:write',
+  SUPERADMIN_ONLY: 'superadmin:only',
 } as const
 
 export type Permission = (typeof Permission)[keyof typeof Permission]

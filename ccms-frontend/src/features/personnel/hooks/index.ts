@@ -12,3 +12,5 @@ export { useActivateOfficer } from './useActivateOfficer'
 export { useDeactivateOfficer } from './useDeactivateOfficer'
 export { useResetOfficerPassword } from './useResetOfficerPassword'
 export { useOfficerCases } from './useOfficerCases'
+export { useDemotePersonRole } from './useDemotePersonRole'
+
