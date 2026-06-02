@@ -26,6 +26,7 @@
     "primary": "Primary navigation"
   },
   "skipToMain": "Skip to main content",
+  "toastRegion": "Notifications region",
   "table": {
     "selectAll": "Select all rows",
     "selectRow": "Select row"

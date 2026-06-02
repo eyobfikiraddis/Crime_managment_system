@@ -1,0 +1,30 @@
+// src/features/legal/hooks/useEditSentence.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
+import { editSentence } from '@services/domain/legal.service'
+import { legalKeys } from '@services/query/keys/legalKeys'
+import { useNotificationStore } from '@shared/stores/notification.store'
+import { ApiError } from '@services/api/errors'
+import type { EditSentencePayload } from '../types/legal.types'
+
+export function useEditSentence(chargeId: string, courtCaseId: string, caseId: string) {
+  const queryClient = useQueryClient()
+  const { addToast } = useNotificationStore()
+  const t = useTranslations('legal')
+
+  return useMutation({
+    mutationFn: (payload: EditSentencePayload) => editSentence(chargeId, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: legalKeys.chargeDetail(chargeId) })
+      void queryClient.invalidateQueries({ queryKey: legalKeys.chargeList(courtCaseId) })
+      void queryClient.invalidateQueries({ queryKey: legalKeys.courtCaseByCase(caseId) })
+      addToast({ message: t('charges.editSentence.successMessage'), variant: 'success' })
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof ApiError ? err.message : t('charges.editSentence.errorMessage')
+      addToast({ message, variant: 'error' })
+    },
+  })
+}
+export default useEditSentence

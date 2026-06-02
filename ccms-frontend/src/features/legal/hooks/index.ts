@@ -7,3 +7,7 @@ export { useCreateCharge } from './useCreateCharge'
 export { useUpdateCharge } from './useUpdateCharge'
 export { useDropCharge } from './useDropCharge'
 export { useRecordSentence } from './useRecordSentence'
+export { useEditSentence } from './useEditSentence'
+export { useAppealCharge } from './useAppealCharge'
+export { useBulkDropCharges } from './useBulkDropCharges'
+

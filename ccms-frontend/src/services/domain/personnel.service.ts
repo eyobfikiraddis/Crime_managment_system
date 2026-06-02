@@ -21,6 +21,7 @@ import type {
   OfficerFilters,
   OfficerCaseSummary,
   CreateOfficerPayload,
+  PersonRole,
 } from '@features/personnel/types/personnel.types'
 import type { PaginatedResponse } from '@shared/types/api.types'
 
@@ -186,4 +187,19 @@ function buildOfficerParams(filters: Partial<OfficerFilters>): string {
   if (filters.sortField) p.set('sortField', filters.sortField)
   if (filters.sortDirection) p.set('sortDirection', filters.sortDirection)
   return p.toString()
+}
+
+/**
+ * DELETE /api/v1/personnel/persons/{personId}/roles/{role}
+ * Removes a specific role designation from a person. Admin+ only.
+ * Returns the updated Person.
+ */
+export async function demotePersonRole(
+  personId: string,
+  role: PersonRole,
+): Promise<Person> {
+  const raw = await apiClient.delete(
+    `/api/v1/personnel/persons/${personId}/roles/${role}`,
+  )
+  return personDetailSchema.parse(raw)
 }

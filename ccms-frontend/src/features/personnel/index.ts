@@ -17,6 +17,7 @@ export {
   useDeactivateOfficer,
   useResetOfficerPassword,
   useOfficerCases,
+  useDemotePersonRole,
 } from './hooks'
 
 // Components (export only those consumed outside the module)
@@ -24,6 +25,7 @@ export { PersonsList } from './components/persons/PersonsList'
 export { PersonDetail } from './components/persons/PersonDetail'
 export { OfficersList } from './components/officers/OfficersList'
 export { OfficerDetail } from './components/officers/OfficerDetail'
+export { DemotePersonRoleDialog } from './components/persons/DemotePersonRoleDialog'
 
 // Utils
 export {

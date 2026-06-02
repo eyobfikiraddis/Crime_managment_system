@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { useQueryStates, parseAsString, parseAsArrayOf, parseAsInteger } from 'nuqs'
-import { LayoutGrid, LayoutList, Plus, RotateCcw, X } from 'lucide-react'
+import { LayoutGrid, LayoutList, Plus, RotateCcw, X, Download } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -22,12 +22,16 @@ import { cn } from '@/lib/utils'
 
 import { useEvidenceList } from '../hooks/useEvidenceList'
 import { useEvidenceColumns } from './evidence-columns'
-import { EvidenceGallery } from './EvidenceGallery'
-import { EvidenceLightbox } from './EvidenceLightbox'
+import { LazyEvidenceGallery as EvidenceGallery } from './LazyEvidenceGallery'
+import { LazyLightbox as EvidenceLightbox } from './LazyLightbox'
 import { EvidenceUploadDrawer } from './EvidenceUploadDrawer'
 import { EvidenceDetailDrawer } from './EvidenceDetailDrawer'
 import { RecordCustodyEventDrawer } from './RecordCustodyEventDrawer'
 import { EvidenceType, type EvidenceFilters, type EvidenceListItem } from '../types/evidence.types'
+
+import { BulkActionBar } from '@shared/components/table/BulkActionBar'
+import { useBulkExportEvidence } from '../hooks/useBulkExportEvidence'
+import { useFocusRestore } from '@shared/utils/focusUtils'
 
 interface EvidenceTabProps {
   caseId: string
@@ -40,12 +44,24 @@ export function EvidenceTab({ caseId }: EvidenceTabProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('table')
   const [, startTransition] = useTransition()
 
+  // Selection state
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
+  const selectedIds = useMemo(() => {
+    return Object.keys(rowSelection).filter((id) => rowSelection[id])
+  }, [rowSelection])
+
   // Drawer & modal states
   const [uploadDrawerOpen, setUploadDrawerOpen] = useState(false)
   const [detailEvidenceId, setDetailEvidenceId] = useState<string | null>(null)
   const [custodyEvidenceId, setCustodyEvidenceId] = useState<string | null>(null)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxInitialIndex, setLightboxInitialIndex] = useState(0)
+
+  // Focus restoration hook
+  const { openWithFocusRestore, restoreFocusOnClose } = useFocusRestore()
+
+  // Bulk Export Mutation
+  const exportMutation = useBulkExportEvidence(caseId)
 
   // Officer search filter state
   const [officerSearch, setOfficerSearch] = useState('')
@@ -86,12 +102,16 @@ export function EvidenceTab({ caseId }: EvidenceTabProps) {
 
   // View Details callback
   const handleViewDetails = (id: string) => {
-    setDetailEvidenceId(id)
+    openWithFocusRestore(() => {
+      setDetailEvidenceId(id)
+    })
   }
 
   // Record Custody callback
   const handleRecordCustody = (id: string) => {
-    setCustodyEvidenceId(id)
+    openWithFocusRestore(() => {
+      setCustodyEvidenceId(id)
+    })
   }
 
   const columns = useEvidenceColumns({
@@ -177,15 +197,50 @@ export function EvidenceTab({ caseId }: EvidenceTabProps) {
     if (row.evidenceType === 'CRIME_SCENE_PHOTO') {
       const index = galleryPhotos.findIndex((photo) => photo.id === row.id)
       if (index !== -1) {
-        setLightboxInitialIndex(index)
-        setLightboxOpen(true)
+        openWithFocusRestore(() => {
+          setLightboxInitialIndex(index)
+          setLightboxOpen(true)
+        })
       } else {
-        // Fallback if not found in filtered photos
         handleViewDetails(row.id)
       }
     } else {
       handleViewDetails(row.id)
     }
+  }
+
+  const handleOpenUpload = () => {
+    openWithFocusRestore(() => {
+      setUploadDrawerOpen(true)
+    })
+  }
+
+  const handleCloseUpload = () => {
+    setUploadDrawerOpen(false)
+    restoreFocusOnClose()
+  }
+
+  const handleCloseDetail = () => {
+    setDetailEvidenceId(null)
+    restoreFocusOnClose()
+  }
+
+  const handleCloseCustody = () => {
+    setCustodyEvidenceId(null)
+    restoreFocusOnClose()
+  }
+
+  const handleCloseLightbox = () => {
+    setLightboxOpen(false)
+    restoreFocusOnClose()
+  }
+
+  const handleBulkExport = () => {
+    exportMutation.mutate(selectedIds, {
+      onSuccess: () => {
+        setRowSelection({})
+      },
+    })
   }
 
   return (
@@ -225,7 +280,7 @@ export function EvidenceTab({ caseId }: EvidenceTabProps) {
 
             {/* Add Evidence button */}
             <PermissionGuard permission={Permission.EVIDENCE_MANAGE}>
-              <Button onClick={() => setUploadDrawerOpen(true)}>
+              <Button onClick={handleOpenUpload}>
                 <Plus className="mr-2 size-4" />
                 {t('tab.addEvidence')}
               </Button>
@@ -363,6 +418,22 @@ export function EvidenceTab({ caseId }: EvidenceTabProps) {
 
       {/* Main content body */}
       <div className="space-y-4">
+        {selectedIds.length > 0 && viewMode === 'table' && (
+          <BulkActionBar
+            selectedCount={selectedIds.length}
+            onClearSelection={() => setRowSelection({})}
+            actions={[
+              {
+                label: t('bulk.export.actionLabel'),
+                icon: Download,
+                onClick: handleBulkExport,
+                disabled: exportMutation.isPending,
+                disabledTooltip: t('bulk.export.downloading'),
+              },
+            ]}
+          />
+        )}
+
         {viewMode === 'table' ? (
           <DataTable
             data={data?.data ?? []}
@@ -376,6 +447,9 @@ export function EvidenceTab({ caseId }: EvidenceTabProps) {
             sorting={[{ id: filters.sortField, desc: filters.sortDirection === 'desc' }]}
             onSortingChange={handleSortingChange}
             onRowClick={handleRowClick}
+            enableRowSelection={true}
+            onRowSelectionChange={setRowSelection as any}
+            rowSelection={rowSelection}
             emptyTitle={hasActiveFilters ? t('tab.emptyFiltered') : t('tab.empty')}
             emptyMessage={hasActiveFilters ? '' : t('tab.emptyDescription')}
           />
@@ -383,8 +457,10 @@ export function EvidenceTab({ caseId }: EvidenceTabProps) {
           <EvidenceGallery
             items={galleryPhotos}
             onView={(index) => {
-              setLightboxInitialIndex(index)
-              setLightboxOpen(true)
+              openWithFocusRestore(() => {
+                setLightboxInitialIndex(index)
+                setLightboxOpen(true)
+              })
             }}
             onDetails={handleViewDetails}
           />
@@ -404,7 +480,9 @@ export function EvidenceTab({ caseId }: EvidenceTabProps) {
       {uploadDrawerOpen && (
         <EvidenceUploadDrawer
           open={uploadDrawerOpen}
-          onOpenChange={setUploadDrawerOpen}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) handleCloseUpload()
+          }}
           caseId={caseId}
         />
       )}
@@ -415,14 +493,16 @@ export function EvidenceTab({ caseId }: EvidenceTabProps) {
           evidenceId={detailEvidenceId}
           open={Boolean(detailEvidenceId)}
           onOpenChange={(open) => {
-            if (!open) setDetailEvidenceId(null)
+            if (!open) handleCloseDetail()
           }}
           onRecordCustody={handleRecordCustody}
           onViewImage={(id) => {
             const index = galleryPhotos.findIndex((photo) => photo.id === id)
             if (index !== -1) {
-              setLightboxInitialIndex(index)
-              setLightboxOpen(true)
+              openWithFocusRestore(() => {
+                setLightboxInitialIndex(index)
+                setLightboxOpen(true)
+              })
             }
           }}
         />
@@ -434,7 +514,7 @@ export function EvidenceTab({ caseId }: EvidenceTabProps) {
           evidenceId={custodyEvidenceId}
           open={Boolean(custodyEvidenceId)}
           onOpenChange={(open) => {
-            if (!open) setCustodyEvidenceId(null)
+            if (!open) handleCloseCustody()
           }}
         />
       )}
@@ -445,9 +525,10 @@ export function EvidenceTab({ caseId }: EvidenceTabProps) {
           photos={galleryPhotos}
           initialIndex={lightboxInitialIndex}
           open={lightboxOpen}
-          onClose={() => setLightboxOpen(false)}
+          onClose={handleCloseLightbox}
         />
       )}
     </div>
   )
 }
+export default EvidenceTab

@@ -186,7 +186,16 @@
       "submitButton": "አረጋግጥ — ምስክር አድርግ",
       "cancelButton": "ሰርዝ",
       "successMessage": "ሰው ምስክር ሆኖ ተሰጥቷል።",
-      "errorMessage": "ምስክር ለማድረግ አልተሳካም። እንደገና ይሞክሩ።"
+    },
+    "demoteRole": {
+      "buttonLabel": "ሚና አስወግድ",
+      "dialogTitle": "የ{roleName} ሚና ይወገድ?",
+      "dialogDescription": "{personName} ከእንግዲህ በዚህ ስርዓት ውስጥ እንደ {roleName} አይቆጠርም። ይህ ተግባር በኦዲት ይመዘገባል።",
+      "activeCasesWarning": "ይህ ሰው ከ{count} ንቁ ጉዳይ(ዎች) ጋር እንደ {roleName} ተያይዟል። ይህንን ሚና ማስወገድ ከእነዚያ ጉዳዮች ላይ አያገዳቸውም። የጉዳዩን መሪ በማነጋገር ጉዳዮቹን በእጅዎ ያዘምኑ።",
+      "confirmButton": "የ{roleName} ሚና አስወግድ",
+      "cancelButton": "ሰርዝ",
+      "successMessage": "የ{roleName} ሚና ከ {personName} ላይ በተሳካ ሁኔታ ተወግዷል።",
+      "errorMessage": "ሚናውን ለማስወገድ አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
     }
   },
   "officers": {

@@ -15,6 +15,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Checkbox } from '@/components/ui/checkbox'
+import Image from 'next/image'
 import { StatusBadge } from '@/shared/components/display/StatusBadge'
 import { DestructiveConfirmDialog } from '@/shared/components/modals/DestructiveConfirmDialog'
 import { useAuthStore } from '@/shared/stores/auth.store'
@@ -139,6 +141,43 @@ export function useEvidenceColumns({
   const t = useTranslations('evidence')
 
   return [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      id: 'thumbnail',
+      header: t('tab.columns.thumbnail') ?? 'Preview',
+      cell: ({ row }) => {
+        const item = row.original
+        if (!item.thumbnailUrl) return <span className="text-foreground-muted italic text-xs">—</span>
+        return (
+          <Image
+            src={item.thumbnailUrl}
+            alt={item.description || 'Evidence thumbnail'}
+            width={40}
+            height={40}
+            className="rounded object-cover h-10 w-10"
+            unoptimized={false}
+          />
+        )
+      },
+    },
     {
       accessorKey: 'evidenceNumber',
       header: t('tab.columns.evidenceNumber'),

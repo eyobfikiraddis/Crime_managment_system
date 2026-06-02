@@ -1,5 +1,6 @@
 import axios from 'axios'
-import { apiClient } from '@services/api/client'
+import { apiClient, axiosInstance } from '@services/api/client'
+import { format } from 'date-fns'
 import {
   paginatedEvidenceSchema,
   evidenceDetailSchema,
@@ -131,4 +132,28 @@ function buildEvidenceParams(filters: EvidenceFilters): string {
   if (filters.sortField) params.set('sortField', filters.sortField)
   if (filters.sortDirection) params.set('sortDirection', filters.sortDirection)
   return params.toString()
+}
+
+/**
+ * GET /api/v1/cases/{caseId}/evidence/export?ids={id1,id2,...}&format=csv
+ * Downloads selected evidence metadata as a CSV file.
+ * PII fields are masked for roles below admin.
+ */
+export async function bulkExportEvidence(
+  caseId: string,
+  evidenceIds: string[],
+): Promise<void> {
+  const response = await axiosInstance.get(
+    `/api/v1/cases/${caseId}/evidence/export?ids=${evidenceIds.join(',')}&format=csv`,
+    { responseType: 'blob' },
+  )
+  const blob = response.data as Blob
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = `ccms-evidence-export-${format(new Date(), 'yyyy-MM-dd')}.csv`
+  document.body.appendChild(anchor)
+  anchor.click()
+  document.body.removeChild(anchor)
+  URL.revokeObjectURL(url)
 }

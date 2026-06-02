@@ -177,5 +177,13 @@
   "update": {
     "successMessage": "Evidence updated successfully.",
     "errorMessage": "Failed to update evidence."
+  },
+  "bulk": {
+    "export": {
+      "actionLabel": "Export Selected",
+      "successMessage": "Evidence export downloaded.",
+      "errorMessage": "Failed to export evidence. Please try again.",
+      "downloading": "Downloading..."
+    }
   }
 }

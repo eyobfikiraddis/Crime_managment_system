@@ -2,7 +2,8 @@
 
 import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { CcmsDonutChart, type CcmsDonutDataPoint } from '@/shared/components/charts/CcmsDonutChart'
+import { CcmsDonutChart } from '@/shared/components/charts/LazyCharts'
+import type { CcmsDonutDataPoint } from '@/shared/components/charts/CcmsDonutChart'
 import { CHART_COLORS } from '@/shared/constants/chartColors'
 import { Skeleton } from '@/shared/components/feedback/Skeleton'
 import type { CaseStatusDataPoint } from '../../types/dashboard.types'

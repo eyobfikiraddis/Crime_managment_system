@@ -2,19 +2,24 @@
 
 import { useTranslations } from 'next-intl'
 import { format } from 'date-fns'
-import { Shield, ShieldAlert, ShieldCheck, UserMinus } from 'lucide-react'
+import { Shield, ShieldAlert, ShieldCheck, UserMinus, Trash2 } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { MetadataCard } from '@/shared/components/display/MetadataCard'
 import { StatusBadge } from '@/shared/components/display/StatusBadge'
+import { PermissionGuard } from '@/shared/components/permission/PermissionGuard'
+import { Permission } from '@/shared/constants/permissions'
+import { PersonRole } from '@features/personnel/types/personnel.types'
 import type { Person } from '@features/personnel/types/personnel.types'
 import { RISK_LEVEL_VARIANTS } from '@features/personnel/utils/personnelUtils'
 
 interface PersonRoleCardsProps {
   person: Person
+  onDemote?: (role: PersonRole) => void
 }
 
-export function PersonRoleCards({ person }: PersonRoleCardsProps) {
+export function PersonRoleCards({ person, onDemote }: PersonRoleCardsProps) {
   const t = useTranslations('personnel')
 
   const hasSuspect = person.suspectProfile !== null
@@ -90,7 +95,22 @@ export function PersonRoleCards({ person }: PersonRoleCardsProps) {
               ),
             },
           ]}
-        />
+        >
+          <PermissionGuard permission={Permission.ADMIN_MANAGE}>
+            <div className="mt-3 pt-3 border-t border-border">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2"
+                onClick={() => onDemote?.(PersonRole.SUSPECT)}
+              >
+                <Trash2 className="mr-1.5 h-3 w-3" />
+                {t('persons.demoteRole.buttonLabel')}
+              </Button>
+            </div>
+          </PermissionGuard>
+        </MetadataCard>
       )}
 
       {person.victimProfile && (
@@ -128,7 +148,22 @@ export function PersonRoleCards({ person }: PersonRoleCardsProps) {
               ),
             },
           ]}
-        />
+        >
+          <PermissionGuard permission={Permission.ADMIN_MANAGE}>
+            <div className="mt-3 pt-3 border-t border-border">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2"
+                onClick={() => onDemote?.(PersonRole.VICTIM)}
+              >
+                <Trash2 className="mr-1.5 h-3 w-3" />
+                {t('persons.demoteRole.buttonLabel')}
+              </Button>
+            </div>
+          </PermissionGuard>
+        </MetadataCard>
       )}
 
       {person.witnessProfile && (
@@ -196,8 +231,24 @@ export function PersonRoleCards({ person }: PersonRoleCardsProps) {
               ),
             },
           ]}
-        />
+        >
+          <PermissionGuard permission={Permission.ADMIN_MANAGE}>
+            <div className="mt-3 pt-3 border-t border-border">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2"
+                onClick={() => onDemote?.(PersonRole.WITNESS)}
+              >
+                <Trash2 className="mr-1.5 h-3 w-3" />
+                {t('persons.demoteRole.buttonLabel')}
+              </Button>
+            </div>
+          </PermissionGuard>
+        </MetadataCard>
       )}
     </div>
   )
 }
+export default PersonRoleCards

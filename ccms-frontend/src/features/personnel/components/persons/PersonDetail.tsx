@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 import { usePersonDetail } from '@features/personnel/hooks/usePersonDetail'
+import { usePersonCases } from '@features/personnel/hooks/usePersonCases'
 import { PersonRole } from '@features/personnel/types/personnel.types'
 import { getFullName, hasRole } from '@features/personnel/utils/personnelUtils'
 
@@ -23,10 +24,12 @@ import { PermissionGuard } from '@shared/components/permission/PermissionGuard'
 import { Permission } from '@shared/constants/permissions'
 import { ForbiddenState } from '@shared/components/feedback/ForbiddenState'
 import { PersonAuditDrawer } from '@features/audit/components/PersonAuditDrawer'
+import { useFocusRestore } from '@shared/utils/focusUtils'
 
 import { PersonIdentityCard } from './PersonIdentityCard'
 import { PersonRoleCards } from './PersonRoleCards'
 import { PersonCasesTable } from './PersonCasesTable'
+import { DemotePersonRoleDialog } from './DemotePersonRoleDialog'
 
 import PromoteToSuspectDrawer from './PromoteToSuspectDrawer'
 import PromoteToVictimDrawer from './PromoteToVictimDrawer'
@@ -44,8 +47,14 @@ export function PersonDetail({ personId }: PersonDetailProps) {
   const [promoteToVictimOpen, setPromoteToVictimOpen] = useState(false)
   const [promoteToWitnessOpen, setPromoteToWitnessOpen] = useState(false)
   const [auditOpen, setAuditOpen] = useState(false)
+  
+  const [demoteRole, setDemoteRole] = useState<PersonRole | null>(null)
+  const [demoteOpen, setDemoteOpen] = useState(false)
 
   const { data: person, isLoading, isError } = usePersonDetail(personId)
+  const { data: casesData } = usePersonCases(personId, { page: 1, pageSize: 100 })
+  
+  const { openWithFocusRestore, restoreFocusOnClose } = useFocusRestore()
 
   if (isLoading) {
     return (
@@ -75,7 +84,48 @@ export function PersonDetail({ personId }: PersonDetailProps) {
   const hasVictim = hasRole(person.roles, PersonRole.VICTIM)
   const hasWitness = hasRole(person.roles, PersonRole.WITNESS)
 
-  const hasAllRoles = hasSuspect && hasVictim && hasWitness
+  const activeCasesForRole = demoteRole 
+    ? (casesData?.data.filter(
+        (c) => c.roleOnCase === demoteRole && c.caseStatus !== 'CLOSED' && c.caseStatus !== 'ARCHIVED'
+      ).length ?? 0)
+    : 0
+
+  const handleOpenSuspect = () => openWithFocusRestore(() => setPromoteToSuspectOpen(true))
+  const handleCloseSuspect = () => {
+    setPromoteToSuspectOpen(false)
+    restoreFocusOnClose()
+  }
+
+  const handleOpenVictim = () => openWithFocusRestore(() => setPromoteToVictimOpen(true))
+  const handleCloseVictim = () => {
+    setPromoteToVictimOpen(false)
+    restoreFocusOnClose()
+  }
+
+  const handleOpenWitness = () => openWithFocusRestore(() => setPromoteToWitnessOpen(true))
+  const handleCloseWitness = () => {
+    setPromoteToWitnessOpen(false)
+    restoreFocusOnClose()
+  }
+
+  const handleOpenAudit = () => openWithFocusRestore(() => setAuditOpen(true))
+  const handleCloseAudit = () => {
+    setAuditOpen(false)
+    restoreFocusOnClose()
+  }
+
+  const handleOpenDemote = (role: PersonRole) => {
+    openWithFocusRestore(() => {
+      setDemoteRole(role)
+      setDemoteOpen(true)
+    })
+  }
+
+  const handleCloseDemote = () => {
+    setDemoteOpen(false)
+    setDemoteRole(null)
+    restoreFocusOnClose()
+  }
 
   const dropdownActions = (
     <PermissionGuard permission={Permission.PERSONNEL_MANAGE}>
@@ -87,25 +137,25 @@ export function PersonDetail({ personId }: PersonDetailProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-52">
           {!hasSuspect && (
-            <DropdownMenuItem onClick={() => setPromoteToSuspectOpen(true)}>
+            <DropdownMenuItem onClick={handleOpenSuspect}>
               <UserX className="mr-2 h-4 w-4" />
               {t('persons.detail.actions.promoteToSuspect')}
             </DropdownMenuItem>
           )}
           {!hasVictim && (
-            <DropdownMenuItem onClick={() => setPromoteToVictimOpen(true)}>
+            <DropdownMenuItem onClick={handleOpenVictim}>
               <Heart className="mr-2 h-4 w-4" />
               {t('persons.detail.actions.promoteToVictim')}
             </DropdownMenuItem>
           )}
           {!hasWitness && (
-            <DropdownMenuItem onClick={() => setPromoteToWitnessOpen(true)}>
+            <DropdownMenuItem onClick={handleOpenWitness}>
               <Eye className="mr-2 h-4 w-4" />
               {t('persons.detail.actions.promoteToWitness')}
             </DropdownMenuItem>
           )}
           {(!hasSuspect || !hasVictim || !hasWitness) && <DropdownMenuSeparator />}
-          <DropdownMenuItem onClick={() => setAuditOpen(true)}>
+          <DropdownMenuItem onClick={handleOpenAudit}>
             <ClipboardList className="mr-2 h-4 w-4" />
             {tAudit('personHistory.openButton')}
           </DropdownMenuItem>
@@ -133,7 +183,7 @@ export function PersonDetail({ personId }: PersonDetailProps) {
 
         <PersonIdentityCard person={person} />
 
-        <PersonRoleCards person={person} />
+        <PersonRoleCards person={person} onDemote={handleOpenDemote} />
 
         <PersonCasesTable personId={person.id} />
 
@@ -141,7 +191,7 @@ export function PersonDetail({ personId }: PersonDetailProps) {
           <PromoteToSuspectDrawer
             personId={person.id}
             open={promoteToSuspectOpen}
-            onClose={() => setPromoteToSuspectOpen(false)}
+            onClose={handleCloseSuspect}
           />
         )}
 
@@ -149,7 +199,7 @@ export function PersonDetail({ personId }: PersonDetailProps) {
           <PromoteToVictimDrawer
             personId={person.id}
             open={promoteToVictimOpen}
-            onClose={() => setPromoteToVictimOpen(false)}
+            onClose={handleCloseVictim}
           />
         )}
 
@@ -157,7 +207,7 @@ export function PersonDetail({ personId }: PersonDetailProps) {
           <PromoteToWitnessDrawer
             personId={person.id}
             open={promoteToWitnessOpen}
-            onClose={() => setPromoteToWitnessOpen(false)}
+            onClose={handleCloseWitness}
           />
         )}
 
@@ -165,8 +215,19 @@ export function PersonDetail({ personId }: PersonDetailProps) {
           personId={person.id}
           personName={fullName}
           open={auditOpen}
-          onClose={() => setAuditOpen(false)}
+          onClose={handleCloseAudit}
         />
+
+        {demoteOpen && demoteRole && (
+          <DemotePersonRoleDialog
+            personId={person.id}
+            personName={fullName}
+            role={demoteRole}
+            open={demoteOpen}
+            onClose={handleCloseDemote}
+            activeCaseCount={activeCasesForRole}
+          />
+        )}
       </div>
     </PermissionGuard>
   )

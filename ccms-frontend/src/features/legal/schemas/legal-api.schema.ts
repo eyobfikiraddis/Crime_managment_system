@@ -6,6 +6,7 @@ import {
   HearingType,
   ChargeStatus,
   SentenceType,
+  AppealOutcome,
 } from '../types/legal.types'
 
 // ─── Shared refs ──────────────────────────────────────────────────────────────
@@ -101,4 +102,15 @@ export const paginatedCourtCasesSchema = z.object({
   page: z.number(),
   pageSize: z.number(),
   totalPages: z.number(),
+})
+
+// ─── Appeal Record ────────────────────────────────────────────────────────────
+export const appealRecordSchema = z.object({
+  id: z.string().uuid(),
+  chargeId: z.string().uuid(),
+  filedAt: z.string(),
+  filedByOfficerId: z.string().uuid(),
+  outcome: z.nativeEnum(AppealOutcome),
+  outcomeDate: z.string().nullable(),
+  notes: z.string().nullable(),
 })

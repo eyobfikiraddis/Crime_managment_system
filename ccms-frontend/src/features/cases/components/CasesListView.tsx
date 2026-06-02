@@ -2,9 +2,12 @@
 
 import { useTranslations } from 'next-intl'
 import { useQueryStates, parseAsString, parseAsArrayOf, parseAsInteger } from 'nuqs'
-import { Plus, X, RotateCcw } from 'lucide-react'
+import { Plus, X, RotateCcw, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { BulkActionBar } from '@shared/components/table/BulkActionBar'
+import { BulkStatusUpdateDialog } from './BulkStatusUpdateDialog'
 
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -32,6 +35,9 @@ const STATUSES: CaseStatus[] = ['OPEN', 'UNDER_INVESTIGATION', 'REFERRED_TO_COUR
 export function CasesListView() {
   const t = useTranslations('cases')
   const router = useRouter()
+
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
+  const [bulkStatusOpen, setBulkStatusOpen] = useState(false)
 
   const officer = useAuthStore((state) => state.officer)
   const role = useAuthStore((state) => state.role)
@@ -279,6 +285,21 @@ export function CasesListView() {
       </div>
 
       <div className="space-y-4">
+        {Object.keys(rowSelection).length > 0 && (
+          <BulkActionBar
+            selectedCount={Object.keys(rowSelection).length}
+            onClearSelection={() => setRowSelection({})}
+            actions={[
+              {
+                label: t('bulk.statusUpdate.actionLabel'),
+                icon: RefreshCw,
+                onClick: () => setBulkStatusOpen(true),
+                requiredPermission: Permission.CASES_MANAGE,
+              },
+            ]}
+          />
+        )}
+
         <DataTable
           data={data?.data ?? []}
           columns={columns}
@@ -291,6 +312,9 @@ export function CasesListView() {
           sorting={[{ id: filterState.sortField, desc: filterState.sortDirection === 'desc' }]}
           onSortingChange={handleSortingChange}
           onRowClick={(row: CaseListItem) => router.push(`/cases/${row.id}`)}
+          enableRowSelection={true}
+          onRowSelectionChange={setRowSelection as any}
+          rowSelection={rowSelection}
           emptyTitle={t('list.noResults')}
           emptyMessage={t('list.noResultsDescription')}
         />
@@ -304,6 +328,17 @@ export function CasesListView() {
           />
         )}
       </div>
+
+      {bulkStatusOpen && (
+        <BulkStatusUpdateDialog
+          open={bulkStatusOpen}
+          onClose={() => {
+            setBulkStatusOpen(false)
+            setRowSelection({})
+          }}
+          caseIds={Object.keys(rowSelection).filter(id => rowSelection[id])}
+        />
+      )}
     </div>
   )
 }

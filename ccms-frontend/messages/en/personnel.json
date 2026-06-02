@@ -187,6 +187,16 @@
       "cancelButton": "Cancel",
       "successMessage": "Person designated as Witness successfully.",
       "errorMessage": "Failed to designate as Witness. Please try again."
+    },
+    "demoteRole": {
+      "buttonLabel": "Remove Role",
+      "dialogTitle": "Remove {roleName} Designation?",
+      "dialogDescription": "{personName} will no longer be designated as {roleName} in this system. This action is logged.",
+      "activeCasesWarning": "This person is linked to {count} active case(s) as {roleName}. Removing this role does not unlink them from those cases. Contact the case lead to update case records manually.",
+      "confirmButton": "Remove {roleName} Designation",
+      "cancelButton": "Cancel",
+      "successMessage": "{roleName} designation removed from {personName}.",
+      "errorMessage": "Failed to remove role designation. Please try again."
     }
   },
   "officers": {

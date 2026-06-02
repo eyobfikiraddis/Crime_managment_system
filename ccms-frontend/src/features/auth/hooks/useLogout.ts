@@ -21,6 +21,9 @@ export function useLogout() {
     onSuccess: () => {
       clearSession()
       queryClient.clear()
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('ccms-query-cache')
+      }
       addToast({ message: tAuth('logout.successMessage'), variant: 'success' })
       router.push('/login')
       router.refresh()
@@ -28,6 +31,9 @@ export function useLogout() {
     onError: () => {
       clearSession()
       queryClient.clear()
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('ccms-query-cache')
+      }
       router.push('/login')
       router.refresh()
     },

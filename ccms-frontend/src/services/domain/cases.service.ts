@@ -15,9 +15,12 @@ import type {
   CaseSummary,
   CreateCasePayload,
   StatusTransitionPayload,
+  CaseStatus,
 } from '@features/cases/types/case.types'
 import type { PersonRef } from '@features/arrests/types/arrest.types'
 import type { PaginatedResponse } from '@shared/types/api.types'
+import { bulkOperationResultSchema } from '@shared/schemas/bulk.schema'
+import type { BulkOperationResult } from '@shared/types/bulk.types'
 
 // ─── List ──────────────────────────────────────────────────────────────────
 export async function getCases(
@@ -137,4 +140,19 @@ export async function getCrimeTypes(): Promise<Array<{ id: string; name: string;
 
 export async function getLocations(): Promise<Array<{ id: string; name: string; address?: string }>> {
   return apiClient.get('/api/v1/admin/locations')
+}
+
+/**
+ * PATCH /api/v1/cases/bulk/status
+ * Updates the status of multiple cases in a single atomic operation.
+ * Backend validates each case's current state machine eligibility.
+ * Returns { updated: number, failed: number, errors: string[] }
+ */
+export async function bulkUpdateCaseStatus(payload: {
+  caseIds: string[]
+  status: CaseStatus
+  reason?: string
+}): Promise<BulkOperationResult> {
+  const raw = await apiClient.patch('/api/v1/cases/bulk/status', payload)
+  return bulkOperationResultSchema.parse(raw)
 }

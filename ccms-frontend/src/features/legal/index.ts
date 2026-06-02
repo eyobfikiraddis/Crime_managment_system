@@ -12,11 +12,17 @@ export {
   useUpdateCharge,
   useDropCharge,
   useRecordSentence,
+  useEditSentence,
+  useAppealCharge,
+  useBulkDropCharges,
 } from './hooks'
 
 // Components
 export { LegalTab } from './components/LegalTab'
 export { CourtCasesList } from './components/CourtCasesList'
+export { BulkDropChargesDialog } from './components/BulkDropChargesDialog'
+export { EditSentenceDrawer } from './components/EditSentenceDrawer'
+export { AppealChargeDrawer } from './components/AppealChargeDrawer'
 
 // Utils
 export {

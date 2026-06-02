@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Eye, Info } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/shared/components/display/EmptyState'
@@ -64,11 +65,12 @@ export function EvidenceGallery({ items, onView, onDetails }: EvidenceGalleryPro
               onClick={() => onView(index)}
             >
               {thumbnail ? (
-                <img
+                <Image
                   src={thumbnail}
-                  alt={item.description}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
+                  alt={item.description || 'Crime scene photo'}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 240px"
+                  className="object-cover"
                 />
               ) : null}
 

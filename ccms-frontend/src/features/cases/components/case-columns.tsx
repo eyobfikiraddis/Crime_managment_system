@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Checkbox } from '@/components/ui/checkbox'
 import { StatusBadge } from '@/shared/components/display/StatusBadge'
 import { useUiStore } from '@/shared/stores/ui.store'
 import { useAuthStore } from '@/shared/stores/auth.store'
@@ -116,6 +117,25 @@ export function useCaseColumns(): ColumnDef<CaseListItem>[] {
   const t = useTranslations('cases')
 
   return [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: 'caseNumber',
       header: t('list.columns.caseNumber'),
