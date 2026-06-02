@@ -2,6 +2,7 @@ allowBuilds:
   '@parcel/watcher': false
   '@swc/core': false
   core-js-pure: true
+  esbuild: false
   sharp: true
   unrs-resolver: true
 ignoredBuiltDependencies:
