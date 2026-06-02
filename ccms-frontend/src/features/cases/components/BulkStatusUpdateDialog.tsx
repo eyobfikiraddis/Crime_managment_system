@@ -41,7 +41,7 @@ export function BulkStatusUpdateDialog({ open, onClose, caseIds }: BulkStatusUpd
     if (!isFormValid || !status) return
 
     bulkUpdateMutation.mutate(
-      { caseIds, status, reason: reason || undefined },
+      { caseIds, status, ...(reason ? { reason } : {}) },
       {
         onSuccess: () => {
           setStatus('')

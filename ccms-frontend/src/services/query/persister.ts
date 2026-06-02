@@ -1,4 +1,5 @@
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
+import type { PersistedClient } from '@tanstack/react-query-persist-client'
 
 export const PERSIST_WHITELIST = [
   ['departments'],
@@ -38,13 +39,15 @@ function shouldPersist(queryKey: readonly unknown[]): boolean {
 export const localStoragePersister = createSyncStoragePersister({
   storage: typeof window !== 'undefined' ? window.localStorage : undefined,
   key: 'ccms-query-cache',
-  serialize: (client) => {
+  serialize: (client: PersistedClient) => {
     const filtered = {
       ...client,
-      queries: client.queries.filter((q) =>
-        shouldPersist(q.queryKey as readonly unknown[]),
-      ),
-      mutations: [],
+      clientState: {
+        ...client.clientState,
+        queries: client.clientState.queries.filter((q) =>
+          shouldPersist(q.queryKey as readonly unknown[]),
+        ),
+      },
     }
     return JSON.stringify(filtered)
   },

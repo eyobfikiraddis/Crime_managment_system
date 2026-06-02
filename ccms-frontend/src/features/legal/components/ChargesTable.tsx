@@ -86,6 +86,26 @@ export function ChargesTable({
 
   const [searchValue, setSearchValue] = useState(filters.chargeSearch)
 
+  const queryFilters: ChargeFilters = useMemo(() => {
+    return {
+      search: filters.chargeSearch || undefined,
+      status:
+        filters.chargeStatus.length > 0
+          ? (filters.chargeStatus as ChargeStatus[])
+          : undefined,
+      page: filters.chargePage,
+      pageSize: filters.chargePageSize,
+      sortField: filters.chargeSortField as any,
+      sortDirection: filters.chargeSortDirection as any,
+    }
+  }, [filters])
+
+  const { data, isLoading, isError, refetch } = useChargeList(
+    courtCaseId,
+    caseId,
+    queryFilters,
+  )
+
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
   const [bulkDropOpen, setBulkDropOpen] = useState(false)
   const [appealOpen, setAppealOpen] = useState(false)
@@ -123,26 +143,6 @@ export function ChargesTable({
     }, 300)
     return () => clearTimeout(handle)
   }, [filters.chargeSearch, searchValue, setFilters, startTransition])
-
-  const queryFilters: ChargeFilters = useMemo(() => {
-    return {
-      search: filters.chargeSearch || undefined,
-      status:
-        filters.chargeStatus.length > 0
-          ? (filters.chargeStatus as ChargeStatus[])
-          : undefined,
-      page: filters.chargePage,
-      pageSize: filters.chargePageSize,
-      sortField: filters.chargeSortField as any,
-      sortDirection: filters.chargeSortDirection as any,
-    }
-  }, [filters])
-
-  const { data, isLoading, isError, refetch } = useChargeList(
-    courtCaseId,
-    caseId,
-    queryFilters,
-  )
 
   const hasActiveFilters = Boolean(
     filters.chargeSearch || filters.chargeStatus.length > 0,

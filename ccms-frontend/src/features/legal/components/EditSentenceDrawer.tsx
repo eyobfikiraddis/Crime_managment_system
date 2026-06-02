@@ -38,6 +38,7 @@ interface EditSentenceDrawerProps {
   courtCaseId: string
   caseId: string
   sentence: Sentence | null
+  onSuccess?: () => void
 }
 
 const editSentenceSchema = z
@@ -87,6 +88,7 @@ export function EditSentenceDrawer({
   courtCaseId,
   caseId,
   sentence,
+  onSuccess,
 }: EditSentenceDrawerProps) {
   const t = useTranslations('legal')
   const [discardOpen, setDiscardOpen] = useState(false)
@@ -156,6 +158,7 @@ export function EditSentenceDrawer({
       })
       onOpenChange(false)
       reset()
+      onSuccess?.()
     } catch (err) {
       // Handled by hook notification
     }

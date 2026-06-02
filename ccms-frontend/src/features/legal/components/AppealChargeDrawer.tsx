@@ -74,7 +74,7 @@ export function AppealChargeDrawer({
   const onSubmit = async (values: AppealValues) => {
     try {
       await appealMutation.mutateAsync({
-        notes: values.notes || undefined,
+        ...(values.notes ? { notes: values.notes } : {}),
       })
       onOpenChange(false)
       reset()
@@ -118,8 +118,8 @@ export function AppealChargeDrawer({
             </Button>
             <Button
               type="button"
-              variant="warning"
-              className="bg-warning text-warning-foreground hover:bg-warning/90"
+              variant="outline"
+              className="border-warning text-warning hover:bg-warning/10"
               onClick={form.handleSubmit(onSubmit)}
               disabled={appealMutation.isPending}
             >

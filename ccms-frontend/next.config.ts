@@ -1,10 +1,18 @@
 import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
+import withBundleAnalyzer from '@next/bundle-analyzer'
 
 // Trigger build-time env validation
 import './src/config/env'
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
+
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+  openAnalyzer: false,
+  analyzerMode: 'static',
+  reportFilename: '../analyze/report.html',
+})
 
 const cspHeader = `
   default-src 'self';
@@ -31,6 +39,7 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
+        pathname: '/ccms-evidence/**',
       },
     ],
   },
@@ -68,4 +77,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withNextIntl(nextConfig)
+export default withAnalyzer(withNextIntl(nextConfig))

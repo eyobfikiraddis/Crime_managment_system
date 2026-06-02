@@ -20,6 +20,7 @@
     "test:e2e:ui": "playwright test --ui",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "build:analyze": "ANALYZE=true pnpm build",
     "prepare": "npx playwright install --with-deps"
   },
   "dependencies": {

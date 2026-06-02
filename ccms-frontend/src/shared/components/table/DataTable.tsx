@@ -73,7 +73,7 @@ export function DataTable<TData>({
     state: {
       sorting: sortingState,
       pagination: paginationState,
-      rowSelection,
+      ...(rowSelection !== undefined ? { rowSelection } : {}),
     },
     onSortingChange: (onSortingChange ?? setInternalSorting) as any,
     onPaginationChange: (onPaginationChange ?? setInternalPagination) as any,
