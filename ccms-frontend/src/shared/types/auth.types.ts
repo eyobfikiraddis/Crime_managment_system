@@ -23,7 +23,7 @@ export interface AuthSession {
 }
 
 export interface LoginCredentials {
-  badgeNumber: string
+  nationalId: string
   password: string
 }
 

@@ -23,7 +23,14 @@ export async function login(
 //   if (credentials.rememberMe) {
 //   config.headers = { 'X-Remember-Me': 'true' };
 // }
-  const response = await apiClient.post<AuthSession>('/api/v1/auth/login', credentials, config)
+  const response = await apiClient.post<AuthSession>(
+    '/api/v1/auth/login',
+    {
+      national_id: credentials.nationalId,
+      password: credentials.password,
+    },
+    config,
+  )
   return authSessionSchema.parse(response)
 }
 

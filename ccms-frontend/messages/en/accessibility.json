@@ -3,7 +3,7 @@
     "label": "Change language"
   },
   "auth": {
-    "badgeNumber": "Badge number",
+    "nationalId": "National ID",
     "password": "Password",
     "email": "Email address",
     "newPassword": "New password",

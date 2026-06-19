@@ -7,7 +7,7 @@
     "number": "ቢያንስ አንድ ቁጥር ያካትቱ።",
     "special": "ቢያንስ አንድ ልዩ ቁምፊ ያካትቱ።",
     "passwordMismatch": "የይለፍ ቃሎቹ አይመሳሰሉም።",
-    "badgeNumberFormat": "የባጅ ቁጥር BD-XXXXX መልክ መሆን አለበት።"
+    "maxLength": "ከ {count} ቁምፊዎች መብለጥ የለበትም።"
   },
   "api": {
     "generic": "ያልተጠበቀ ስህተት ተከስቷል። እንደገና ይሞክሩ።",

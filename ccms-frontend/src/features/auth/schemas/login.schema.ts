@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
 export const loginSchema = z.object({
-  badgeNumber: z
+  nationalId: z
     .string()
     .min(1, 'required')
-    .regex(/^BD-\d{5}$/, 'badgeNumberFormat'),
+    .max(100, 'maxLength'),
   password: z.string().min(8, 'minLength'),
 })

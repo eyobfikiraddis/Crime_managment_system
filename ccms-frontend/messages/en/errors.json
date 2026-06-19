@@ -7,7 +7,7 @@
     "number": "Include at least one number.",
     "special": "Include at least one special character.",
     "passwordMismatch": "Passwords do not match.",
-    "badgeNumberFormat": "Badge number must be in the format BD-XXXXX."
+    "maxLength": "Must be at most {count} characters."
   },
   "api": {
     "generic": "An unexpected error occurred. Please try again.",

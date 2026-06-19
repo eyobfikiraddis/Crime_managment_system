@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { AlertCircle, ArrowRight, BadgeCheck, Eye, EyeOff, Loader2, Lock } from 'lucide-react'
+import { AlertCircle, ArrowRight, Eye, EyeOff, IdCard, Loader2, Lock } from 'lucide-react'
 import type { ZodIssue } from 'zod'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -26,7 +26,7 @@ interface LoginFormProps {
 }
 
 type LoginFormState = {
-  badgeNumber: string
+  nationalId: string
   password: string
 }
 
@@ -41,9 +41,9 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
   const { reset: resetLoginMutation } = loginMutation
   const apiError = loginMutation.error instanceof ApiError ? loginMutation.error : null
 
-  const [values, setValues] = useState<LoginFormState>({ badgeNumber: '', password: '' })
+  const [values, setValues] = useState<LoginFormState>({ nationalId: '', password: '' })
   const [touched, setTouched] = useState<Record<keyof LoginFormState, boolean>>({
-    badgeNumber: false,
+    nationalId: false,
     password: false,
   })
   const [errors, setErrors] = useState<LoginFormErrors>({})
@@ -146,8 +146,10 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
         return tErrors('validation.required')
       case 'email':
         return tErrors('validation.email')
-      case 'badgeNumberFormat':
-        return tErrors('validation.badgeNumberFormat')
+      case 'maxLength':
+        return tErrors('validation.maxLength', {
+          count: 'maximum' in issue ? Number(issue.maximum) : 100,
+        })
       case 'uppercase':
         return tErrors('validation.uppercase')
       case 'number':
@@ -192,8 +194,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       resetLoginMutation()
     }
 
-    const nextValue = field === 'badgeNumber' ? value.toUpperCase() : value
-    const nextValues = { ...values, [field]: nextValue }
+    const nextValues = { ...values, [field]: value }
     setValues(nextValues)
 
     if (touched[field]) {
@@ -207,13 +208,13 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
     const nextErrors = validateValues(values)
 
     if (Object.keys(nextErrors).length > 0) {
-      setTouched({ badgeNumber: true, password: true })
+      setTouched({ nationalId: true, password: true })
       setErrors(nextErrors)
       return
     }
 
     loginMutation.mutate({
-      badgeNumber: values.badgeNumber,
+      nationalId: values.nationalId,
       password: values.password,
       rememberMe,
        ...(callbackUrl && { redirectTo: callbackUrl }),
@@ -229,8 +230,8 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
 
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-1">
-          <label htmlFor="badge-number" className="text-sm font-medium">
-            {tAuth('login.badgeNumberLabel')}
+          <label htmlFor="national-id" className="text-sm font-medium">
+            {tAuth('login.nationalIdLabel')}
           </label>
           <InputGroup className="h-10">
             <InputGroupAddon
@@ -240,22 +241,21 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
                 'group-has-[[data-slot][aria-invalid=true]]/input-group:text-destructive',
               )}
             >
-              <BadgeCheck aria-hidden="true" />
+              <IdCard aria-hidden="true" />
             </InputGroupAddon>
             <InputGroupInput
-              id="badge-number"
+              id="national-id"
               autoComplete="username"
-              value={values.badgeNumber}
-              onChange={(event) => handleChange('badgeNumber', event.target.value)}
-              onBlur={() => handleBlur('badgeNumber')}
-              placeholder={tAuth('login.badgeNumberPlaceholder')}
-              aria-label={tA11y('auth.badgeNumber')}
-              aria-invalid={Boolean(errors.badgeNumber)}
+              value={values.nationalId}
+              onChange={(event) => handleChange('nationalId', event.target.value)}
+              onBlur={() => handleBlur('nationalId')}
+              placeholder={tAuth('login.nationalIdPlaceholder')}
+              aria-label={tA11y('auth.nationalId')}
+              aria-invalid={Boolean(errors.nationalId)}
               disabled={isSubmitting}
-              className="uppercase"
             />
           </InputGroup>
-          {errors.badgeNumber && <FieldError message={errors.badgeNumber} />}
+          {errors.nationalId && <FieldError message={errors.nationalId} />}
         </div>
 
         <div className="space-y-1">

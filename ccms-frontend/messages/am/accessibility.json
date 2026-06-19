@@ -3,7 +3,7 @@
     "label": "ቋንቋ ይቀይሩ"
   },
   "auth": {
-    "badgeNumber": "የባጅ ቁጥር",
+    "nationalId": "ብሔራዊ መታወቂያ",
     "password": "የይለፍ ቃል",
     "email": "የኢሜይል አድራሻ",
     "newPassword": "አዲስ የይለፍ ቃል",
