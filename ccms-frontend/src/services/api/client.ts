@@ -6,6 +6,7 @@ import { useAuthStore } from '@/shared/stores/auth.store'
 import { useNotificationStore } from '@/shared/stores/notification.store'
 
 import { ApiError } from './errors'
+import { mapApiResponse } from './mappers'
 import errorsEn from '../../../messages/en/errors.json'
 import errorsAm from '../../../messages/am/errors.json'
 
@@ -218,7 +219,7 @@ const createResponseErrorInterceptor = (instance: typeof apiClient) => {
 }
 
 apiClient.interceptors.response.use(
-  (response) => response.data,
+  (response) => mapApiResponse(response.data, response.config.url || ''),
   createResponseErrorInterceptor(apiClient),
 )
 
