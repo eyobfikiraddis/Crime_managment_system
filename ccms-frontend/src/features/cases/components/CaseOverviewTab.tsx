@@ -4,11 +4,34 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { format, formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
-import { 
-  Building2, Tag, User, Calendar, FileText, CheckCircle, Clock, MapPin, 
-  Files, UserCheck, Scale, ArrowRight, UserPlus, Eye, Shield, 
+import {
+  Building2, Tag, User, Calendar, FileText, CheckCircle, Clock, MapPin,
+  Files, UserCheck, Scale, ArrowRight, UserPlus, Eye, Shield,
   ArrowRightLeft, Upload, UserMinus, Gavel, KeyRound, AlertTriangle
 } from 'lucide-react'
+
+// Safe date formatter to avoid "Invalid time value" errors
+function safeFormat(dateStr: string | null | undefined, dateFormat: string): string {
+  if (!dateStr) return '—'
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return '—'
+    return format(d, dateFormat)
+  } catch {
+    return '—'
+  }
+}
+
+function safeFormatDistance(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—'
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return '—'
+    return formatDistanceToNow(d, { addSuffix: true })
+  } catch {
+    return '—'
+  }
+}
 
 import { useCase } from '../hooks/useCase'
 import { useCaseSummary } from '../hooks/useCaseSummary'
@@ -77,6 +100,7 @@ export function CaseOverviewTab({ caseId }: CaseOverviewTabProps) {
     return <EmptyState title={t('detail.notFound')} />
   }
 
+  console.log("OFFICERS DATA: ", officers)
   const desc = caseDetail.description ?? ''
   const isDescLong = desc.length > 300
   const displayDesc = showFullDesc ? desc : desc.slice(0, 300) + (isDescLong ? '...' : '')
@@ -101,10 +125,10 @@ export function CaseOverviewTab({ caseId }: CaseOverviewTabProps) {
       ),
     },
     { label: t('create.step1.locationLabel'), value: caseDetail.location?.name ?? '—' },
-    { label: t('detail.headerCard.incidentDateLabel'), value: format(new Date(caseDetail.incidentDate), 'dd MMM yyyy') },
-    { label: t('detail.headerCard.reportedDateLabel'), value: format(new Date(caseDetail.reportedDate), 'dd MMM yyyy') },
-    { label: t('detail.headerCard.closedDateLabel'), value: caseDetail.closedDate ? format(new Date(caseDetail.closedDate), 'dd MMM yyyy') : '—' },
-    { label: t('list.columns.lastActivity'), value: formatDistanceToNow(new Date(caseDetail.lastActivityAt), { addSuffix: true }) },
+    { label: t('detail.headerCard.incidentDateLabel'), value: safeFormat(caseDetail.incidentDate, 'dd MMM yyyy') },
+    { label: t('detail.headerCard.reportedDateLabel'), value: safeFormat(caseDetail.reportedDate, 'dd MMM yyyy') },
+    { label: t('detail.headerCard.closedDateLabel'), value: safeFormat(caseDetail.closedDate, 'dd MMM yyyy') },
+    { label: t('list.columns.lastActivity'), value: safeFormatDistance(caseDetail.lastActivityAt) },
   ]
 
   // Summary statistics row data
@@ -195,7 +219,7 @@ export function CaseOverviewTab({ caseId }: CaseOverviewTabProps) {
               </div>
             ) : (
               <div className="divide-y divide-border">
-                {officers.map((member) => {
+                {(officers || []).map((member: any) => {
                   const initials = `${member.officer.firstName?.[0] ?? ''}${member.officer.lastName?.[0] ?? ''}`.toUpperCase()
                   return (
                     <div key={member.officer.id} className="flex items-center justify-between p-4 hover:bg-muted/10 transition">
@@ -222,7 +246,7 @@ export function CaseOverviewTab({ caseId }: CaseOverviewTabProps) {
                           {member.accessLevel}
                         </Badge>
                         <span className="text-xs text-foreground-muted hidden sm:inline">
-                          Assigned {format(new Date(member.assignedAt), 'dd MMM yyyy')}
+                          Assigned {safeFormat(member.assignedAt, 'dd MMM yyyy')}
                         </span>
                       </div>
                     </div>
@@ -262,7 +286,7 @@ export function CaseOverviewTab({ caseId }: CaseOverviewTabProps) {
                       icon={Icon}
                       eventType={t(`timeline.eventTypes.${entry.eventType}`)}
                       actor={`${entry.actor.firstName} ${entry.actor.lastName}`}
-                      timestamp={formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })}
+                      timestamp={safeFormatDistance(entry.createdAt)}
                       description={entry.description}
                     />
                   )

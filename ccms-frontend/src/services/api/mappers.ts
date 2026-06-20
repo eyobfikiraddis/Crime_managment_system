@@ -82,10 +82,16 @@ export function mapApiResponse(data: any, url: string): any {
       camelized = mapSuspectItem(camelized);
     }
   } else if (normalizedUrl.includes('/cases')) {
-    if (Array.isArray(camelized.data)) {
-      camelized.data = camelized.data.map(mapCaseItem);
-    } else {
-      camelized = mapCaseItem(camelized);
+    // Only apply case mapping to /cases (list) and /cases/{id} (detail) endpoints.
+    // Sub-resources like /cases/{id}/officers, /cases/{id}/timeline, /cases/{id}/summary
+    // should NOT be mapped through mapCaseItem.
+    const isCasesEndpoint = /\/cases(?:\/[a-f0-9-]+)?(?:\?|$)/.test(normalizedUrl)
+    if (isCasesEndpoint) {
+      if (Array.isArray(camelized.data)) {
+        camelized.data = camelized.data.map(mapCaseItem);
+      } else {
+        camelized = mapCaseItem(camelized);
+      }
     }
   } else if (normalizedUrl.includes('/departments')) {
     if (Array.isArray(camelized.data)) {

@@ -55,13 +55,14 @@ export async function login(
     config,
   )) as any
 
-  const payload = decodeJwt(response.access_token)
+  const payload = decodeJwt(response.accessToken)
   const role = payload?.role || 'readonly'
 
   const maxAge = rememberMe ? 28800 : 3600
-  setCookie('ccms_access_token', response.access_token, 900)
-  setCookie('ccms_refresh_token', response.refresh_token, 28800)
-  setCookie('ccms_session', response.session_id, maxAge)
+  console.log("response", response)
+  setCookie('ccms_access_token', response.accessToken, 900)
+  setCookie('ccms_refresh_token', response.refreshToken, 28800)
+  setCookie('ccms_session', response.sessionId, maxAge)
   setCookie('ccms_role', role, maxAge)
 
   const sessionResponse = (await apiClient.get('/api/v1/auth/session')) as any

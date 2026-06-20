@@ -106,7 +106,10 @@ export async function addCaseNote(
 
 // ─── Members / Officers ────────────────────────────────────────────────────
 export async function getCaseMembers(caseId: string): Promise<CaseMember[]> {
-  return apiClient.get(`/api/v1/cases/${caseId}/officers`)
+
+  const raw = await apiClient.get(`/api/v1/cases/${caseId}/officers`)
+  return raw as unknown as CaseMember[]
+
 }
 
 // ─── Persons linked to a case (for SearchableSelect in arrest/interrogation forms) ─
