@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { AuditEventType, AuditEventCategory, SecuritySeverity } from '../types/audit.types'
 
 const auditActorSchema = z.object({
-  officerId: z.string().uuid(),
+  officerId: z.string(),
   fullName: z.string(),
   badgeNumber: z.string(),
   departmentName: z.string(),
@@ -25,7 +25,7 @@ const custodyGapSchema = z.object({
 })
 
 export const auditEntrySchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   eventType: z.nativeEnum(AuditEventType),
   category: z.nativeEnum(AuditEventCategory),
   actor: auditActorSchema,
@@ -36,7 +36,7 @@ export const auditEntrySchema = z.object({
   securitySeverity: z.nativeEnum(SecuritySeverity).nullable(),
   custodyGap: custodyGapSchema.nullable(),
   isImmutable: z.boolean(),
-  linkedCaseId: z.string().uuid().nullable(),
+  linkedCaseId: z.string().nullable(),
   linkedCaseNumber: z.string().nullable(),
 })
 

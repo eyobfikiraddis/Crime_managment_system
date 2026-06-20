@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 const officerRefSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   badgeNumber: z.string(),
   firstName: z.string(),
   lastName: z.string(),
@@ -9,16 +9,16 @@ const officerRefSchema = z.object({
 })
 
 const subjectSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
   roleOnCase: z.enum(['SUSPECT', 'VICTIM', 'WITNESS']),
 })
 
 export const interrogationListItemSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   interrogationNumber: z.string(),
-  caseId: z.string().uuid(),
+  caseId: z.string(),
   subject: subjectSchema,
   conductingOfficer: officerRefSchema,
   interrogationDate: z.string(),

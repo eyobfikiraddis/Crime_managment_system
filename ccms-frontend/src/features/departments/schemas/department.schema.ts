@@ -13,7 +13,7 @@ export const createDepartmentSchema = z.object({
       message: 'Code must contain only uppercase letters and digits.',
     })
     .optional(),
-  locationId: z.string().uuid().optional(),
+  locationId: z.string().optional(),
   description: z.string().max(1000).optional(),
 })
 
@@ -30,7 +30,7 @@ export const updateDepartmentSchema = z.object({
     })
     .nullable()
     .optional(),
-  locationId: z.string().uuid().nullable().optional(),
+  locationId: z.string().nullable().optional(),
   description: z.string().max(1000).nullable().optional(),
 })
 

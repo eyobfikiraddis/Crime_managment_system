@@ -11,13 +11,13 @@ const suspectProfileSchema = z.object({
   riskLevel: z.nativeEnum(RiskLevel),
   notes: z.string().nullable(),
   promotedAt: z.string(),
-  promotedByOfficerId: z.string().uuid(),
+  promotedByOfficerId: z.string(),
 })
 
 const victimProfileSchema = z.object({
   notes: z.string().nullable(),
   promotedAt: z.string(),
-  promotedByOfficerId: z.string().uuid(),
+  promotedByOfficerId: z.string(),
 })
 
 const witnessProfileSchema = z.object({
@@ -25,7 +25,7 @@ const witnessProfileSchema = z.object({
   isProtected: z.boolean(),
   protectionLevel: z.string().nullable(),
   promotedAt: z.string(),
-  promotedByOfficerId: z.string().uuid(),
+  promotedByOfficerId: z.string(),
 })
 
 const personPIISchema = z.object({
@@ -35,7 +35,7 @@ const personPIISchema = z.object({
 })
 
 export const personListItemSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
   nationalIdMasked: z.string().nullable(),
@@ -47,7 +47,7 @@ export const personListItemSchema = z.object({
 })
 
 export const personDetailSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
   gender: z.nativeEnum(Gender).nullable(),
@@ -73,7 +73,7 @@ export const paginatedPersonsSchema = z.object({
 })
 
 export const personCaseSummarySchema = z.object({
-  caseId: z.string().uuid(),
+  caseId: z.string(),
   caseNumber: z.string(),
   title: z.string(),
   roleOnCase: z.nativeEnum(PersonRole),
@@ -87,14 +87,14 @@ export const personCasesResponseSchema = z.object({
 })
 
 export const officerListItemSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   badgeNumber: z.string(),
   firstName: z.string(),
   lastName: z.string(),
   email: z.string(),
   role: z.nativeEnum(OfficerRole),
   status: z.nativeEnum(OfficerStatus),
-  departmentId: z.string().uuid(),
+  departmentId: z.string(),
   departmentName: z.string(),
   lastActivityAt: z.string().nullable(),
   createdAt: z.string(),
@@ -115,7 +115,7 @@ export const paginatedOfficersSchema = z.object({
 })
 
 export const officerCaseSummarySchema = z.object({
-  caseId: z.string().uuid(),
+  caseId: z.string(),
   caseNumber: z.string(),
   title: z.string(),
   status: z.string(),

@@ -2,14 +2,14 @@ import { z } from 'zod'
 import { DetentionStatus, BailStatus } from '../types/arrest.types'
 
 const personRefSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
   nationalId: z.string(),
 })
 
 const officerRefSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   badgeNumber: z.string(),
   firstName: z.string(),
   lastName: z.string(),
@@ -17,9 +17,9 @@ const officerRefSchema = z.object({
 })
 
 export const arrestListItemSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   arrestNumber: z.string(),
-  caseId: z.string().uuid(),
+  caseId: z.string(),
   arrestedPerson: personRefSchema,
   arrestingOfficer: officerRefSchema,
   arrestDate: z.string(),

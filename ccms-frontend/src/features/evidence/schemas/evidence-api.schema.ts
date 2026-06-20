@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { CustodyEventType, EvidenceType } from '../types/evidence.types'
 
 const custodyOfficerSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   badgeNumber: z.string(),
   firstName: z.string(),
   lastName: z.string(),
@@ -10,7 +10,7 @@ const custodyOfficerSchema = z.object({
 })
 
 const custodyEventSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   eventType: z.nativeEnum(CustodyEventType),
   fromOfficer: custodyOfficerSchema.nullable(),
   toOfficer: custodyOfficerSchema,
@@ -28,9 +28,9 @@ export const custodyChainSchema = z.object({
 })
 
 export const evidenceListItemSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   evidenceNumber: z.string(),
-  caseId: z.string().uuid(),
+  caseId: z.string(),
   evidenceType: z.nativeEnum(EvidenceType),
   description: z.string(),
   collectedBy: custodyOfficerSchema,
@@ -48,7 +48,7 @@ export const evidenceDetailSchema = evidenceListItemSchema.extend({
   custodyChain: custodyChainSchema,
   forensicReport: z
     .object({
-      id: z.string().uuid(),
+      id: z.string(),
       reportNumber: z.string(),
       submittedBy: custodyOfficerSchema,
       labName: z.string(),

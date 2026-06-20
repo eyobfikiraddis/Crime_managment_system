@@ -11,19 +11,19 @@ import {
 
 // ─── Shared refs ──────────────────────────────────────────────────────────────
 const personRefSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
 })
 
 const crimeTypeRefSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   name: z.string(),
 })
 
 // ─── Sentence ─────────────────────────────────────────────────────────────────
 export const sentenceSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   sentenceType: z.nativeEnum(SentenceType),
   durationMonths: z.number().nullable(),
   fineAmountETB: z.number().nullable(),
@@ -34,7 +34,7 @@ export const sentenceSchema = z.object({
 
 // ─── Hearing Date ─────────────────────────────────────────────────────────────
 export const hearingDateSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   date: z.string(),
   type: z.nativeEnum(HearingType),
   location: z.string(),
@@ -44,9 +44,9 @@ export const hearingDateSchema = z.object({
 
 // ─── Charge List Item ─────────────────────────────────────────────────────────
 export const chargeListItemSchema = z.object({
-  id: z.string().uuid(),
-  courtCaseId: z.string().uuid(),
-  caseId: z.string().uuid(),
+  id: z.string(),
+  courtCaseId: z.string(),
+  caseId: z.string(),
   suspect: personRefSchema,
   crimeType: crimeTypeRefSchema,
   status: z.nativeEnum(ChargeStatus),
@@ -72,9 +72,9 @@ export const paginatedChargesSchema = z.object({
 
 // ─── Court Case Summary ───────────────────────────────────────────────────────
 export const courtCaseSummarySchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   courtCaseNumber: z.string(),
-  investigationCaseId: z.string().uuid(),
+  investigationCaseId: z.string(),
   investigationCaseTitle: z.string(),
   court: z.string(),
   status: z.nativeEnum(CourtCaseStatus),
@@ -106,10 +106,10 @@ export const paginatedCourtCasesSchema = z.object({
 
 // ─── Appeal Record ────────────────────────────────────────────────────────────
 export const appealRecordSchema = z.object({
-  id: z.string().uuid(),
-  chargeId: z.string().uuid(),
+  id: z.string(),
+  chargeId: z.string(),
   filedAt: z.string(),
-  filedByOfficerId: z.string().uuid(),
+  filedByOfficerId: z.string(),
   outcome: z.nativeEnum(AppealOutcome),
   outcomeDate: z.string().nullable(),
   notes: z.string().nullable(),

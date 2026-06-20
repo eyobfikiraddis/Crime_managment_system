@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
@@ -41,6 +41,13 @@ logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    try:
+        from scripts.seed_core_data import seed
+        await seed()
+        logger.info("database_seeding_completed")
+    except Exception as e:
+        logger.error("database_seeding_failed", error=str(e))
+
     await run_startup_checks()
 
     yield

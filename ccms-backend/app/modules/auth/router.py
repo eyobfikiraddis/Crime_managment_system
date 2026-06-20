@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
-from app.modules.auth.dependencies import require_permission
+from app.modules.auth.dependencies import get_current_officer, require_permission
 from app.core.permissions_registry import AUTH_ACTIVITY_PING, AUTH_LOGOUT, AUTH_PASSWORD_CHANGE
 from app.core.rate_limiter import RATE_LIMITS, limiter
 from app.core.token_enforcement import decode_and_validate_access_token
@@ -45,6 +45,56 @@ async def login(
         ip_address=ip,
         user_agent=user_agent,
     )
+
+
+@router.get("/session", response_model=dict, status_code=200)
+async def get_session_info(
+    request: Request,
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict:
+    from app.modules.auth.repository import AuthRepository
+    from app.modules.auth.authorization_service import AuthorizationService
+    from datetime import datetime, timezone
+
+    repo = AuthRepository(session)
+    officer = await repo.get_officer_by_id(current_officer.officer_id)
+    if not officer:
+        raise InvalidTokenError("Not authenticated")
+
+    permissions = AuthorizationService.resolve_permissions_for_role(officer.role.role_name)
+
+    auth_header = request.headers.get("authorization", "")
+    token = auth_header.replace("Bearer ", "").replace("bearer ", "").strip()
+    try:
+        payload = decode_and_validate_access_token(token)
+    except Exception:
+        raise InvalidTokenError("Not authenticated")
+
+    session_id = payload.get("session_id", "")
+    exp = payload.get("exp")
+    expires_at = datetime.fromtimestamp(exp, tz=timezone.utc).isoformat()
+
+    first_name = officer.person.first_name
+    last_name = officer.person.last_name
+    mock_email = f"{first_name.lower()}.{last_name.lower()}@ccms.gov"
+
+    return {
+        "officer": {
+            "id": str(officer.officer_id),
+            "badgeNumber": officer.badge_number or "",
+            "firstName": first_name,
+            "lastName": last_name,
+            "email": mock_email,
+            "role": officer.role.role_name.upper(),
+            "departmentId": str(officer.department_id) if officer.department_id else None,
+            "permissions": sorted(list(permissions)),
+            "isActive": officer.is_active,
+            "lastLoginAt": officer.last_login_at.isoformat() if officer.last_login_at else None,
+        },
+        "sessionId": session_id,
+        "expiresAt": expires_at,
+    }
 
 
 @router.post("/refresh", response_model=AccessTokenResponse, status_code=200)

@@ -56,7 +56,7 @@ export const evidenceVolumeTrendSchema = z.object({
 export const unreviewedEvidenceReportSchema = z.object({
   count: z.number(),
   items: z.array(z.object({
-    id: z.string().uuid(),
+    id: z.string(),
     caseNumber: z.string(),
     caseTitle: z.string(),
     type: z.string(),
@@ -87,7 +87,7 @@ export const arrestMonthlyTrendSchema = z.object({
 // ─── Officer report schemas ────────────────────────────────────────────────────
 export const officerWorkloadReportSchema = z.object({
   officers: z.array(z.object({
-    officerId: z.string().uuid(),
+    officerId: z.string(),
     firstName: z.string(),
     lastName: z.string(),
     badgeNumber: z.string(),
@@ -101,7 +101,7 @@ export const officerWorkloadReportSchema = z.object({
 
 export const officerActivityReportSchema = z.object({
   officers: z.array(z.object({
-    officerId: z.string().uuid(),
+    officerId: z.string(),
     firstName: z.string(),
     lastName: z.string(),
     badgeNumber: z.string(),
@@ -139,7 +139,7 @@ export const convictionRateTrendSchema = z.object({
 
 export const upcomingHearingsReportSchema = z.object({
   hearings: z.array(z.object({
-    courtCaseId: z.string().uuid(),
+    courtCaseId: z.string(),
     caseNumber: z.string(),
     caseTitle: z.string(),
     courtName: z.string(),
@@ -155,7 +155,7 @@ export const upcomingHearingsReportSchema = z.object({
 // ─── Department report schemas (admin+) ───────────────────────────────────────
 export const departmentComparisonReportSchema = z.object({
   departments: z.array(z.object({
-    departmentId: z.string().uuid(),
+    departmentId: z.string(),
     departmentName: z.string(),
     activeCaseCount: z.number(),
     closedCaseCount: z.number(),
@@ -170,7 +170,7 @@ export const departmentComparisonReportSchema = z.object({
 export const departmentCaseDistributionSchema = z.object({
   total: z.number(),
   byDepartment: z.array(z.object({
-    departmentId: z.string().uuid(),
+    departmentId: z.string(),
     departmentName: z.string(),
     count: z.number(),
     percentage: z.number(),

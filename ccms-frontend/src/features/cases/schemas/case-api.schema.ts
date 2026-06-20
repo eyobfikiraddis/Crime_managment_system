@@ -3,17 +3,17 @@ import { CaseStatus, TimelineEventType } from '../types/case.types'
 import { OfficerRole } from '@shared/constants/roles'
 
 export const caseOfficerSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   badgeNumber: z.string(),
   firstName: z.string(),
   lastName: z.string(),
   role: z.nativeEnum(OfficerRole),
-  departmentId: z.string().uuid(),
+  departmentId: z.string(),
   departmentName: z.string(),
 })
 
 export const caseListItemSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   caseNumber: z.string(),
   title: z.string(),
   status: z.nativeEnum(CaseStatus),
@@ -45,7 +45,7 @@ export const caseDetailSchema = caseListItemSchema.extend({
 })
 
 export const timelineEntrySchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   eventType: z.nativeEnum(TimelineEventType),
   eventLabel: z.string(),
   actor: caseOfficerSchema,

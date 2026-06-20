@@ -135,7 +135,7 @@ export function OfficersList() {
   const columns: ColumnDef<OfficerListItem>[] = [
     {
       accessorKey: 'badgeNumber',
-      header: t('officers.list.columns.badge'),
+      header: t('officers.list.columns.badgeNumber'),
       cell: ({ row }) => {
         const o = row.original
         const isInactive = o.status === 'INACTIVE'

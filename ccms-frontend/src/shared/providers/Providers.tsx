@@ -2,6 +2,8 @@
 
 import type { ReactNode } from 'react'
 
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
+
 import { AuthProvider } from './AuthProvider'
 import { ReactQueryProvider } from './ReactQueryProvider'
 import { ThemeProvider } from './ThemeProvider'
@@ -14,7 +16,9 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider>
       <ReactQueryProvider>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <NuqsAdapter>{children}</NuqsAdapter>
+        </AuthProvider>
       </ReactQueryProvider>
     </ThemeProvider>
   )

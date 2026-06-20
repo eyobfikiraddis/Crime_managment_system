@@ -3,7 +3,7 @@ import { CrimeSeverity } from '../types/admin.types'
 
 // ─── Location schemas ─────────────────────────────────────────────────────────
 export const locationSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   name: z.string(),
   region: z.string().nullable(),
   country: z.string(),
@@ -20,7 +20,7 @@ export const paginatedLocationsSchema = z.object({
 
 // ─── Crime Type schemas ───────────────────────────────────────────────────────
 export const crimeTypeSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   name: z.string(),
   code: z.string(),
   category: z.string().nullable(),

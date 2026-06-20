@@ -1,13 +1,13 @@
 import { z } from 'zod'
 
 const locationRefSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   name: z.string(),
   region: z.string().nullable(),
 })
 
 const headOfficerRefSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   badgeNumber: z.string(),
   firstName: z.string(),
   lastName: z.string(),
@@ -17,7 +17,7 @@ const headOfficerRefSchema = z.object({
 
 // ─── Department List Item ─────────────────────────────────────────────────────
 export const departmentListItemSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   name: z.string(),
   code: z.string().nullable(),
   location: locationRefSchema.nullable(),
@@ -44,7 +44,7 @@ export const paginatedDepartmentsSchema = z.object({
 
 // ─── Department Officer Summary ───────────────────────────────────────────────
 export const departmentOfficerSummarySchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   badgeNumber: z.string(),
   firstName: z.string(),
   lastName: z.string(),

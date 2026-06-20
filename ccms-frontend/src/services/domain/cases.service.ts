@@ -119,7 +119,7 @@ export async function getCasePersons(
   if (params.search) p.set('search', params.search)
   const raw = await apiClient.get(`/api/v1/cases/${caseId}/persons?${p.toString()}`)
   const personRefSchema = z.object({
-    id: z.string().uuid(),
+    id: z.string(),
     firstName: z.string(),
     lastName: z.string(),
     nationalId: z.string(),

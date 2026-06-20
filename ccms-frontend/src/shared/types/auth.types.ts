@@ -10,7 +10,7 @@ export interface OfficerProfile {
   lastName: string
   email: string
   role: OfficerRole
-  departmentId: string
+  departmentId?: string | null
   permissions: string[]
   isActive: boolean
   lastLoginAt: string | null

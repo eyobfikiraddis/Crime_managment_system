@@ -16,7 +16,7 @@ export const investigatorDashboardSchema = z.object({
     overdueActionCount: z.number(),
   }),
   recentCases: z.array(z.object({
-    id: z.string().uuid(),
+    id: z.string(),
     caseNumber: z.string(),
     title: z.string(),
     status: z.string(),
@@ -24,8 +24,8 @@ export const investigatorDashboardSchema = z.object({
     lastUpdatedAt: z.string(),
   })),
   recentEvidence: z.array(z.object({
-    id: z.string().uuid(),
-    caseId: z.string().uuid(),
+    id: z.string(),
+    caseId: z.string(),
     caseNumber: z.string(),
     type: z.string(),
     collectedAt: z.string(),
@@ -50,7 +50,7 @@ export const deptHeadDashboardSchema = z.object({
     percentage: z.number(),
   })),
   workloadByOfficer: z.array(z.object({
-    officerId: z.string().uuid(),
+    officerId: z.string(),
     fullName: z.string(),
     badgeNumber: z.string(),
     activeCaseCount: z.number(),
@@ -80,7 +80,7 @@ export const adminDashboardSchema = z.object({
     severity: z.enum(['low', 'medium', 'high']),
   })),
   departmentOverview: z.array(z.object({
-    departmentId: z.string().uuid(),
+    departmentId: z.string(),
     departmentName: z.string(),
     activeCaseCount: z.number(),
     officerCount: z.number(),
@@ -100,7 +100,7 @@ export const legalDashboardSchema = z.object({
     convictionRatePercent: z.number().nullable(),
   }),
   upcomingHearings: z.array(z.object({
-    courtCaseId: z.string().uuid(),
+    courtCaseId: z.string(),
     caseNumber: z.string(),
     caseTitle: z.string(),
     hearingDate: z.string(),
@@ -108,7 +108,7 @@ export const legalDashboardSchema = z.object({
     hearingType: z.string(),
   })),
   recentCharges: z.array(z.object({
-    id: z.string().uuid(),
+    id: z.string(),
     crimeTypeName: z.string(),
     crimeTypeCode: z.string(),
     suspectName: z.string(),

@@ -76,9 +76,31 @@ const createRequestId = () => {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
+export const getCookie = (name: string) => {
+  if (typeof document === 'undefined') return null
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
+  return match && match[1] ? decodeURIComponent(match[1]) : null
+}
+
+export const setCookie = (name: string, value: string, maxAgeSeconds: number) => {
+  if (typeof document === 'undefined') return
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; sameSite=lax;`
+}
+
+export const deleteCookie = (name: string) => {
+  if (typeof document === 'undefined') return
+  document.cookie = `${name}=; path=/; max-age=0; sameSite=lax;`
+}
+
 apiClient.interceptors.request.use((config) => {
   config.headers = config.headers ?? {}
   config.headers['X-Request-ID'] = createRequestId()
+
+  const token = getCookie('ccms_access_token')
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`
+  }
+
   const method = (config.method ?? 'get').toLowerCase()
   if (['post', 'put', 'patch', 'delete'].includes(method)) {
     config.headers['X-Requested-With'] = 'XMLHttpRequest'
@@ -145,11 +167,24 @@ const createResponseErrorInterceptor = (instance: typeof apiClient) => {
       isRefreshing = true
 
       try {
-        await refreshClient.post('/api/v1/auth/refresh')
+        const refreshToken = getCookie('ccms_refresh_token')
+        if (!refreshToken) {
+          throw new Error('No refresh token available')
+        }
+        const refreshResponse = await refreshClient.post<{ access_token: string }>(
+          '/api/v1/auth/refresh',
+          { refresh_token: refreshToken }
+        )
+        setCookie('ccms_access_token', refreshResponse.data.access_token, 900)
+
         processQueue()
         return instance(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError)
+        deleteCookie('ccms_access_token')
+        deleteCookie('ccms_refresh_token')
+        deleteCookie('ccms_session')
+        deleteCookie('ccms_role')
         useAuthStore.getState().clearSession()
         if (typeof window !== 'undefined') {
           window.location.href = '/login'
@@ -200,6 +235,12 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use((config) => {
   config.headers = config.headers ?? {}
   config.headers['X-Request-ID'] = createRequestId()
+
+  const token = getCookie('ccms_access_token')
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`
+  }
+
   const method = (config.method ?? 'get').toLowerCase()
   if (['post', 'put', 'patch', 'delete'].includes(method)) {
     config.headers['X-Requested-With'] = 'XMLHttpRequest'
