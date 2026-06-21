@@ -45,6 +45,21 @@ class SentenceResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class SuspectBriefResponse(BaseModel):
+    suspect_id: int
+    first_name: str | None = None
+    last_name: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CrimeTypeBriefResponse(BaseModel):
+    crime_type_id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ChargeResponse(BaseModel):
     charge_id: int
     case_id: int
@@ -57,6 +72,8 @@ class ChargeResponse(BaseModel):
     created_at: datetime
     updated_at: datetime | None
     sentence: SentenceResponse | None = None
+    suspect: SuspectBriefResponse | None = None
+    crime_type: CrimeTypeBriefResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -74,6 +91,7 @@ class CourtCaseResponse(BaseModel):
     closed_at: datetime | None
     created_at: datetime
     updated_at: datetime | None
+    status: str
     charges: list[ChargeResponse] = []
 
     model_config = ConfigDict(from_attributes=True)

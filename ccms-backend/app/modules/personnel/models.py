@@ -57,6 +57,14 @@ class Suspect(Base):
 
     person: Mapped[Person] = relationship("Person", backref="suspect_profiles")
 
+    @property
+    def first_name(self) -> str | None:
+        return self.person.first_name if self.person else None
+
+    @property
+    def last_name(self) -> str | None:
+        return self.person.last_name if self.person else None
+
 
 class Victim(Base):
     __tablename__ = "victim"

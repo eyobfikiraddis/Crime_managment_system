@@ -35,7 +35,7 @@ export async function getCourtCases(
   filters: CourtCaseFilters,
 ): Promise<PaginatedResponse<CourtCaseSummary>> {
   const params = buildCourtCaseParams(filters)
-  const raw = await apiClient.get(`/api/v1/court-cases?${params}`)
+  const raw = await apiClient.get(`/api/v1/court-case?${params}`)
   return paginatedCourtCasesSchema.parse(raw)
 }
 
@@ -92,7 +92,7 @@ export async function getCharges(
 ): Promise<PaginatedResponse<ChargeListItem>> {
   const params = buildChargeParams(filters)
   const raw = await apiClient.get(
-    `/api/v1/court-cases/${courtCaseId}/charges?${params}`,
+    `/api/v1/court-case/${courtCaseId}/charges?${params}`,
   )
   return paginatedChargesSchema.parse(raw)
 }

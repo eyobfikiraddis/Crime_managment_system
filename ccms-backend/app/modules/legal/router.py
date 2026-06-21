@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
@@ -16,9 +16,10 @@ from app.modules.legal.schemas.schemas import (
     SentenceResponse,
 )
 from app.modules.legal.service import LegalService
+from app.shared.pagination import PaginatedResponse
 
 court_cases_router = APIRouter(prefix="/cases/{case_id}", tags=["Legal"])
-charges_router = APIRouter(prefix="/cases/{case_id}", tags=["Legal"])
+court_case_list_router = APIRouter(prefix="/court-case", tags=["Legal"])
 court_case_patch_router = APIRouter(prefix="/court-cases", tags=["Legal"])
 standalone_charges_router = APIRouter(prefix="/charges", tags=["Legal"])
 
@@ -130,3 +131,99 @@ async def get_sentence(
 ) -> SentenceResponse:
     service = LegalService(session)
     return await service.get_sentence(charge_id, current_officer)
+
+
+@court_case_list_router.get(
+    "",
+    response_model=PaginatedResponse[CourtCaseResponse],
+    status_code=200,
+    summary="List and search court cases with pagination",
+)
+async def list_court_cases(
+    search: str | None = Query(default=None),
+    status: str | None = Query(default=None),
+    dateFrom: str | None = Query(default=None),
+    dateTo: str | None = Query(default=None),
+    page: int = Query(default=1, ge=1),
+    pageSize: int = Query(default=20, ge=1, le=100),
+    sortField: str = Query(default="filedAt"),
+    sortDirection: str = Query(default="desc"),
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> PaginatedResponse[CourtCaseResponse]:
+    from datetime import datetime
+    date_from_val = None
+    date_to_val = None
+    if dateFrom:
+        try:
+            date_from_val = datetime.strptime(dateFrom, "%Y-%m-%d").date()
+        except ValueError:
+            pass
+    if dateTo:
+        try:
+            date_to_val = datetime.strptime(dateTo, "%Y-%m-%d").date()
+        except ValueError:
+            pass
+
+    status_list = None
+    if status:
+        status_list = [s.strip() for s in status.split(",") if s.strip()]
+
+    service = LegalService(session)
+    court_cases, total = await service.list_court_cases(
+        requester=current_officer,
+        search=search,
+        status=status_list,
+        date_from=date_from_val,
+        date_to=date_to_val,
+        page=page,
+        size=pageSize,
+        sort_field=sortField,
+        sort_direction=sortDirection,
+    )
+    return PaginatedResponse(
+        items=court_cases,
+        total=total,
+        page=page,
+        size=pageSize,
+    )
+
+
+@court_case_list_router.get(
+    "/{court_case_id}/charges",
+    response_model=PaginatedResponse[ChargeResponse],
+    status_code=200,
+    summary="List charges associated with a specific court case",
+)
+async def list_court_case_charges(
+    court_case_id: int,
+    search: str | None = Query(default=None),
+    status: str | None = Query(default=None),
+    page: int = Query(default=1, ge=1),
+    pageSize: int = Query(default=20, ge=1, le=100),
+    sortField: str = Query(default="filedAt"),
+    sortDirection: str = Query(default="desc"),
+    current_officer: CurrentOfficerContext = Depends(get_current_officer),
+    session: AsyncSession = Depends(get_db_session),
+) -> PaginatedResponse[ChargeResponse]:
+    status_list = None
+    if status:
+        status_list = [s.strip() for s in status.split(",") if s.strip()]
+
+    service = LegalService(session)
+    charges, total = await service.list_court_case_charges(
+        requester=current_officer,
+        court_case_id=court_case_id,
+        search=search,
+        status=status_list,
+        page=page,
+        size=pageSize,
+        sort_field=sortField,
+        sort_direction=sortDirection,
+    )
+    return PaginatedResponse(
+        items=charges,
+        total=total,
+        page=page,
+        size=pageSize,
+    )

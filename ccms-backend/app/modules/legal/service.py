@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+from app.modules.case_management.models import CourtCase
+from datetime import date_type
+from typing import Optional
+
+
 from datetime import datetime, timezone
 import os
 
@@ -15,6 +20,8 @@ from app.modules.personnel.repository import CiviliansRepository
 from app.modules.legal.repository import LegalRepository
 from app.shared.enums import ChargeStatusEnum, RoleNameEnum, VerdictEnum
 from app.shared.pagination import PaginatedResponse
+from app.modules.case_management.models import Charge
+
 
 VALID_VERDICTS = {v.value for v in VerdictEnum}
 TERMINAL_VERDICTS = {
@@ -492,3 +499,69 @@ class LegalService:
         for charge in charges:
             if hasattr(charge, "sentence_record"):
                 charge.sentence = charge.sentence_record
+
+    async def list_court_cases(
+        self,
+        requester,
+        search: Optional[str] = None,
+        status: Optional[list[str]] = None,
+        date_from: Optional[date_type] = None,
+        date_to: Optional[date_type] = None,
+        page: int = 1,
+        size: int = 25,
+        sort_field: str = "filedAt",
+        sort_direction: str = "desc",
+    ) -> tuple[list[CourtCase], int]:
+        court_cases, total = await self.legal_repo.list_court_cases(
+            officer=requester,
+            search=search,
+            status=status,
+            date_from=date_from,
+            date_to=date_to,
+            page=page,
+            size=size,
+            sort_field=sort_field,
+            sort_direction=sort_direction,
+        )
+        for cc in court_cases:
+            self._attach_sentences(cc.charges)
+        return court_cases, total
+
+    async def list_court_case_charges(
+        self,
+        requester,
+        court_case_id: int,
+        search: Optional[str] = None,
+        status: Optional[list[str]] = None,
+        page: int = 1,
+        size: int = 25,
+        sort_field: str = "filedAt",
+        sort_direction: str = "desc",
+    ) -> tuple[list[Charge], int]:
+        court_case = await self.legal_repo.get_court_case_by_id(court_case_id)
+        if not court_case:
+            raise NotFoundError("Court case not found")
+
+        case = await self.case_repo.get_by_id(court_case.case_id)
+        if not case:
+            raise CaseNotFoundError()
+
+        if requester.role_name not in (
+            RoleNameEnum.legal_officer.value,
+            RoleNameEnum.admin.value,
+            RoleNameEnum.superadmin.value,
+        ):
+            if not await check_case_access(self.session, requester, case, "read"):
+                raise CaseAccessDeniedError()
+
+        charges, total = await self.legal_repo.list_charges_by_court_case(
+            court_case_id=court_case_id,
+            search=search,
+            statuses=status,
+            page=page,
+            size=size,
+            sort_field=sort_field,
+            sort_direction=sort_direction,
+        )
+        self._attach_sentences(charges)
+        return charges, total

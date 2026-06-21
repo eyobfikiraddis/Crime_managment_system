@@ -487,6 +487,17 @@ class CourtCase(Base, AuditMixin):
         "Charge", back_populates="court_case", foreign_keys="Charge.court_case_id"
     )
 
+    @property
+    def status(self) -> str:
+        from app.shared.enums import VerdictEnum
+        if self.closed_at is not None:
+            if self.verdict == VerdictEnum.dismissed:
+                return "DISMISSED"
+            return "CONCLUDED"
+        elif self.hearing_date is not None:
+            return "ACTIVE"
+        return "PENDING"
+
 
 class Sentence(Base, AuditMixin):
     __tablename__ = "sentence"

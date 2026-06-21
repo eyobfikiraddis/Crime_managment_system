@@ -29,7 +29,7 @@ from app.modules.personnel.router import router as personnel_router
 from app.modules.reporting.router import router as reporting_router
 from app.modules.legal.router import (
     court_cases_router,
-    charges_router,
+    court_case_list_router,
     court_case_patch_router,
     standalone_charges_router,
 )
@@ -155,6 +155,6 @@ app.include_router(evidence_router, prefix="/api/v1")
 app.include_router(interrogation_router, prefix="/api/v1")
 app.include_router(reporting_router, prefix="/api/v1")
 app.include_router(court_cases_router, prefix="/api/v1")
-app.include_router(charges_router, prefix="/api/v1")
+app.include_router(court_case_list_router, prefix="/api/v1")
 app.include_router(court_case_patch_router, prefix="/api/v1")
 app.include_router(standalone_charges_router, prefix="/api/v1")
